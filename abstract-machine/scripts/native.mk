@@ -12,13 +12,17 @@ AM_SRCS := native/trm.c \
            native/ioe/audio.c \
            native/ioe/disk.c \
 
-CFLAGS  += -fpie $(shell sdl2-config --cflags)
+CFLAGS  += -fpie
 ASFLAGS += -fpie -pie
 comma = ,
-LDFLAGS_CXX = $(addprefix -Wl$(comma), $(LDFLAGS)) -pie -ldl $(shell sdl2-config --libs)
+LDFLAGS_CXX = $(addprefix -Wl$(comma), $(LDFLAGS))
+
+image:
+	@echo + LD "->" $(IMAGE_REL)
+	@g++ -pie -o $(IMAGE) -Wl,--whole-archive $(LINKAGE) -Wl,-no-whole-archive $(LDFLAGS_CXX) -lSDL2 -ldl
 
 run: image
-	$(IMAGE).elf
+	$(IMAGE)
 
 gdb: image
-	gdb -ex "handle SIGUSR1 SIGUSR2 SIGSEGV noprint nostop" $(IMAGE).elf
+	gdb -ex "handle SIGUSR1 SIGUSR2 SIGSEGV noprint nostop" $(IMAGE)

@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -18,16 +18,48 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
+#define R 32
+/*
+#define MEM_SIZE 67108864
+#define MBASE 0x80000000
+
+extern uint32_t memory[MEM_SIZE];
+*/
+
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  assert(0);
+	if(addr != 0){
+		if( direction == DIFFTEST_TO_REF) {
+			memcpy(guest_to_host(addr), buf, n);
+		} else {
+			assert(0);
+		}
+	}
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
+	CPU_state *diff_dut = (CPU_state *)dut;
+	if(direction == DIFFTEST_TO_REF){
+			memcpy(&cpu.gpr ,diff_dut->gpr, R * sizeof(cpu.gpr[0]));
+		/*
+		for(int i = 0; i < R; i++){
+			cpu.gpr[i] = diff_dut->gpr[i];
+		}
+		*/
+	} 
+	else {
+		memcpy(diff_dut->gpr, &cpu.gpr, R * sizeof(cpu.gpr[0]));
+		/*
+		for(int i = 0; i < R; i++){
+			diff_dut->gpr[i] = cpu.gpr[i];
+		}
+		*/
+	}
 }
 
-__EXPORT void difftest_exec(uint64_t n) {
-  assert(0);
+__EXPORT void difftest_exec(CPU_state *ref) {
+	cpu.pc = ref->pc;
+	cpu_exec(1);
+	ref->pc = cpu.pc;
 }
 
 __EXPORT void difftest_raise_intr(word_t NO) {
