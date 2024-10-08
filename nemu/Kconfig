@@ -124,7 +124,6 @@ config CC_ASAN
   default n
 endmenu
 
-
 menu "Testing and Debugging"
 
 
@@ -145,46 +144,13 @@ config TRACE_END
 config ITRACE
   depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
   bool "Enable instruction tracer"
-  default n
+  default y
 
 config ITRACE_COND
   depends on ITRACE
   string "Only trace instructions when the condition is true"
   default "true"
 
-config MTRACE
-  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction mtracer"
-	default n
-
-config DTRACE
-  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction dtracer"
-	default n
-
-config FTRACE
-  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction ftracer"
-	default n
-
-config ETRACE
-  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction etracer"
-	default n
-
-config RTRACE
-  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction rtracer"
-	default n
-
-config WATCHPOINT
-	depends on TRACE
-	bool "Enable watchpoint"
-	default n
-
-config CTE
-  bool "Enable cte"
-  default y
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

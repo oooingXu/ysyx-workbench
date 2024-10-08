@@ -7,20 +7,26 @@ class Result extends Bundle{
    val result   = Output(UInt(32.W))
    val dnpc     = Output(UInt(32.W))
    val src2     = Output(UInt(32.W))
+   val Csr      = Output(UInt(32.W))
+   val csr      = Output(UInt(12.W))
    val MemNum   = Output(UInt(3.W))
    val RegNum   = Output(UInt(3.W))
    val rd       = Output(UInt(5.W))
    val MemtoReg = Output(Bool())
    val MemWr    = Output(Bool())
    val RegWr    = Output(Bool())
+   val CsrWr    = Output(Bool())
 }
 
 class EXU extends Module{
   val io = IO(new Bundle{
+    val pc   = Output(UInt(32.W))
     val dnpc = Output(UInt(32.W))
     val in  = Flipped(Decoupled(new Imm))
     val out = Decoupled(new Result)
     val reset = Input(Bool())
+    val mepc = Input(UInt(32.W))
+    val mtvec = Input(UInt(32.W))
   })
 
   val ina   = Wire(UInt(32.W))
@@ -43,7 +49,7 @@ class EXU extends Module{
   ))
 
   io.out.valid := (state === e_wait_ready)
-  io.out.ready := (state === e_idle)
+  io.in.ready := (state === e_idle)
 
   rs1  := Mux(io.in.bits.Recsr, ~io.in.bits.src1, io.in.bits.src1)
   zimm := Mux(io.in.bits.Recsr, ~io.in.bits.zimm, io.in.bits.zimm)
@@ -71,6 +77,9 @@ class EXU extends Module{
   io.out.bits.RegNum   := io.in.bits.RegNum
   io.out.bits.MemWr    := io.in.bits.MemWr
   io.out.bits.RegWr    := io.in.bits.RegWr
+  io.out.bits.CsrWr    := io.in.bits.CsrWr
+  io.out.bits.Csr      := io.in.bits.Csr  
+  io.out.bits.csr      := io.in.bits.csr  
   io.out.bits.src2     := io.in.bits.src2
   io.out.bits.rd       := io.in.bits.rd
 
@@ -95,10 +104,10 @@ class EXU extends Module{
 
   io.out.bits.dnpc := Mux(io.reset, pc,
                       Mux(io.in.bits.halt,  io.in.bits.pc, 
-                      Mux(~(io.out.valid ^ io.out.bits.MemtoReg), io.in.bits.pc,
-                      Mux(io.in.bits.ecall, io.in.bits.mtvec, 
-                      Mux(io.in.bits.mret,  io.in.bits.mepc, pcadd)))))
+                      Mux(io.in.bits.ecall, io.mtvec, 
+                      Mux(io.in.bits.mret,  io.mepc, pcadd))))
 
+  io.pc := io.in.bits.pc
   io.dnpc := io.out.bits.dnpc
 }
 

@@ -2,28 +2,26 @@ package npc
 
 import chisel3._
 import chisel3.util._
-import chisel3.util.HasBlackBoxInline
 
 class Inst extends Bundle {
   val inst = Output(UInt(32.W))
   val pc   = Output(UInt(32.W))
 }
 
-class IFU extends BlackBox with HasBlackBoxInline{
+class IFU extends Module{
   val io = IO(new Bundle{
     val clock    = Input(Clock())
-    val halt     = Input(Bool())
     val reset    = Input(Bool())
+    val halt     = Input(Bool())
     val out      = Decoupled(new Inst)
     val in       = Flipped(Decoupled(new DATAOut))
+    val inst     = Output(UInt(32.W))
   })
 
   val f_idle :: f_wait_ready :: Nil = Enum(2)
-  val state = RegInit(f_idle)
 
-  val pc = RegInit("h80000000".U(32.W))
-  val inst = Reg(UInt(32.W))
-  val Maddr = (io.reset, pc, io.in.bits.dnpc)
+  def npc = "h80000000".U
+  val state = RegInit(f_idle)
 
   state := MuxLookup(state, f_idle)(List(
     f_idle       -> Mux(io.out.valid, f_wait_ready, f_idle),
@@ -31,28 +29,18 @@ class IFU extends BlackBox with HasBlackBoxInline{
   ))
 
   io.out.valid := (state === f_wait_ready)
-  io.out.ready := (state === f_idle)
+  io.in.ready := (state === f_idle)
 
-  io.out.bits.inst := inst
+  val nifu = Module(new nIFU)
+  nifu.io.clock := io.clock
+  nifu.io.reset := io.reset
+  nifu.io.halt  := io.halt
+  nifu.io.Maddr := Mux(io.reset, npc, io.in.bits.dnpc)
 
-  setInline(
-    "ifu.sv",
-    """import "DPI-C" function int pmem_read(input int Maddr);
-    | module IFU(
-    |   input halt,
-    |   input clock,
-    |   input [31:0] Maddr,
-    |   output reg [31:0] inst
-    | );
-    |
-    | always@(posedge clock) begin
-    |   if(!halt) begin
-    |     inst <= pmem_read(Maddr);
-    |   end else begin
-    |     inst <= inst;
-    |   end
-    | end
-    |
-    | endmodule
-  """.stripMargin)
+  io.out.bits.inst := nifu.io.inst
+  io.out.bits.pc := Mux(io.reset, npc, io.in.bits.dnpc)
+
+  io.inst := nifu.io.inst
+
 }
+

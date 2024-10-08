@@ -3,15 +3,14 @@
 # Add necessary options if the target is a shared library
 ifeq ($(SHARE),1)
 SO = -so
-PROJECT = $(NEMU_HOME)/src/monitor/sdb
-CFLAGS  += -fPIC -fvisibility=hidden -I$(PROJECT)
+CFLAGS  += -fPIC -fvisibility=hidden
 LDFLAGS += -shared -fPIC
 endif
 
 WORK_DIR  = $(shell pwd)
 BUILD_DIR = $(WORK_DIR)/build
 
-INC_PATH := $(WORK_DIR)/include $(INC_PATH) $(NEMU_HOME)/src $(NEMU_HOME)/include
+INC_PATH := $(WORK_DIR)/include $(INC_PATH)
 OBJ_DIR  = $(BUILD_DIR)/obj-$(NAME)$(SO)
 BINARY   = $(BUILD_DIR)/$(NAME)$(SO)
 
@@ -33,7 +32,6 @@ $(OBJ_DIR)/%.o: %.c
 	@echo + CC $<
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c -o $@ $<
-	@$(CC) $(CFLAGS) -E -MF /dev/null $< | clang-format > $@.i
 	$(call call_fixdep, $(@:.o=.d), $@)
 
 $(OBJ_DIR)/%.o: %.cc
@@ -46,13 +44,8 @@ $(OBJ_DIR)/%.o: %.cc
 -include $(OBJS:.o=.d)
 
 # Some convenient rules
-counts:
-	find -name "*.c" -o -name "*.h" | xargs cat | wc -l
 
-countns:
-	find -name "*.c" -o -name "*.h" | xargs cat | grep -v '^$$' | wc -l
-
-.PHONY: app clean counts countns
+.PHONY: app clean
 
 app: $(BINARY)
 

@@ -12,8 +12,7 @@ class Imm extends Bundle{
  val pc       = Output(UInt(32.W))
  val imm      = Output(UInt(32.W))
  val zimm     = Output(UInt(32.W))
- val mepc     = Output(UInt(32.W))
- val mtvec    = Output(UInt(32.W))
+ val csr      = Output(UInt(12.W))
  val Csr      = Output(UInt(32.W))
  val PcMux    = Output(UInt(2.W))
  val AluMux   = Output(UInt(3.W))
@@ -37,8 +36,10 @@ class IDU extends Module{
     val out      = Decoupled(new Imm)
     val src1     = Input(UInt(32.W))
     val src2     = Input(UInt(32.W))
+    val Csr      = Input(UInt(32.W))
     val rs1      = Output(UInt(5.W))
     val rs2      = Output(UInt(5.W))
+    val csr      = Output(UInt(12.W))
     val halt     = Output(Bool())
 	})
 
@@ -240,7 +241,7 @@ class IDU extends Module{
   ))
 
   io.out.valid := (state === d_wait_ready)
-  io.out.ready := (state === d_idle)
+  io.in.ready := (state === d_idle)
 
   val imm      = Wire(UInt(32.W))
   val instType = Wire(UInt(4.W))
@@ -273,8 +274,8 @@ class IDU extends Module{
   io.out.bits.Branch   := decoder(io.in.bits.inst, Branch)
   io.out.bits.PcMux    := decoder(opcode, PcMux)
   io.out.bits.MemWr    := decoder(opcode, MemWr)
-  io.out.bits.RegWr    := decoder(opcode, RegWr)
   io.out.bits.MemtoReg := decoder(opcode, MemtoReg)
+  io.out.bits.RegWr    := decoder(opcode, RegWr) | decoder(Cat(func3, opcode), CsrWr)
   io.out.bits.CsrWr    := decoder(Cat(func3, opcode), CsrWr)
   io.out.bits.Recsr    := decoder(Cat(func3, opcode), Recsr)
   io.out.bits.MemNum   := decoder(Cat(func3, opcode), MemNum)
@@ -302,6 +303,8 @@ class IDU extends Module{
   val immS  = Cat(Fill(20, immS12(11)), immS12)
   val immB  = Cat(Fill(19, immB13(12)), immB13)
   val immJ  = Cat(Fill(11, immJ21(20)), immJ21)
+
+  io.csr := csr
   
   imm := Mux(instType === "b000".U, immI,
          Mux(instType === "b001".U, immS,
@@ -310,6 +313,9 @@ class IDU extends Module{
          Mux(instType === "b100".U, immJ, 0.U(32.W))))))
   
   io.out.bits.imm := Mux(immNum, Cat(Fill(27, imm(4)), imm(4, 0)), imm)
+  io.out.bits.pc  := io.in.bits.pc
+  io.out.bits.Csr := io.Csr
+  io.out.bits.csr := csr
 }
 
 /*

@@ -2,27 +2,25 @@ package npc
 
 import chisel3._
 import chisel3.util._
-import chisel3.util.HasBlackBoxInline
 
 class MyData extends Bundle{
   val DataOut  = Output(UInt(32.W))
+  val result   = Output(UInt(32.W))
   val dnpc     = Output(UInt(32.W))
+  val csr      = Output(UInt(12.W))
+  val Csr      = Output(UInt(32.W))
   val rd       = Output(UInt(5.W))
   val RegNum   = Output(UInt(3.W))
+  val CsrWr    = Output(Bool())
   val RegWr    = Output(Bool())
 }
 
-class LSU extends BlackBox with HasBlackBoxInline{
+class LSU extends Module{
   val io = IO(new Bundle{
     val clock    = Input(Clock())
     val out      = Decoupled(new MyData)
     val in       = Flipped(Decoupled(new Result))
   })
-
-  val DataOut  = Wire(UInt(32.W))
-  val wmask    = Wire(UInt(32.W))
-  val DataIn   = Wire(UInt(32.W))
-  val MemtoReg = Wire(Bool())
 
   val l_idle :: l_wait_ready :: Nil = Enum(2)
   val state = RegInit(l_idle)
@@ -33,44 +31,25 @@ class LSU extends BlackBox with HasBlackBoxInline{
   ))
 
   io.out.valid := (state === l_wait_ready)
-  io.out.ready := (state === l_idle)
+  io.in.ready := (state === l_idle)
 
-  io.out.bits.DataOut  := DataOut
-  io.out.bits.RegNum   := io.in.bits.RegNum  
-  io.out.bits.RegWr    := io.in.bits.RegWr   
-  io.out.bits.rd       := io.in.bits.rd
+  io.out.bits.result   := io.in.bits.result    
   io.out.bits.dnpc     := io.in.bits.dnpc    
+  io.out.bits.csr      := io.in.bits.csr
+  io.out.bits.Csr      := io.in.bits.Csr
+  io.out.bits.rd       := io.in.bits.rd
+  io.out.bits.RegNum   := io.in.bits.RegNum  
+  io.out.bits.CsrWr    := io.in.bits.CsrWr
+  io.out.bits.RegWr    := io.in.bits.RegWr   
 
-  MemtoReg := io.in.bits.MemtoReg
-  wmask    := io.in.bits.MemNum
-  DataIn   := io.in.bits.result
-
-  setInline(
-    "memory.sv",
-    """import "DPI-C" function void pmem_write(input int Maddr, input int DataIn, input int wmask); 
-      | module LSU(
-      |   input [31:0] Maddr,
-      |   input [31:0] DataIn,
-      |   input [31:0] wmask,
-      |   input        MemWr,
-      |   input        MemtoReg,
-      |   input        clock,
-      |   output reg [31:0] DataOut
-      | );
-      |
-      | always@(posedge clock) begin
-      |   if(MemtoReg) begin
-      |     DataOut = pmem_read(Maddr);
-      |   end else begin
-      |     DataOut = 32'b0;
-      |   end
-      |   if(MemWr) begin
-      |    pmem_write(Maddr, DataIn, wmask);
-      |   end
-      | end
-      |
-      | endmodule
-    """.stripMargin)
+  val elsu = Module(new eLSU)
+  elsu.io.clock    := io.clock
+  elsu.io.Maddr    := io.in.bits.result
+  elsu.io.DataIn   := io.in.bits.src2
+  elsu.io.wmask    := io.in.bits.MemNum
+  elsu.io.MemWr    := io.in.bits.MemWr
+  elsu.io.MemtoReg := io.in.bits.MemtoReg
+  io.out.bits.DataOut := Mux(io.in.bits.MemtoReg, elsu.io.DataOut, io.in.bits.result)
 
 }
 

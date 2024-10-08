@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -18,32 +18,14 @@
 
 #include <common.h>
 
-/*
-typedef struct {
-	word_t mepc;
-	word_t mcause;
-	word_t mtvec;
-	word_t mstatus;
-} riscv32_CSRs;
-*/
-
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   vaddr_t pc;
-
-#ifdef CONFIG_CTE
-	word_t mepc;
-	word_t mcause;
-	word_t mtvec;
-	word_t mstatus;
-#endif
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode
 typedef struct {
-  union {
-    uint32_t val;
-  } inst;
+  uint32_t inst;
 } MUXDEF(CONFIG_RV64, riscv64_ISADecodeInfo, riscv32_ISADecodeInfo);
 
 #define isa_mmu_check(vaddr, len, type) (MMU_DIRECT)

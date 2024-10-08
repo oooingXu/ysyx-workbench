@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -17,17 +17,13 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
-#include "cpu/ringbuffer.h"
-#ifndef CONFIG_TARGET_AM
-#include "monitor/sdb/sdb.h"
-#endif
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
  * This is useful when you use the `si' command.
  * You can modify this value as you want.
  */
-#define MAX_INST_TO_PRINT 1000
+#define MAX_INST_TO_PRINT 10
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
@@ -42,31 +38,6 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
-#ifdef CONFIG_WATCHPOINT
-		WP *wp = get_head();
-		while(wp != NULL){
-			bool success = true;
-			debug("success = %d\n",success);
-			debug("expr = %s\n",wp->expr);
-			uint32_t tmp = expr(wp->expr, &success);
-			if(success){
-				if(tmp != wp->old_value){
-					wp->new_value = tmp;
-					printf("old_value = %u\n",wp->old_value);
-					printf("new_value = %u\n",wp->new_value);
-					debug("cpu.exec.c No equal.\n");
-					nemu_state.state = NEMU_STOP;
-					wp->old_value = wp->new_value;
-					wp->new_value = 0;
-				}
-			}
-			else{
-				printf("cpu-exec.c exper error\n");
-				debug("cpu.exec.c error\n");
-			}
-			wp = wp->next;
-		}
-#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
@@ -76,14 +47,15 @@ static void exec_once(Decode *s, vaddr_t pc) {
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
-#ifdef CONFIG_RTRACE 
-	RingBuffer_write(iringbuf, s->logbuf);
-#endif
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
   int ilen = s->snpc - s->pc;
   int i;
-  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
+  uint8_t *inst = (uint8_t *)&s->isa.inst;
+#ifdef CONFIG_ISA_x86
+  for (i = 0; i < ilen; i ++) {
+#else
   for (i = ilen - 1; i >= 0; i --) {
+#endif
     p += snprintf(p, 4, " %02x", inst[i]);
   }
   int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
@@ -93,13 +65,9 @@ static void exec_once(Decode *s, vaddr_t pc) {
   memset(p, ' ', space_len);
   p += space_len;
 
-#ifndef CONFIG_ISA_loongarch32r
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
-      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
-#else
-  p[0] = '\0'; // the upstream llvm does not support loongarch32r
-#endif
+      MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
 #endif
 }
 
@@ -125,9 +93,6 @@ static void statistic() {
 
 void assert_fail_msg() {
   isa_reg_display();
-#ifdef CONFIG_RTRACE 
- 	RingBuffer_print();
-#endif
   statistic();
 }
 
@@ -135,13 +100,11 @@ void assert_fail_msg() {
 void cpu_exec(uint64_t n) {
   g_print_step = (n < MAX_INST_TO_PRINT);
   switch (nemu_state.state) {
-    case NEMU_END: case NEMU_ABORT:
+    case NEMU_END: case NEMU_ABORT: case NEMU_QUIT:
       printf("Program execution has ended. To restart the program, exit NEMU and run again.\n");
       return;
     default: nemu_state.state = NEMU_RUNNING;
   }
-
-	IFDEF(CONGIF_RTRAVE, RingBuffer_init());
 
   uint64_t timer_start = get_time();
 

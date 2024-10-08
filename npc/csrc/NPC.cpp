@@ -107,20 +107,20 @@ static void trace_and_difftest(){
 }
 
 static void renew_state(){
-		npc_state.halt_ret = NPC->io_halt_ret;
+		npc_state.halt_ret = NPC->io_halt;
 		npc_state.halt_pc  = NPC->io_PC;
 
 		cpu.pc = NPC->io_PC;
 		cpu.dnpc = NPC->io_NPC;
 		debug("renew pc = 0x%08x, dut_pc = 0x%08x, dnpc = 0x%08x, dut_dnpc = 0x%08x", NPC->io_PC, cpu.pc, NPC->io_NPC, cpu.dnpc);
 		for(int i = 0; i < R; i++){
-			cpu.gpr[i] = NPC->rootp->NPC__DOT__wbu__DOT__Ref_ext__DOT__Memory[i];
+			cpu.gpr[i] = NPC->rootp->NPC__DOT__reg_0__DOT__regs_ext__DOT__Memory[i];
 		}
 
-		cpu.mepc    = NPC->rootp->NPC__DOT__wbu__DOT__Csr_ext__DOT__Memory[MEPC];
-		cpu.mtvec   = NPC->rootp->NPC__DOT__wbu__DOT__Csr_ext__DOT__Memory[MTVEC];
-		cpu.mcause  = NPC->rootp->NPC__DOT__wbu__DOT__Csr_ext__DOT__Memory[MCAUSE];
-		cpu.mstatus = NPC->rootp->NPC__DOT__wbu__DOT__Csr_ext__DOT__Memory[MSTATUS];
+		cpu.mepc    = NPC->rootp->NPC__DOT__csr__DOT__csrs_ext__DOT__Memory[MEPC];
+		cpu.mtvec   = NPC->rootp->NPC__DOT__csr__DOT__csrs_ext__DOT__Memory[MTVEC];
+		cpu.mcause  = NPC->rootp->NPC__DOT__csr__DOT__csrs_ext__DOT__Memory[MCAUSE];
+		cpu.mstatus = NPC->rootp->NPC__DOT__csr__DOT__csrs_ext__DOT__Memory[MSTATUS];
 }
 
 void exec_once(){

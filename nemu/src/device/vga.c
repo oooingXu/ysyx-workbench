@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -72,11 +72,6 @@ static inline void update_screen() {
 #endif
 
 void vga_update_screen() {
-	uint32_t sync = vgactl_port_base[1];
-	if(sync) {
-		update_screen();
-		vgactl_port_base[1] = 0;
-	}
   // TODO: call `update_screen()` when the sync register is non-zero,
   // then zero out the sync register
 }

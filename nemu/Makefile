@@ -1,5 +1,5 @@
 #***************************************************************************************
-# Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+# Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 #
 # NEMU is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -40,7 +40,9 @@ SRCS-y += $(shell find -L $(DIRS-y) -name "*.c")
 SRCS = $(filter-out $(SRCS-BLACKLIST-y),$(SRCS-y))
 
 # Extract compiler and options from menuconfig
+ifneq ($(CONFIG_CC),)
 CC = $(call remove_quote,$(CONFIG_CC))
+endif
 CFLAGS_BUILD += $(call remove_quote,$(CONFIG_CC_OPT))
 CFLAGS_BUILD += $(if $(CONFIG_CC_LTO),-flto,)
 CFLAGS_BUILD += $(if $(CONFIG_CC_DEBUG),-Og -ggdb3,)
@@ -59,6 +61,3 @@ else
 # Include rules to build NEMU
 include $(NEMU_HOME)/scripts/native.mk
 endif
-
-count:
-	@find . -name "*.c" -o -name "*.h" | xargs grep -v "^\s*$$" | wc -l

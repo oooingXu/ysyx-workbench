@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -15,7 +15,6 @@
 
 #include <isa.h>
 #include "local-include/reg.h"
-#include <cpu/cpu.h>
 
 const char *regs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
@@ -25,29 +24,8 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-	int len = (sizeof(regs) / sizeof(regs[0]));
-	for(int i = 0; i < len; i++) {
-		printf("%-3s --->  0x%x\n",regs[i],cpu.gpr[i]);
-	}
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
-	int len = (sizeof(regs) / sizeof(regs[0]));
-	const char *s1 = (s[0] == '$' ? s + 1 : s);
-	int cmp = strcmp(s1,"pc");
-	for(int i = 0; i < len; i++) {
-		int compare = strcmp(s1,regs[i]);
-		if( compare == 0){
-			*success = true;
-			return cpu.gpr[i];
-		}
-		
-	}
-	if( cmp == 0){
-			*success = true;
-			return cpu.pc;
-	}
-	*success = false;
-
   return 0;
 }
