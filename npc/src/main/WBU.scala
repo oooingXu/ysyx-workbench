@@ -3,22 +3,25 @@ package npc
 import chisel3._
 import chisel3.util._
 
-class DATAOut extends Bundle{
-  val dnpc     = Output(UInt(32.W))
-}
-
-class WBU extends Module{
+class ysyx_23060336_WBU extends Module{
   val io = IO(new Bundle{
-    val in       = Flipped(Decoupled(new MyData))
-    val out      = Decoupled(new DATAOut)
+    val in       = Flipped(Decoupled(new ysyx_23060336_LSUdata))
+    val wen      = Input(Bool())
     val RegWr    = Output(Bool())
     val CsrWr    = Output(Bool())
     val rd       = Output(UInt(5.W))
     val csr      = Output(UInt(12.W))
     val result   = Output(UInt(32.W))
     val DataOut  = Output(UInt(32.W))
+    val valid    = Output(Bool())
+    val ready    = Output(Bool())
   })
 
+  io.valid := true.B
+  io.ready := io.in.ready
+  io.in.ready := true.B
+
+  /*
   val w_idle :: w_wait_ready :: Nil = Enum(2)
   val state = RegInit(w_idle)
 
@@ -29,9 +32,9 @@ class WBU extends Module{
 
   io.out.valid := (state === w_wait_ready)
   io.in.ready := (state === w_idle)
+  */
 
-  io.out.bits.dnpc := io.in.bits.dnpc
-  io.RegWr := io.in.bits.RegWr
+  io.RegWr := io.in.bits.RegWr && io.wen
 
   io.rd := io.in.bits.rd
   io.csr := io.in.bits.csr

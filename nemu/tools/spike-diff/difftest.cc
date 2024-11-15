@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -39,6 +39,11 @@ static debug_module_config_t difftest_dm_config = {
 struct diff_context_t {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   word_t pc;
+
+	word_t mstatus;
+	word_t mepc;
+	word_t mtvec;
+	word_t mcause;
 };
 
 static sim_t* s = NULL;
@@ -59,7 +64,13 @@ void sim_t::diff_get_regs(void* diff_context) {
   for (int i = 0; i < NR_GPR; i++) {
     ctx->gpr[i] = state->XPR[i];
   }
-  ctx->pc = state->pc;
+  ctx->pc      = state->pc;
+	/*
+  ctx->mstatus = state->mstatus;
+  ctx->mepc    = state->mepc;
+  ctx->mcause  = state->mcause;
+  ctx->mtvec   = state->mtvec;
+	*/
 }
 
 void sim_t::diff_set_regs(void* diff_context) {
@@ -67,7 +78,13 @@ void sim_t::diff_set_regs(void* diff_context) {
   for (int i = 0; i < NR_GPR; i++) {
     state->XPR.write(i, (sword_t)ctx->gpr[i]);
   }
-  state->pc = ctx->pc;
+  state->pc      = ctx->pc;
+	/*
+  state->mstatus = ctx->mstatus;
+  state->mepc    = ctx->mepc;
+  state->mcause  = ctx->mcause;
+  state->mtvec   = ctx->mtvec;
+	*/
 }
 
 void sim_t::diff_memcpy(reg_t dest, void* src, size_t n) {

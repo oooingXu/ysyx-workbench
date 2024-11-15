@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -25,6 +25,8 @@ static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
     uint64_t us = get_time();
     rtc_port_base[0] = (uint32_t)us;
     rtc_port_base[1] = us >> 32;
+//		printf("us1 = 0x%08x, us0 = 0x%08x\n", rtc_port_base[1], rtc_port_base[0]);
+//		printf("time1 = 0x%08x, time0 = 0x%08x\n", (CONFIG_RTC_MMIO + 4), *(uint32_t *)(CONFIG_RTC_MMIO + 0));
   }
 }
 

@@ -26,5 +26,5 @@ image: $(IMAGE).elf
 
 run: image
 #	@$(MAKE) -C $(NPC_HOME)/obj_dir/VNPC $(IMAGE).bin $(DIFF_REF_SO)
-	@$(NPC_HOME)/obj_dir/VNPC $(IMAGE).bin $(DIFF_REF_SO)
+	@$(NPC_HOME)/obj_dir/Vysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
 	
