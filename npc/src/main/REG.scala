@@ -12,14 +12,12 @@ class ysyx_23060336_REG extends Module{
     val wen    = Input(Bool())
     val waddr  = Input(UInt(5.W))
     val wdata  = Input(UInt(32.W))
-    val halt_ret = Output(UInt(32.W))
   })
 
-  val ysyx_23060336_regs = Mem(32,UInt(32.W))
+  val ysyx_23060336_regs = Mem(16,UInt(32.W))
 
   io.rdata1 := Mux(io.raddr1.orR, ysyx_23060336_regs(io.raddr1), 0.U)
   io.rdata2 := Mux(io.raddr2.orR, ysyx_23060336_regs(io.raddr2), 0.U)
-  io.halt_ret := ysyx_23060336_regs(10.U) 
 
   when(io.wen && io.waddr.orR){
     ysyx_23060336_regs(io.waddr) := io.wdata
