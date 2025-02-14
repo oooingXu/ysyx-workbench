@@ -22,8 +22,10 @@
 ## 安装依赖
 
 ```shell
-apt install yosys
-apt install libunwind-dev libyaml-cpp-dev libgomp1 libtcl8.6 # iEDA的依赖库
+apt install -y yosys libunwind-dev libyaml-cpp-dev libgomp1 libtcl8.6 # iEDA的依赖库
+# or
+yum install -y yosys libunwind yaml-cpp libgomp tcl
+
 make init
 ```
 
@@ -62,7 +64,6 @@ make sta
 注意:
 * 在`RTL_FILES`的文件中必须包含一个名为`DESIGN`的module
 * sdc文件中的时钟端口名称需要与设计文件保持一致, 具体内容可参考样例设计GCD中的相应文件
-* 注释通过DPI-C调用pmem_read()和pmem_write()的代码,, 然后为取指和访存各自实例化一个存储器. 为了保持单周期的特性, 我们需要实例化的存储器需要当前周期就能返回读数据, 因此我们可以像寄存器堆那样通过触发器实现它. 如果你使用Verilog, 可以直接实例化RegisterFile模块, 当然你需要把端口正确连上. 为了统一测试结果, 我们约定实例化的存储器大小为256x32b, 即1KB, 共实例化两个这样的存储器, 总大小为2KB.
 
 ## Bug报告
 

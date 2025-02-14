@@ -39,8 +39,7 @@ module EF_PSRAM_CTRL_wb (
     output  wire [3:0]      douten
 );
 
-    localparam  ST_IDLE = 1'b0,
-                ST_WAIT = 1'b1;
+    localparam  ST_IDLE = 2'd0, ST_WAIT = 2'd1, QT_IDLE = 2'd2, QT_WAIT = 2'd3;
 
     wire        mr_sck;
     wire        mr_ce_n;
@@ -69,18 +68,61 @@ module EF_PSRAM_CTRL_wb (
     //wire[3:0]   wb_byte_sel     =   sel_i & {4{wb_we}};
 
     // The FSM
-    reg         state, nstate;
+    reg  [1:0]  state, nstate;
+		
+		reg  [7:0] counter;
+		reg				 q_ce_n, q_sck;
+		reg	 [3:0] q_dout;
+		wire			 q_douten;
+		wire [7:0] CMD_35H = 8'h35;
+
+		assign q_dout = (counter < 8) ? {3'b0, CMD_35H[7 - counter]} : 4'b0;
+		assign q_douten = (~q_ce_n);
+
+
     always @ (posedge clk_i or posedge rst_i)
-        if(rst_i)
+			if(rst_i) begin
+						q_sck <= 1'b0;
+					end else if(!q_ce_n) begin
+						q_sck <= !q_sck;
+					end else begin
+						q_sck <= 1'b0;
+					end
+
+    always @ (posedge clk_i or posedge rst_i)
+			if(rst_i) begin
+						q_ce_n <= 1'b1;
+					end else if(state == ST_IDLE) begin
+						q_ce_n <= 1'b0;
+					end else begin
+						q_ce_n <= 1'b1;
+					end
+
+    always @ (posedge clk_i or posedge rst_i)
+			if(rst_i) begin
+						counter <= 0;
+					end else if(state == ST_IDLE && q_sck) begin
+						counter <= counter + 1;
+					end else if(state == ST_IDLE) begin
+						counter <= counter;
+					end else begin
+						counter <= 0;
+					end
+
+    always @ (posedge clk_i or posedge rst_i)
+			if(rst_i) begin
             state <= ST_IDLE;
-        else
+					end else if(state == ST_IDLE) begin
             state <= nstate;
+					end
 
     always @* begin
         case(state)
             ST_IDLE :
                 if(wb_valid)
                     nstate = ST_WAIT;
+								else if(counter == 9)
+										nstate = QT_IDLE;
                 else
                     nstate = ST_IDLE;
 
@@ -89,6 +131,19 @@ module EF_PSRAM_CTRL_wb (
                     nstate = ST_IDLE;
                 else
                     nstate = ST_WAIT;
+
+						QT_IDLE :
+							if(wb_valid)
+								nstate = QT_WAIT;
+							else
+								nstate = QT_IDLE;
+
+						QT_WAIT :
+                if((mw_done & wb_we) | (mr_done & wb_re))
+                    nstate = QT_IDLE;
+                else
+                    nstate = QT_WAIT;
+							
         endcase
     end
 
@@ -127,8 +182,8 @@ module EF_PSRAM_CTRL_wb (
                         2'b00;
                       */
 
-    assign mr_rd    = ( (state==ST_IDLE ) & wb_re );
-    assign mw_wr    = ( (state==ST_IDLE ) & wb_we );
+    assign mr_rd    = ( (state==QT_IDLE ) & wb_re );
+    assign mw_wr    = ( (state==QT_IDLE ) & wb_we );
 
     PSRAM_READER MR (
         .clk(clk_i),
@@ -161,10 +216,10 @@ module EF_PSRAM_CTRL_wb (
         .douten(mw_doe)
     );
 
-    assign sck  = wb_we ? mw_sck  : mr_sck;
-    assign ce_n = wb_we ? mw_ce_n : mr_ce_n;
-    assign dout = wb_we ? mw_dout : mr_dout;
-    assign douten  = wb_we ? {4{mw_doe}}  : {4{mr_doe}};
+    assign sck  = state == ST_IDLE ? q_sck : wb_we ? mw_sck  : mr_sck;
+    assign ce_n = state == ST_IDLE ? q_ce_n : wb_we ? mw_ce_n : mr_ce_n;
+    assign dout = state == ST_IDLE ? q_dout : wb_we ? mw_dout : mr_dout;
+    assign douten  = state == ST_IDLE ? {4{q_douten}} : wb_we ? {4{mw_doe}}  : {4{mr_doe}};
 
     assign mw_din = din;
     assign mr_din = din;

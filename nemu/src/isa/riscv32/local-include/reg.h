@@ -19,10 +19,12 @@
 #include <common.h>
 #include <isa.h>
 
-#define MEPC		0x341
-#define MCAUSE	0x342
 #define MSTATUS 0x300
 #define MTVEC		0x305
+#define MEPC		0x341
+#define MCAUSE	0x342
+#define MVENDORID 0xf11
+#define MARCHID 0xf12
 
 static inline int check_reg_idx(int idx) {
   IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < MUXDEF(CONFIG_RVE, 16, 32)));
@@ -30,17 +32,26 @@ static inline int check_reg_idx(int idx) {
 }
 
 static inline uint32_t *check_csr_idx(word_t idx) {
-	switch(idx) {
-		case MEPC:		return &(cpu.mepc);
-		case MCAUSE:	return &(cpu.mcause);
-		case MSTATUS: return &(cpu.mstatus);
-		case MTVEC:		return &(cpu.mtvec);
-		default: panic("Faild csr");
+	if(idx == MSTATUS) {
+		return &(cpu.mstatus);
+	} else if(idx == MTVEC) {
+		return &(cpu.mtvec);
+	} else if(idx == MEPC) {
+		return &(cpu.mepc);
+	} else if(idx == MCAUSE) {
+		return &(cpu.mcause);
+	} else if(idx == MVENDORID) {
+		return &(cpu.mvendorid);
+	} else if(idx == MARCHID) {
+		return &(cpu.marchid);
+	} else {
+		printf("Faild csr");
+		return 0;
 	}
 }
 
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
-#define csr(idx) *check_csr_idx(idx)
+#define csr(idx) (*check_csr_idx(idx))
 
 static inline const char* reg_name(int idx) {
   extern const char* regs[];

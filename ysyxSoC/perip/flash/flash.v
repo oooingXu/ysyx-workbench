@@ -40,7 +40,7 @@ module flash (
 
         default: begin
           state <= state;
-          $fwrite(32'h80000002, "Assertion failed: Unsupported command `%xh`, only support `03h` read command\n", cmd);
+          $fwrite(32'h80000002, "(flash) Assertion failed: Unsupported command `%xh`, only support `03h` read command\n", cmd);
           $fatal;
         end
       endcase

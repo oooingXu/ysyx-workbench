@@ -18,18 +18,14 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
-#define R 32
-/*
-#define MEM_SIZE 67108864
-#define MBASE 0x80000000
+#define R 16
 
-extern uint32_t memory[MEM_SIZE];
-*/
-
-__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
+__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) {
 	if(addr != 0){
 		if( direction == DIFFTEST_TO_REF) {
 			memcpy(guest_to_host(addr), buf, n);
+		} else if(direction == DIFFTEST_TO_NPC) {
+			memcpy(p_guest_to_host(addr), buf, n);
 		} else {
 			assert(0);
 		}
@@ -40,26 +36,28 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 	CPU_state *diff_dut = (CPU_state *)dut;
 	if(direction == DIFFTEST_TO_REF){
 			memcpy(&cpu.gpr ,diff_dut->gpr, R * sizeof(cpu.gpr[0]));
-		/*
-		for(int i = 0; i < R; i++){
-			cpu.gpr[i] = diff_dut->gpr[i];
-		}
-		*/
+			cpu.pc = diff_dut->pc;
+			cpu.mepc = diff_dut->mepc;
+			cpu.mcause = diff_dut->mcause;
+			cpu.mtvec = diff_dut->mtvec;
+			cpu.mstatus = diff_dut->mstatus;
+			cpu.mvendorid = diff_dut->mvendorid;
+			cpu.marchid = diff_dut->marchid;
 	} 
 	else {
 		memcpy(diff_dut->gpr, &cpu.gpr, R * sizeof(cpu.gpr[0]));
-		/*
-		for(int i = 0; i < R; i++){
-			diff_dut->gpr[i] = cpu.gpr[i];
-		}
-		*/
+		diff_dut->pc = cpu.pc;
+		diff_dut->mepc = cpu.mepc;
+		diff_dut->mcause = cpu.mcause;
+		diff_dut->mtvec = cpu.mtvec;
+		diff_dut->mstatus = cpu.mstatus;
+		diff_dut->mvendorid = cpu.mvendorid;
+		diff_dut->marchid = cpu.marchid;
 	}
 }
 
-__EXPORT void difftest_exec(CPU_state *ref) {
-	cpu.pc = ref->pc;
-	cpu_exec(1);
-	ref->pc = cpu.pc;
+__EXPORT void difftest_exec(uint64_t n) {
+	cpu_exec(n);
 }
 
 __EXPORT void difftest_raise_intr(word_t NO) {
