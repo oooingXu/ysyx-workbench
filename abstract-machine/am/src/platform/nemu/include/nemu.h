@@ -26,18 +26,20 @@
 
 #define MMIO_BASE 0xa0000000
 
-#define SERIAL_PORT     (DEVICE_BASE + 0x00003f8)
-#define KBD_ADDR        (DEVICE_BASE + 0x0000060)
-#define RTC_ADDR        (DEVICE_BASE + 0x0000048)
-#define VGACTL_ADDR     (DEVICE_BASE + 0x0000100)
+#define SERIAL_PORT     (0x10000000)
+#define RTC_ADDR        (0x02000000)
+#define KBD_ADDR        (0x10011000)
+#define VGACTL_ADDR     (0x21000000)
+#define FB_ADDR         (0x21000010)
 #define AUDIO_ADDR      (DEVICE_BASE + 0x0000200)
 #define DISK_ADDR       (DEVICE_BASE + 0x0000300)
-#define FB_ADDR         (MMIO_BASE   + 0x1000000)
 #define AUDIO_SBUF_ADDR (MMIO_BASE   + 0x1200000)
 
 extern char _pmem_start;
+extern char _heap_end;
 #define PMEM_SIZE (128 * 1024 * 1024)
 #define PMEM_END  ((uintptr_t)&_pmem_start + PMEM_SIZE)
+#define HEAP_END  ((uintptr_t)&_heap_end)
 #define NEMU_PADDR_SPACE \
   RANGE(&_pmem_start, PMEM_END), \
   RANGE(FB_ADDR, FB_ADDR + 0x200000), \
