@@ -119,6 +119,12 @@ class ysyx_23060336 extends Module {
   icache.io.master <> arbiter.io.ifu
   lsu_wbu.io.axi   <> arbiter.io.lsu
 
+  // icache <-> lsu_wbu
+  lsu_wbu.io.icache_count      := icache.io.icache_count
+  lsu_wbu.io.icache_miss_count := icache.io.icache_miss_count
+  lsu_wbu.io.access_time       := icache.io.access_time
+  lsu_wbu.io.miss_penalty           := icache.io.miss_penalty
+
   // ifu <-> idu_exu
   idu_exu.io.inst     := ifu.io.inst
   idu_exu.io.pc       := ifu.io.pc 
