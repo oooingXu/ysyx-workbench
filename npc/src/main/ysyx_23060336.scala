@@ -21,18 +21,8 @@ class ysyx_23060336 extends Module {
   val arbiter = Module(new ysyx_23060336_ARBITER())
   val xbar    = Module(new ysyx_23060336_XBAR())
   val clint   = Module(new ysyx_23060336_CLINT())
+  val icache  = Module(new ysyx_23060336_ICACHE(2, 4))
 
-
-  if(useNPCSim) {
-  // npc_sim <-> xbar
-    val npc_sim = Module(new NPC_SIM())
-    io.master      <> xbar.io.master
-    npc_sim.io.axi <> xbar.io.master
-    npc_sim.io.clock := clock
-  } else {
-  // xbar <-> top 
-    io.master      <> xbar.io.master
-  }
 
   // cpu slave
   val awready = Wire(Bool())  
@@ -107,13 +97,27 @@ class ysyx_23060336 extends Module {
   rlast   := 0.U
   rid     := 0.U
 
+  if(useNPCSim) {
+  // npc_sim <-> xbar
+    val npc_sim = Module(new NPC_SIM())
+    io.master      <> xbar.io.master
+    npc_sim.io.axi <> xbar.io.master
+    npc_sim.io.clock := clock
+  } else {
+  // xbar <-> top 
+    io.master      <> xbar.io.master
+  }
+
   // xbar <-> clint <-> arbiter
   xbar.io.clint <> clint.io.axi
   xbar.io.slave <> arbiter.io.axi
 
-  // ifu <-> lsu_wbu
-  ifu.io.axi     <> arbiter.io.ifu
-  lsu_wbu.io.axi <> arbiter.io.lsu
+  // ifu <-> icache
+  ifu.io.axi <> icache.io.slave
+
+  // arbiter <-> icache <-> lsu_wbu
+  icache.io.master <> arbiter.io.ifu
+  lsu_wbu.io.axi   <> arbiter.io.lsu
 
   // ifu <-> idu_exu
   idu_exu.io.inst     := ifu.io.inst
