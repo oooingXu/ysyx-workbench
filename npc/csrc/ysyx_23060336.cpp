@@ -8,13 +8,13 @@
 
 #include <dlfcn.h>
 
-#include "include/common.h"
-#include "include/utils.h"
-#include "include/debug.h"
-#include "cpu/cpu.h"
-#include "sdb/sdb.h"
-#include "memory/pmem.h"
-#include "device/map.h"
+#include <common.h>
+#include <utils.h>
+#include <debug.h>
+#include <cpu.h>
+#include <sdb.h>
+#include <pmem.h>
+#include <map.h>
 
 #ifdef CONFIG_SOC 
 class VysyxSoCFull;
