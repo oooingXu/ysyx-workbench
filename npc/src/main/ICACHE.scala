@@ -162,10 +162,10 @@ class ICACHE_COUNTER extends BlackBox with HasBlackBoxInline{
     |
     | always@(posedge clock) begin
     |   case(state)
-    |     idle: state <= slave_arvalid ? access_start : idle;
-    |     access_start <= slave_rvalid ? access_end : master_arvalid ? miss : access_start;
-    |     miss  <= master_rvalid ? access_end : miss;
-    |     access_end <= slave_rvalid ? idle : access_end;
+    |     idle         : state <= slave_arvalid ? access_start : idle;
+    |     access_start : state <= slave_rvalid  ? access_end   : master_arvalid ? miss : access_start;
+    |     miss         : state <= master_rvalid ? access_end   : miss;
+    |     access_end   : state <= slave_rvalid  ? idle         : access_end;
     |   endcase
     | end
     |
@@ -175,9 +175,10 @@ class ICACHE_COUNTER extends BlackBox with HasBlackBoxInline{
     |   end
     |
     |   if(state == miss) begin
-    |     _miss_penalty;
+    |     _miss_penalty++;
     |   end
     | end
+    | `endif
     |
     | endmodule
   """.stripMargin)
