@@ -48,7 +48,7 @@ uint32_t map_read(uint32_t addr, IOMap *map) {
 	uint32_t offset = addr - map->low;
 	invoke_callback(map->callback, offset, 4, false);
 
-	uint32_t ret = host_read(map->space + offset);
+	uint32_t ret = host_read((char *)map->space + offset);
 	return ret;
 }
 
@@ -57,7 +57,7 @@ void map_write(uint32_t addr, int len, uint32_t data, IOMap *map) {
 	assert(len >= 1 && len <= 8);
 	check_bound(map, addr);
 	uint32_t offset = addr - map->low;
-	host_write(map->space + offset, len, data);
+	host_write((char *)map->space + offset, len, data);
 	invoke_callback(map->callback, offset, len, true);
 }
 

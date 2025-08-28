@@ -68,6 +68,7 @@ INVFLAGS += -I$(SOC_HOME)/perip/spi/rtl
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
+CXXFLAGS += -mcmodel=medium
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)
@@ -90,6 +91,7 @@ verilog:
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(VSRC)
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
+	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(NPC_HOME)/vsrc/$(CPU_NAME).sv
 
 help:
 	mill -i $(PRJ).runMain Elaborate --help

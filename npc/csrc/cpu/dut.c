@@ -53,12 +53,13 @@ void init_difftest(char *ref_so_file, long img_size){
 	ref_difftest_init(0);
 	//debug("success difftest_init");
 #ifdef CONFIG_SOC
-	ref_difftest_memcpy(0x30000000, guest_to_host(0), img_size, DIFFTEST_TO_REF);
+	ref_difftest_memcpy(0x30000000, guest_to_host(0x00000000), img_size, DIFFTEST_TO_REF);
 #endif
 
 #ifdef CONFIG_NPC
 	ref_difftest_memcpy(0x80000000, guest_to_host(0x80000000), img_size, DIFFTEST_TO_NPC);
 #endif
+	Log("ref_difftest_memcpy success");
 	//debug("success difftest_memcpy");
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 	//debug("success difftest_regcpy");

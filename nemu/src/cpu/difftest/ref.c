@@ -36,24 +36,25 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 	CPU_state *diff_dut = (CPU_state *)dut;
 	if(direction == DIFFTEST_TO_REF){
 			memcpy(&cpu.gpr ,diff_dut->gpr, R * sizeof(cpu.gpr[0]));
-			cpu.pc = diff_dut->pc;
-			cpu.mepc = diff_dut->mepc;
-			cpu.mcause = diff_dut->mcause;
-			cpu.mtvec = diff_dut->mtvec;
-			cpu.mstatus = diff_dut->mstatus;
+			cpu.pc        = diff_dut->pc;
+			cpu.mepc      = diff_dut->mepc;
+			cpu.mcause    = diff_dut->mcause;
+			cpu.mtvec     = diff_dut->mtvec;
+			cpu.mstatus   = diff_dut->mstatus;
 			cpu.mvendorid = diff_dut->mvendorid;
-			cpu.marchid = diff_dut->marchid;
+			cpu.marchid   = diff_dut->marchid;
 	} 
 	else {
 		memcpy(diff_dut->gpr, &cpu.gpr, R * sizeof(cpu.gpr[0]));
-		diff_dut->pc = cpu.pc;
-		diff_dut->mepc = cpu.mepc;
-		diff_dut->mcause = cpu.mcause;
-		diff_dut->mtvec = cpu.mtvec;
-		diff_dut->mstatus = cpu.mstatus;
+		diff_dut->pc        = cpu.pc;
+		diff_dut->mepc      = cpu.mepc;
+		diff_dut->mcause    = cpu.mcause;
+		diff_dut->mtvec     = cpu.mtvec;
+		diff_dut->mstatus   = cpu.mstatus;
 		diff_dut->mvendorid = cpu.mvendorid;
-		diff_dut->marchid = cpu.marchid;
+		diff_dut->marchid   = cpu.marchid;
 	}
+			//printf("(nemu) cpu.pc = 0x%08x\n", cpu.pc);
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
