@@ -26,15 +26,20 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-	for(int i = 0; i < 16; i++) {
-		printf("%-3s --->  0x%x\n",regs[i],cpu.gpr[i]);
+	printf("(nemu) gprs\n");
+	for(int i = 0; i < 16 / 4; i++) {
+		for(int j = 0; j < 4; j++){
+			printf("%-3s = 0x%08x ",regs[j + 4 * i],cpu.gpr[j + 4 * i]);
+		}
+		printf("\n");
 	}
 
-	printf("\ncsr\n");
-	printf("mepc		---> 0x%x\n",cpu.mepc);
-	printf("mtvec		---> 0x%x\n",cpu.mtvec);
-	printf("mcause	---> 0x%x\n",cpu.mcause);
-	printf("mstatus ---> 0x%x\n",cpu.mstatus);
+	printf("(nemu) csrs\n");
+	printf("mepc = 0x%08x, ",cpu.mepc);
+	printf("mstatus = 0x%08x, ",cpu.mstatus);
+	printf("mcause = 0x%08x, ",cpu.mcause);
+	printf("mtvec	= 0x%08x\n",cpu.mtvec);
+	printf("\n");
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

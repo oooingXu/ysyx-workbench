@@ -152,6 +152,11 @@ config CTRACE
 	bool "Enable instruction ctrace"
 	default n
 
+config ABORTRUN
+	depends on TRACE
+	bool "Enable run when abort"
+	default n
+
 config WAVE
 	depends on TRACE
 	bool "Enable instruction gtkwave"

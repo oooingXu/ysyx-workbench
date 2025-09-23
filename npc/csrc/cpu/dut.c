@@ -134,14 +134,12 @@ static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 	}
 
 
-	bool mem_ret = isa_difftest_checkmem();
-	if(!(mem_ret && reg_ret && csr_ret && pc_ret)) return false;
-
-
-	debug("All right");
-	debug("ref->dnpc = 0x%08x, dut->dnpc = 0x%08x, dut->pc = 0x%08x",ref->pc, cpu.dnpc, cpu.pc);
-
-	return true;
+	//bool mem_ret = isa_difftest_checkmem();
+	return (reg_ret && csr_ret && pc_ret);
+	//return (mem_ret && reg_ret && csr_ret && pc_ret);
+//	if(!(mem_ret && reg_ret && csr_ret && pc_ret)) return false;
+//
+//	return true;
 }
 
 

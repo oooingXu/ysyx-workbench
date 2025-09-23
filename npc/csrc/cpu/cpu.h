@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
-#define R 32
+#define R 16
 #define C 4096
 
 #define MEPC    0x341

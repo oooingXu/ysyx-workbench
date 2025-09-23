@@ -308,7 +308,9 @@ void cpu_exec(uint64_t n){
 
 		switch(npc_state.state){
 			case NPC_RUNNING: npc_state.state = NPC_STOP; break;
-			case NPC_ABORT: case NPC_END:  
+			case NPC_ABORT: 
+				IFDEF(CONFIG_ABORTRUN, for(int abort_time = 0; abort_time < 100; abort_time++) exec_once());
+			case NPC_END:  
 				Log("npc: %s at pc = " FMT_WORD, 
 				(npc_state.state == NPC_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :  
 				(npc_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) : 

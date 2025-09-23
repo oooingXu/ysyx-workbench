@@ -3,7 +3,7 @@ PROJ_PATH = $(shell pwd)
 DESIGN ?= ysyx_23060336
 SDC_FILE ?= $(PROJ_PATH)/example/gcd.sdc
 RTL_FILES ?= $(shell find $(NPC_HOME)/vsrc -name "*.sv")
-export CLK_FREQ_MHZ ?= 500
+export CLK_FREQ_MHZ ?= 300
 
 RESULT_DIR = $(PROJ_PATH)/result/$(DESIGN)-$(CLK_FREQ_MHZ)MHz
 SCRIPT_DIR = $(PROJ_PATH)/scripts
@@ -24,8 +24,16 @@ $(NETLIST_FIXED_V): $(SCRIPT_DIR)/fix-fanout.tcl $(SDC_FILE) $(NETLIST_SYN_V)
 	./bin/iEDA -script $^ $(DESIGN) $@ 2>&1 | tee $(RESULT_DIR)/fix-fanout.log
 
 sta: $(TIMING_RPT)
+	@awk '/top module/ {print}' $(RESULT_DIR)/synth_stat.txt
+
 $(TIMING_RPT): $(SCRIPT_DIR)/sta.tcl $(SDC_FILE) $(NETLIST_FIXED_V)
 	./bin/iEDA -script $^ $(DESIGN) 2>&1 | tee $(RESULT_DIR)/sta.log
+
+rpt: 
+	@vim $(TIMING_RPT)
+
+area:
+	@awk '/top module/ {print}' $(RESULT_DIR)/synth_stat.txt
 
 clean:
 	-rm -rf result/

@@ -8,14 +8,18 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-	for(int i = 0; i < R; i++) {
-		printf("%-3s --->  0x%x\n",regs[i],cpu.gpr[i]);
+	printf("(npc) gprs\n");
+	for(int i = 0; i < R / 4; i++) {
+		for(int j = 0; j < 4; j++){
+			printf("%-3s --->  0x%08x ",regs[j + i * 4],cpu.gpr[j + i * 4]);
+		}
+		printf("\n");
 	}
-	printf("\ncsr\n");
-	printf("mtvec		---> 0x%08x\n", cpu.mtvec);
-	printf("mepc		---> 0x%08x\n", cpu.mepc);
-	printf("mstatus ---> 0x%08x\n", cpu.mstatus);
-	printf("mcause	---> 0x%08x\n", cpu.mcause);
+	printf("(npc) csrs\n");
+	printf("mepc = 0x%08x, ", cpu.mepc);
+	printf("mstatus = 0x%08x, ", cpu.mstatus);
+	printf("mcause = 0x%08x, ", cpu.mcause);
+	printf("mtvec = 0x%08x\n", cpu.mtvec);
 	printf("\n");
 }
 

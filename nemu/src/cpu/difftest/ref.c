@@ -20,16 +20,42 @@
 
 #define R 16
 
+void cpu_info() {
+	printf("(nemu) regs\n");
+	for(int i = 0; i < R / 4; i++){
+		for(int j = 0; j < 4; j++){
+			printf("gpr[%2d] = 0x%08x ", j + i * 4, cpu.gpr[j + i * 4]);
+		}
+		printf("\n");
+	}
+	printf("(nemu) csrs\n");
+	printf("mepc = 0x%08x mstatus = 0x%08x mcause = 0x%08x mtvec = 0x%08x\n", cpu.mepc, cpu.mstatus, cpu.mcause, cpu.mtvec);
+	printf("mvendorid = 0x%08x marchid = 0x%08x\n", cpu.mvendorid, cpu.marchid);
+	printf("\n");
+}
+
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) {
 	if(addr != 0){
 		if( direction == DIFFTEST_TO_REF) {
+#ifdef CONFIG_CPUINFO
+			printf("DFFTEST_TO_REF\n");
+			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x\n", addr, *(uint32_t *)buf);
+#endif
 			memcpy(guest_to_host(addr), buf, n);
 		} else if(direction == DIFFTEST_TO_NPC) {
+#ifdef CONFIG_CPUINFO
+			printf("DFFTEST_TO_NPC\n");
+			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x\n", addr, *(uint32_t *)buf);
+#endif
 			memcpy(p_guest_to_host(addr), buf, n);
 		} else {
 			assert(0);
 		}
 	}
+#ifdef CONFIG_CPUINFO
+	printf("difftest_memcpy\n");
+	cpu_info();
+#endif
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
@@ -54,7 +80,10 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 		diff_dut->mvendorid = cpu.mvendorid;
 		diff_dut->marchid   = cpu.marchid;
 	}
-			//printf("(nemu) cpu.pc = 0x%08x\n", cpu.pc);
+#ifdef CONFIG_CPUINFO
+	printf("difftest_regcpy\n");
+	cpu_info();
+#endif
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
