@@ -31,9 +31,12 @@ OBJ = ./obj_dir
 VSRC = ./vsrc
 SOC_HOME = $(NPC_HOME)/../ysyxSoC
 PERF = ./perf
-PERF_REF = $(PERF)/$(TOP_NAME)
+PERF_REF = $(PERF)/ysyxSoCFull
 PERF_BIN = $(PERF)/$(MICROBENCH)
+CACHESIM = $(PERF)/cachesim
+CACHESIM_BIN = $(PERF)/pc_trace.bin
 BIN = $(BUILD_DIR)/$(TOP_NAME)
+NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
 
 default: $(BIN)
 
@@ -54,7 +57,6 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 endif
 
-NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
 ifdef CONFIG_SOC
 VSRCS += $(SOC_HOME)/build/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
@@ -67,8 +69,11 @@ INVFLAGS += -I$(SOC_HOME)/perip/uart16550/rtl
 INVFLAGS += -I$(SOC_HOME)/perip/spi/rtl
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\""
+CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 
 CXXFLAGS += -mcmodel=medium
+#CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
+#LDFLAGS  += -lLLVM-19
+#LDFLAGS  += $(shell llvm-config --libs)
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)
@@ -108,16 +113,17 @@ wave:
 perf:
 	$(PERF_REF) $(PERF_BIN)
 
+cachesim:
+	@gcc $(CACHESIM).c -o $(CACHESIM)
+	@$(CACHESIM) $(CACHESIM_BIN)
+
 clean:
-	rm -rf $(BUILD_DIR)
-	rm -rf $(OBJ)
-	rm -rf $(VSRC)
-	rm -f waveform.*
+	rm -rf $(BUILD_DIR) test_run_dir $(OBJ) $(VSRC) waveform.*
 
 cleansim:
 	rm -rf performance_trace.csv $(OBJ) $(BUILD_DIR)
 
-.PHONY:	default all	run test verilog help reformat checkformat clean sim wave cleansim perf
+.PHONY:	default all	run test verilog help reformat checkformat clean sim wave cleansim perf cachesim
 
 include ../Makefile
 

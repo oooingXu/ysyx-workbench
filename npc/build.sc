@@ -20,7 +20,7 @@ object playground extends SbtModule with ScalafmtModule { m =>
   )
   override def sources = T.sources {
     super.sources() ++ Seq(PathRef(millSourcePath / "main"),
-     PathRef(os.pwd / "rvdecoderdb" / "rvdecoderdb"))
+      PathRef(os.pwd / "rvdecoderdb" / "rvdecoderdb"))
   }
   override def ivyDeps = Agg(
     if (useChisel3) ivy"edu.berkeley.cs::chisel3:3.6.0" else

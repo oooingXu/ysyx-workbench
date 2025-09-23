@@ -123,7 +123,7 @@ config FMTRACE
 	default n
 
 config COUNTER
-	depends on SOC
+	depends on TRACE
 	bool "Enable instruction performance counter"
 	default y
 

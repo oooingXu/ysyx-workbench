@@ -1,9 +1,23 @@
-#include"pmem.h"
-#include"../device/map.h"
+#include <pmem.h>
+#include <map.h>
 
 uint8_t pmem[MSIZE] PG_ALIGN = {};
 uint8_t cmem[0x20] = {};
 uint8_t sram[SRAM_SIZE] PG_ALIGN = {};
+
+MEM_DIFF mem_diff;
+
+static void mem_diff_update(uint32_t inst, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb) {
+	mem_diff.inst		 = inst;
+	mem_diff.araddr  = araddr;
+	mem_diff.awaddr  = awaddr;
+	mem_diff.wdata   = wdata;
+	mem_diff.wstrb   = wstrb;
+	mem_diff.arsize  = arsize;
+
+	mem_diff.arvalid = arvalid;
+	mem_diff.awvalid = awvalid;
+}
 
 //static uint32_t psram[0x4000];
 static uint8_t *psram = NULL;
@@ -24,10 +38,7 @@ uint8_t* guest_to_host(uint32_t paddr) {
 uint8_t* p_guest_to_host(uint32_t paddr) { return psram + paddr; }
 uint8_t* s_guest_to_host(uint32_t paddr) { return sram + paddr; }
 
-uint8_t* c_guest_to_host(uint32_t paddr) { 
-	//printf("c_guest_to_host caddr = 0x%08x, paddr = 0x%08x, ", cmem, paddr);
-	return cmem + paddr; 
-}
+uint8_t* c_guest_to_host(uint32_t paddr) { return cmem + paddr; }
 uint32_t c_host_to_guest(uint8_t *haddr) { return haddr - cmem; }
 
 uint32_t host_read(void *addr){ return *(uint32_t *)addr; }
@@ -69,13 +80,22 @@ bool in_device(uint32_t addr){return (addr >= UART_START && addr <= UART_END) ||
 
 bool in_pmem(uint32_t addr){return addr - MBASE < MSIZE;}
 
-extern "C" int pmem_read(int araddr) {
-	araddr = araddr & ~0x3u;
-	IFDEF(CONFIG_MTRACE, printf("pread at " FMT_PADDR ", data = " FMT_PADDR "\n", araddr, host_read(guest_to_host(araddr))));
+static uint32_t rdata_shift(uint32_t data, uint32_t addr){
+	int rstrb = addr & 0x3;
+	switch(rstrb) {
+		case 1: return data << 8; break;
+		case 2: return data << 16; break;
+		case 3: return data << 24; break;
+		default: return data;
+	}
+}
 
+extern "C" int pmem_read(int araddr) {
 	if(likely(in_pmem(araddr))) {
-	uint32_t ret = host_read(guest_to_host(araddr));
-	return ret;
+		uint32_t data = host_read(guest_to_host(araddr));
+		uint32_t ret = rdata_shift(data, araddr);
+		IFDEF(CONFIG_MTRACE, printf("(npc) pmem READ: at " FMT_PADDR ", data = " FMT_PADDR "\n", araddr, ret));
+		return ret;
 	} else {
 		return mmio_read(araddr);
 	}
@@ -110,10 +130,10 @@ static int wdata_shift(uint32_t wdata, int wstrb) {
 }
 
 int pmem_write(int awaddr, int wdata, int wstrb) {
-	wdata	= wdata_shift(wdata, wstrb);
-	wstrb = wmask(wstrb);
+	wdata  = wdata_shift(wdata, wstrb);
+	wstrb  = wmask(wstrb);
 
-	IFDEF(CONFIG_MTRACE, printf("pwrite at " FMT_PADDR ", data = " FMT_WORD ", len = %d\n", awaddr, wdata, wstrb));
+	IFDEF(CONFIG_MTRACE, printf("(npc) pmem WRITE: at " FMT_PADDR ", data = " FMT_WORD ", len = %d\n", awaddr, wdata, wstrb));
 
 	if(likely(in_pmem(awaddr))){
 		host_write(guest_to_host(awaddr), wstrb, wdata); return 0;
@@ -137,7 +157,6 @@ static uint32_t reverse_low_8(uint32_t value) {
 }
 
 extern "C" void flash_read(int32_t addr, int32_t *data) { 
-
 	if(addr >= 0x00000000 && addr <= 0x0fffffff){
 		*data = host_read(guest_to_host(addr));
 		IFDEF(CONFIG_FMTRACE, printf("(npc)  flash READ: addr = 0x%08x, data = 0x%08x\n", addr, *data));
@@ -149,15 +168,12 @@ extern "C" void flash_read(int32_t addr, int32_t *data) {
 	printf("read out of bound\b");
 	out_of_bound(addr);
 	return ;
-
-	//printf("flash_read addr = 0x%08x, data = 0x%08x, char = %c\n", addr, *data, ysyx[addr]);
-	return;
 }
 
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
 	if(addr >= 0x20000000 && addr <= 0x20000fff){
 		*data = host_read(guest_to_host(addr));
-		IFDEF(CONFIG_MTRACE, printf("mrom_read addr = 0x%08x, data = 0x%08x\n", addr, *data));
+		IFDEF(CONFIG_MTRACE, printf("(npc) mrom READ: addr = 0x%08x, data = 0x%08x\n", addr, *data));
 		return;
 	} else {
 		printf("mrom_read out of bound addr = 0x%08x\n", addr);
@@ -180,17 +196,21 @@ extern "C" void psram_read(uint32_t addr, uint32_t *data, uint32_t wr) {
 	}
 }
 
-extern "C" void sram_read(uint32_t araddr, bool arvalid, bool arready, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, bool awready, int wstrb) {
-	if((in_device(araddr) && arvalid && arready) || (in_device(awaddr) && awvalid && awready)) {
-		difftest_skip_ref();
-	}
+extern "C" void sram_read(uint32_t inst, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb) {
+	if((in_device(araddr) && arvalid) || (in_device(awaddr) && awvalid)) difftest_skip_ref();
+	mem_diff_update(inst, araddr, arvalid, arsize, awaddr, wdata, awvalid, wstrb);
 
-	if(in_sram(araddr) && arvalid && arready) {
+	if(in_sram(araddr) && arvalid) {
 		uint32_t rdata = host_read(s_guest_to_host(araddr));
 		IFDEF(CONFIG_SMTRACE, printf("(npc) sram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", araddr, rdata, r_size(arsize)));
-	} else if(in_sram(awaddr) && awvalid && awready) {
+	} else if(in_sram(awaddr) && awvalid) {
 		IFDEF(CONFIG_SMTRACE, printf("(npc) sram WRITE: addr = 0x%08x, data = 0x%08x, size = %d\n", awaddr, wdata, w_size(wstrb)));
 		host_write(s_guest_to_host(awaddr), wstrb, wdata);
 	}
+}
 
+uint32_t get_inst(uint32_t pc) {
+#ifdef CONFIG_NPC
+	return pmem_read(pc);
+#endif
 }

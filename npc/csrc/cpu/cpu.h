@@ -1,12 +1,12 @@
-#ifndef __CPU_CPU_H__
-#define __CPU_CPU_H__
+#ifndef __CPU_H__
+#define __CPU_H__
 
-#include"../include/common.h"
-#include"../include/utils.h"
-#include"../include/debug.h"
-#include"../memory/pmem.h"
-#include<stdio.h>
-#include<dlfcn.h>
+#include <common.h>
+#include <utils.h>
+#include <debug.h>
+#include <pmem.h>
+#include <stdio.h>
+#include <dlfcn.h>
 
 #define R 32
 #define C 4096
@@ -32,11 +32,25 @@ typedef struct{
 	bool		 valid;
 
 	char	logbuf[128];
-}CPU_state;
+} CPU_state;
 
 extern CPU_state cpu;
 
 extern const char *regs[];
+
+typedef struct {
+	 uint32_t inst;
+	 uint32_t araddr;
+	 uint32_t awaddr;
+	 uint32_t wdata;
+	 int wstrb;
+	 int arsize;
+
+	 bool arvalid;
+	 bool awvalid;
+} MEM_DIFF;
+
+extern MEM_DIFF mem_diff;
 
 void isa_reg_display();
 uint32_t isa_reg_str2val(const char *s, bool *success);

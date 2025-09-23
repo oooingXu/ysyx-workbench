@@ -1,9 +1,11 @@
-#include"cpu.h"
+#include <cpu.h>
+#include <trace.h>
 
 void (*ref_difftest_memcpy)(uint32_t addr, void *buf, size_t n, int direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint32_t NO) = NULL;
+void (*ref_difftest_mem_diff)(void *dut) = NULL;
 
 static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
@@ -46,6 +48,9 @@ void init_difftest(char *ref_so_file, long img_size){
 	ref_difftest_raise_intr = (void (*)(uint32_t))dlsym(handle, "difftest_raise_intr");
 	assert(ref_difftest_raise_intr);
 
+	ref_difftest_mem_diff = (void (*)(void*))dlsym(handle, "difftest_mem_diff");
+	assert(ref_difftest_mem_diff);
+
 	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
 	//debug("ref_difftest_init = %p", ref_difftest_init);
 	assert(ref_difftest_init);
@@ -53,41 +58,85 @@ void init_difftest(char *ref_so_file, long img_size){
 	ref_difftest_init(0);
 	//debug("success difftest_init");
 #ifdef CONFIG_SOC
-	ref_difftest_memcpy(0x30000000, guest_to_host(0x00000000), img_size, DIFFTEST_TO_REF);
+	ref_difftest_memcpy(0x30000000, guest_to_host(0), img_size, DIFFTEST_TO_REF);
 #endif
 
 #ifdef CONFIG_NPC
 	ref_difftest_memcpy(0x80000000, guest_to_host(0x80000000), img_size, DIFFTEST_TO_NPC);
 #endif
-	Log("ref_difftest_memcpy success");
 	//debug("success difftest_memcpy");
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 	//debug("success difftest_regcpy");
 }
 
+static bool isa_difftest_checkmem() {
+	MEM_DIFF mem_ref;
+	ref_difftest_mem_diff(&mem_ref);
+	bool mem_ret = true;
+	bool inst_ret = true;
+	IFDEF(CONFIG_ITRACE, itrace(mem_diff.inst));
+	if(mem_diff.inst != mem_ref.inst) {
+		inst_ret = false;
+		printf("inst fail\n");
+		printf("dut.inst = 0x%08x, ref.inst = 0x%08x\n", mem_diff.inst, mem_ref.inst);
+	}
+	if(mem_diff.arvalid) {
+		mem_ret = ((mem_diff.araddr == mem_ref.araddr) && (mem_diff.arsize == mem_ref.arsize)); 
+		if(!mem_ret) {
+			printf("Load Fail\n");
+			printf("dut.araddr = 0x%08x, ref.araddr = 0x%08x\n", mem_diff.araddr, mem_ref.araddr);
+			printf("dut.arsize = 0x%08x, ref.arsize = 0x%08x\n", mem_diff.arsize, mem_ref.arsize);
+		}
+	} else if(mem_diff.awvalid) {
+		mem_ret = ((mem_diff.awaddr == mem_ref.awaddr) && (mem_diff.wdata == mem_ref.wdata) && (mem_diff.wstrb == mem_ref.wstrb));
+		if(!mem_ret) {
+			printf("Store Fail\n");
+			printf("dut.awaddr = 0x%08x, ref.awaddr = 0x%08x\n", mem_diff.awaddr, mem_ref.awaddr);
+			printf("dut.wdata = 0x%08x, ref.wdata = 0x%08x\n", mem_diff.wdata, mem_ref.wdata);
+			printf("dut.wstrb = 0x%08x, ref.wstrb = 0x%08x\n", mem_diff.wstrb, mem_ref.wstrb);
+		}
+	} 
+	
+	return mem_ret && inst_ret;
+}
+
 static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 
+	bool reg_ret = true;
+	bool csr_ret = true;
+	bool pc_ret  = true;
 	for(int i = 0; i < R; i++){
 		if(ref->gpr[i] != cpu.gpr[i]){
+			reg_ret = false;
 			printf("\nWrong regs\n");
 			printf("ref.gpr[%s] = 0x%08x, ",regs[i],ref->gpr[i]);
 			printf("dut->gpr[%s] = 0x%08x, ",regs[i],cpu.gpr[i]);
-			printf("ref->dnpc = 0x%08x, dut->dnpc = 0x%08x, dut->pc = 0x%08x\n",ref->pc, cpu.dnpc, cpu.pc);
-			return false;
+			printf("dut->pc = 0x%08x, dut->dnpc = 0x%08x, ref->dnpc = 0x%08x\n",cpu.pc, cpu.dnpc, ref->pc);
 		}
 	}
 
 	if(cpu.mtvec != ref->mtvec || cpu.mepc != ref->mepc || cpu.mcause != ref->mcause || cpu.mstatus != ref->mstatus){
+		csr_ret = false;
 		printf("Wrong csrs\n");
-		printf("ref->dnpc = 0x%08x, dut->dnpc = 0x%08x, dut->pc = 0x%08x\n",ref->pc, cpu.dnpc, cpu.pc);
+		printf("dut->pc = 0x%08x, dut->dnpc = 0x%08x, ref->dnpc = 0x%08x\n",cpu.pc, cpu.dnpc, ref->pc);
 
 		printf("\nref->csr\n");
-		printf("mtvec   ref = 0x%08x, dut = 0x%08x\n", ref->mtvec, cpu.mtvec);
-		printf("mepc    ref = 0x%08x, dut = 0x%08x\n", ref->mepc, cpu.mepc);
+		printf("mtvec ref = 0x%08x, dut = 0x%08x\n", ref->mtvec, cpu.mtvec);
+		printf("mepc ref = 0x%08x, dut = 0x%08x\n", ref->mepc, cpu.mepc);
 		printf("mcause  ref = 0x%08x, dut = 0x%08x\n", ref->mcause, cpu.mcause);
 		printf("mstatus ref = 0x%08x, dut = 0x%08x\n\n", ref->mstatus, cpu.mstatus);
-		return false;
 	}
+
+	if(ref->pc != cpu.dnpc) {
+		pc_ret = false;
+		printf("Wrong pc\n");
+		printf("ref.pc = 0x%08x, dut.pc = 0x%08x\n", ref->pc, cpu.dnpc);
+	}
+
+
+	bool mem_ret = isa_difftest_checkmem();
+	if(!(mem_ret && reg_ret && csr_ret && pc_ret)) return false;
+
 
 	debug("All right");
 	debug("ref->dnpc = 0x%08x, dut->dnpc = 0x%08x, dut->pc = 0x%08x",ref->pc, cpu.dnpc, cpu.pc);
@@ -98,11 +147,9 @@ static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 
 static void checkregs(CPU_state *ref, uint32_t pc){
 	if(!isa_difftest_checkregs(ref, pc)){
-		npc_state.state = NPC_ABORT; //NPC_ABORT
+		npc_state.state = NPC_ABORT; 
 		npc_state.halt_pc = pc;
-		if(cpu.pc != cpu.dnpc){
-			isa_reg_display();
-		}
+		isa_reg_display();
 	}
 }
 
