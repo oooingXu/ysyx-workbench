@@ -74,7 +74,7 @@ static bool isa_difftest_checkmem() {
 	ref_difftest_mem_diff(&mem_ref);
 	bool mem_ret = true;
 	bool inst_ret = true;
-	IFDEF(CONFIG_ITRACE, itrace(mem_diff.inst));
+	IFDEF(CONFIG_ITRACE, itrace(mem_diff.inst, cpu.pc));
 	if(mem_diff.inst != mem_ref.inst) {
 		inst_ret = false;
 		printf("inst fail\n");
@@ -132,7 +132,6 @@ static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 		printf("Wrong pc\n");
 		printf("ref.pc = 0x%08x, dut.pc = 0x%08x\n", ref->pc, cpu.dnpc);
 	}
-
 
 	//bool mem_ret = isa_difftest_checkmem();
 	return (reg_ret && csr_ret && pc_ret);

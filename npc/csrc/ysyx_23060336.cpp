@@ -29,7 +29,7 @@ bool force_dump_wave = false;
 uint32_t inst_last = 0;
 uint32_t INST_WAIT = 1000;
 
-uint32_t pipeline_pc, pipeline_dnpc;
+uint32_t pipeline_pc, pipeline_dnpc, pipeline_inst;
 bool pipeline_valid;
 
 IFDEF(CONFIG_LIGHTSSS, LightSSS *lightsss = NULL; bool have_initial_fork = false;)
@@ -107,9 +107,10 @@ extern "C" void set_npc_state(int ebreak, uint32_t wbu_clk_h, uint32_t wbu_clk_l
 	}
 }
 
-extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, bool valid){
+extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, uint32_t inst, bool valid){
 	pipeline_pc    = pc;
 	pipeline_dnpc  = dnpc;
+	pipeline_inst  = inst;
 	pipeline_valid = valid;
 }
 
@@ -209,8 +210,15 @@ static void trace_and_difftest(){
 		IFDEF(CONFIG_FTRACE, ftrace(get_inst(cpu.pc)));
 		// difftest
 		IFDEF(CONFIG_DIFFTEST,  difftest_step()); 
+		iringbuf_add(pipeline_inst, pipeline_pc);
 		// exec once inst
 		g_nr_guest_inst++;
+
+		if(npc_state.state == NPC_ABORT) {
+			iringbuf_check();
+			IFDEF(CONFIG_IRINGBUF, iringbuf_printf());
+		}
+
 		cur_inst_cycle = 0;
 	}
 }
