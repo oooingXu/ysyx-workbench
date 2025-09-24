@@ -94,7 +94,7 @@ config TRACE_END
 
 config ITRACE
 	depends on TRACE
-	bool "Enable instruction tracer"
+	bool "Enable instruction itracer"
 	default y
 
 config ITRACE_COND
@@ -150,6 +150,11 @@ config RTRACE
 config CTRACE
 	depends on TRACE
 	bool "Enable instruction ctrace"
+	default n
+
+config IRINGBUF
+	depends on TRACE
+	bool "Enable printf iringbuf when abort"
 	default n
 
 config ABORTRUN

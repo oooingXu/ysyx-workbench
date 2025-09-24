@@ -12,6 +12,7 @@ CSRCS += $(NPC_HOME)/csrc/cpu/dut.c
 CSRCS += $(NPC_HOME)/csrc/utils/time.c
 CSRCS += $(NPC_HOME)/csrc/utils/ftrace.c
 CSRCS += $(NPC_HOME)/csrc/utils/itrace.c
+CSRCS += $(NPC_HOME)/csrc/utils/iringbuf.c
 CSRCS += $(NPC_HOME)/csrc/lcommon/lightsss.cpp
 CSRCS += $(NPC_HOME)/csrc/lcommon/lcommon.cpp
 CSRCS += $(NPC_HOME)/csrc/counter/counter.c
