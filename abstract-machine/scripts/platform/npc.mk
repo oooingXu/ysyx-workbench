@@ -13,6 +13,7 @@ LDFLAGS   += -T $(AM_HOME)/scripts/npc.ld \
 						 --defsym=_pmem_start=0x80000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
 #LDFLAGS   += --print-map
+
 CFLAGS += -DMAINARGS=\"$(mainargs)\"
 CFLAGS += -I$(AM_HOME)/am/src/riscv/npc
 .PHONY: $(AM_HOME)/am/src/riscv/npc/trm.c
@@ -25,5 +26,6 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	@$(NPC_HOME)/build/ysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
+	$(MAKE) -C $(NPC_HOME) ISA=$(ISA) run IMG=$(IMAGE).bin
+	#@$(NPC_HOME)/build/ysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
 	

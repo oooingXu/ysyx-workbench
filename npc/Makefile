@@ -38,6 +38,11 @@ CACHESIM_BIN = $(PERF)/pc_trace.bin
 BIN = $(BUILD_DIR)/$(TOP_NAME)
 NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
 
+ifdef CONFIG_DIFFTEST
+DIFF_REF_PATH = $(NEMU_HOME)/build
+DIFF_REF_SO = $(DIFF_REF_PATH)/riscv32-nemu-interpreter-so
+endif
+
 default: $(BIN)
 
 $(shell mkdir -p $(BUILD_DIR))
@@ -61,7 +66,7 @@ ifdef CONFIG_SOC
 VSRCS += $(SOC_HOME)/build/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
 endif
-VSRCS += $(abspath $(NPC_HOME)/vsrc/$(CPU_NAME).sv)
+CPU := $(abspath $(NPC_HOME)/vsrc/$(CPU_NAME).sv)
 CSRCS += $(SRC_AUTO_BIND)
 CSRCS += $(NPC)
 
@@ -75,7 +80,7 @@ CXXFLAGS += -mcmodel=medium
 #LDFLAGS  += -lLLVM-19
 #LDFLAGS  += $(shell llvm-config --libs)
 
-$(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
+$(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		-top-module $(TOP_NAME) $^ \
@@ -91,12 +96,22 @@ sim: $(BIN)
 test:
 	mill -i $(PRJ).test
 
+$(CPU):: verilog
+
 verilog:
 	$(call git_commit, "generate verilog")
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(VSRC)
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
-	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(NPC_HOME)/vsrc/$(CPU_NAME).sv
+	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(CPU)
+
+IMG ?= 
+NPC_EXEC := $(BIN) $(IMG) $(DIFF_REF_SO) 
+
+run: $(BIN)
+	$(call git_commit, "run NPC")
+	echo $(NPC_EXEC) 
+	$(NPC_EXEC) 
 
 help:
 	mill -i $(PRJ).runMain Elaborate --help
