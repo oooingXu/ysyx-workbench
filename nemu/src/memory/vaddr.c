@@ -15,9 +15,12 @@
 
 #include <isa.h>
 #include <memory/paddr.h>
+#include <difftest-def.h>
 
 word_t vaddr_ifetch(vaddr_t addr, int len) {
-  return paddr_read(addr, len);
+	word_t inst = paddr_read(addr, len);
+	mem_diff.inst = inst;
+  return inst;
 }
 
 word_t vaddr_read(vaddr_t addr, int len) {

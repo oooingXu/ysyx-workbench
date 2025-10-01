@@ -42,6 +42,7 @@ typedef struct {
 	 uint32_t inst;
 	 uint32_t araddr;
 	 uint32_t awaddr;
+	 uint32_t rdata;
 	 uint32_t wdata;
 	 int wstrb;
 	 int arsize;

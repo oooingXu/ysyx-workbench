@@ -16,6 +16,7 @@
 #include <memory/host.h>
 #include <memory/paddr.h>
 #include <device/mmio.h>
+#include <difftest-def.h>
 #include <isa.h>
 
 #if   defined(CONFIG_PMEM_MALLOC)
@@ -80,18 +81,68 @@ void init_mem() {
   Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
+static void mem_diff_store_update(paddr_t addr, int len, word_t data) {
+	mem_diff.awaddr = addr;
+	mem_diff.wdata = data;
+	if(len == 4) {
+		mem_diff.wstrb = 0xf;
+	} else if(len == 2) {
+		mem_diff.wstrb = 0x3;
+	} else if(len == 1) {
+		mem_diff.wstrb = 0x1;
+	}
+}
+
+static paddr_t mem_diff_rdata(paddr_t rdata, paddr_t addr, int len) {
+	paddr_t tmp_addr = addr;
+	paddr_t tmp_rdata = rdata;
+	switch(tmp_addr & 0x3) {
+		case 3: tmp_rdata = tmp_rdata >> 24; break;
+		case 2: tmp_rdata = tmp_rdata >> 16; break;
+		case 1: tmp_rdata = tmp_rdata >> 8 ; break;
+		default: break;
+	}
+
+	switch(len) {
+		case 4: return tmp_rdata;
+		case 2: return tmp_rdata & 0xffff;
+		case 1: return tmp_rdata & 0xff;
+		default: return tmp_rdata;
+	}
+
+}
+
+static void mem_diff_load_update(paddr_t rdata, paddr_t addr, int len) {
+	mem_diff.araddr = addr;
+	mem_diff.rdata  = mem_diff_rdata(rdata, addr, len);
+	if(len == 4) {
+		mem_diff.arsize = 2;
+	} else if(len == 2) {
+		mem_diff.arsize = 1;
+	} else if(len == 1) {
+		mem_diff.arsize = 0;
+	}
+}
+
 word_t paddr_read(paddr_t addr, int len) {
 	//IFDEF(CONFIG_MTRACE, printf("(nemu) pread  at " FMT_PADDR " len = %d\n", addr, len));
+	word_t rdata = 0;
 
   if (likely(in_pmem(addr))) {
 		IFDEF(CONFIG_FMTRACE, printf("(nemu) flash READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, pmem_read(addr, len), len));
-		return pmem_read(addr, len);
+		rdata = pmem_read(addr, len);
+		mem_diff_load_update(rdata, addr, len);
+		return rdata;
 	} else if(in_sram(addr)) {
 		IFDEF(CONFIG_SMTRACE, printf("(nemu) sram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, sram_read(addr, len), len));
-		return sram_read(addr, len);
+		rdata = sram_read(addr, len);
+		mem_diff_load_update(rdata, addr, len);
+		return rdata;
 	} else if(in_psram(addr)) {
 		IFDEF(CONFIG_PMTRACE, printf("(nemu) psram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, psram_read(addr, len), len));
-		return psram_read(addr, len);
+		rdata = psram_read(addr, len);
+		mem_diff_load_update(rdata, addr, len);
+		return rdata;
 	}
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
@@ -100,6 +151,7 @@ word_t paddr_read(paddr_t addr, int len) {
 
 void paddr_write(paddr_t addr, int len, word_t data) {
 	//IFDEF(CONFIG_MTRACE, printf("pwrite at " FMT_PADDR " len = %d data = " FMT_WORD"\n" , addr, len, data));
+	mem_diff_store_update(addr, len, data);
 
  if (likely(in_pmem(addr))) { 
 	 IFDEF(CONFIG_FMTRACE, printf("(nemu) flash WRITE: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, data, len));

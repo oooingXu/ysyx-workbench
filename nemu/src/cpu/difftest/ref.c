@@ -86,6 +86,17 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 #endif
 }
 
+__EXPORT void difftest_mem_diff(void *mem_dut) {
+	MEM_DIFF *diff_mem_dut = (MEM_DIFF *)mem_dut;
+
+	diff_mem_dut->inst   = mem_diff.inst;
+	diff_mem_dut->araddr = mem_diff.araddr;
+	diff_mem_dut->awaddr = mem_diff.awaddr;
+	diff_mem_dut->wdata  = mem_diff.wdata;
+	diff_mem_dut->wstrb  = mem_diff.wstrb;
+	diff_mem_dut->arsize = mem_diff.arsize;
+}
+
 __EXPORT void difftest_exec(uint64_t n) {
 	cpu_exec(n);
 }
@@ -95,8 +106,17 @@ __EXPORT void difftest_raise_intr(word_t NO) {
 }
 
 __EXPORT void difftest_init(int port) {
+#ifdef CONFIG_CPUINFO
+	printf("(nemu) difftest_init\n");
+#endif
   void init_mem();
   init_mem();
+#ifdef CONFIG_CPUINFO
+	printf("(nemu) init_mem\n");
+#endif
   /* Perform ISA dependent initialization. */
   init_isa();
+#ifdef CONFIG_CPUINFO
+	printf("(nemu) init_isa\n");
+#endif
 }

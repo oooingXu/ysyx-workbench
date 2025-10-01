@@ -26,35 +26,60 @@ void difftest_skip_dut(CPU_state *ref, int nr_ref, int nr_dut) {
 }
 
 void init_difftest(char *ref_so_file, long img_size){
+	if(ref_so_file == NULL) {
+		printf("(npc) Do not have ref_so_file\n");
+	}
 	assert(ref_so_file != NULL);
 
 	void *handle;
 	handle = dlopen(ref_so_file, RTLD_LAZY);
 	//debug("handle = %p", handle);
+	if(handle == NULL) {
+		printf("(npc) Do not have ref_so_file\n");
+	}
 	assert(handle);
 
 	ref_difftest_memcpy = (void (*)(uint32_t, void*, size_t, int))dlsym(handle, "difftest_memcpy");
 	//debug("ref_difftest_memcpy = %p", ref_difftest_memcpy);
+	if(ref_difftest_memcpy == NULL) {
+		printf("(npc) difftest_memcpy init fail\n");
+	}
 	assert(ref_difftest_memcpy);
 
 	ref_difftest_regcpy = (void (*)(void*, bool))dlsym(handle, "difftest_regcpy");
 	//debug("ref_difftest_regcpy = %p", ref_difftest_regcpy);
+	if(ref_difftest_regcpy == NULL) {
+		printf("(npc) difftest_regcpy init fail\n");
+	}
 	assert(ref_difftest_regcpy);
 
 	ref_difftest_exec = (void (*)(uint64_t))dlsym(handle, "difftest_exec");
 	//debug("ref_difftest_exec = %p", ref_difftest_exec);
+	if(ref_difftest_exec == NULL) {
+		printf("(npc) difftest_exec init fail\n");
+	}
 	assert(ref_difftest_exec);
 
 	ref_difftest_raise_intr = (void (*)(uint32_t))dlsym(handle, "difftest_raise_intr");
+	if(ref_difftest_raise_intr == NULL) {
+		printf("(npc) difftest_raise_intr init fail\n");
+	}
 	assert(ref_difftest_raise_intr);
 
 	ref_difftest_mem_diff = (void (*)(void*))dlsym(handle, "difftest_mem_diff");
+	if(ref_difftest_mem_diff == NULL) {
+		printf("(npc) difftest_mem_diff init fail\n");
+	}
 	assert(ref_difftest_mem_diff);
 
 	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
 	//debug("ref_difftest_init = %p", ref_difftest_init);
+	if(ref_difftest_init == NULL) {
+		printf("(npc) difftest_init init fail\n");
+	}
 	assert(ref_difftest_init);
 
+	Log("(npc) difftest init success: the ref-so is %s\n", ref_so_file);
 	ref_difftest_init(0);
 	//debug("success difftest_init");
 #ifdef CONFIG_SOC
@@ -133,9 +158,9 @@ static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 		printf("ref.pc = 0x%08x, dut.pc = 0x%08x\n", ref->pc, cpu.dnpc);
 	}
 
-	//bool mem_ret = isa_difftest_checkmem();
-	return (reg_ret && csr_ret && pc_ret);
-	//return (mem_ret && reg_ret && csr_ret && pc_ret);
+	bool mem_ret = isa_difftest_checkmem();
+	//return (reg_ret && csr_ret && pc_ret);
+	return (mem_ret && reg_ret && csr_ret && pc_ret);
 //	if(!(mem_ret && reg_ret && csr_ret && pc_ret)) return false;
 //
 //	return true;

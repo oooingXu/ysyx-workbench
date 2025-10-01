@@ -113,7 +113,6 @@ NPC_EXEC := $(BIN) $(IMG) $(DIFF_REF_SO)
 
 run: $(BIN)
 	$(call git_commit, "run NPC")
-	echo $(NPC_EXEC) 
 	$(NPC_EXEC) 
 
 help:
