@@ -34,6 +34,16 @@ void cpu_info() {
 	printf("\n");
 }
 
+void mem_info() {
+	printf("(nemu) inst   = 0x%08x\n", mem_diff.inst);
+	printf("(nemu) araddr = 0x%08x\n", mem_diff.araddr);
+	printf("(nemu) awaddr = 0x%08x\n", mem_diff.awaddr);
+	printf("(nemu) wdata  = 0x%08x\n", mem_diff.wdata);
+	printf("(nemu) wstrb  = 0x%08x\n", mem_diff.wstrb);
+	printf("(nemu) arsize = 0x%08x\n", mem_diff.arsize);
+
+}
+
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) {
 	if(addr != 0){
 		if( direction == DIFFTEST_TO_REF) {
@@ -43,11 +53,11 @@ __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) 
 #endif
 			memcpy(guest_to_host(addr), buf, n);
 		} else if(direction == DIFFTEST_TO_NPC) {
+			memcpy(p_guest_to_host(addr), buf, n);
 #ifdef CONFIG_CPUINFO
 			printf("DFFTEST_TO_NPC\n");
-			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x\n", addr, *(uint32_t *)buf);
+			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x, buf = 0x%08x\n", addr, paddr_read(addr, 4), *(uint32_t *)buf);
 #endif
-			memcpy(p_guest_to_host(addr), buf, n);
 		} else {
 			assert(0);
 		}
@@ -87,6 +97,10 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 }
 
 __EXPORT void difftest_mem_diff(void *mem_dut) {
+#ifdef CONFIG_CPUINFO
+	printf("(nemu) difftest_mem_diff\n");
+	mem_info();
+#endif
 	MEM_DIFF *diff_mem_dut = (MEM_DIFF *)mem_dut;
 
 	diff_mem_dut->inst   = mem_diff.inst;

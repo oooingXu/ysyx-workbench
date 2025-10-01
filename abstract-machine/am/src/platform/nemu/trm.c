@@ -4,7 +4,7 @@
 
 extern char _heap_start; 
 extern char _ssbl_lma, _ssbl, _essbl, _text_lma, _text, _etext, _rodata_lma, _rodata, _erodata, _data_lma, _data,  _edata, _bss, _ebss;
-#define RTT
+//#define RTT
 #ifdef RTT
 extern char _data_extra,  _edata_extra , _data_extra_lma;
 extern char _bss_extra,  _ebss_extra;
