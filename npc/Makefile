@@ -34,6 +34,9 @@ PERF = ./perf
 PERF_REF = $(PERF)/ysyxSoCFull
 PERF_BIN = $(PERF)/$(MICROBENCH)
 CACHESIM = $(PERF)/cachesim
+YOSYS = ../yosys-sta
+
+
 CACHESIM_BIN = $(PERF)/pc_trace.bin
 BIN = $(BUILD_DIR)/$(TOP_NAME)
 NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
@@ -122,6 +125,12 @@ reformat:
 checkformat:
 	mill -i __.checkFormat
 
+sta:
+	$(MAKE) -C $(YOSYS) sta
+
+rpt:
+	$(MAKE) -C $(YOSYS) rpt
+
 wave:
 	gtkwave waveform.*
 
@@ -134,11 +143,12 @@ cachesim:
 
 clean:
 	rm -rf $(BUILD_DIR) test_run_dir $(OBJ) $(VSRC) waveform.*
+	$(MAKE) -C $(YOSYS) clean
 
 cleansim:
 	rm -rf performance_trace.csv $(OBJ) $(BUILD_DIR)
 
-.PHONY:	default all	run test verilog help reformat checkformat clean sim wave cleansim perf cachesim
+.PHONY:	default all	run test verilog help reformat checkformat clean sim wave cleansim perf cachesim sta rpt
 
 include ../Makefile
 
