@@ -24,11 +24,11 @@ class ysyx_23060336_IDU extends Module{
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(List(
     s_idle       -> Mux(io.ifu_idu_data.valid, s_wait_ready, s_idle),
-    s_wait_ready -> Mux(io.exu_idu_raw.exu_isRAW_control, s_idle, Mux(isRAW_data, s_wait_ready, Mux(io.idu_exu_data.ready, s_idle, s_wait_ready)))
+    s_wait_ready -> Mux(io.exu_idu_raw.exu_isRAW_control, s_idle, Mux(isRAW_data, s_wait_ready, Mux(io.idu_exu_data.ready, Mux(io.ifu_idu_data.valid, s_wait_ready, s_idle), s_wait_ready)))
   ))
 
   io.idu_exu_data.valid := state === s_wait_ready && !io.exu_idu_raw.exu_isRAW_control
-  io.ifu_idu_data.ready := state === s_idle 
+  io.ifu_idu_data.ready := state === s_idle || (state === s_wait_ready && !isRAW_data && io.ifu_idu_data.valid)
   //io.ifu_idu_data.ready := state === s_idle || (state === s_wait_ready && io.ifu_idu_data.valid)
 
   // idu <> exu

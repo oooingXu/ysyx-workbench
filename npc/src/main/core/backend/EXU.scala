@@ -94,6 +94,9 @@ class ysyx_23060336_EXU extends Module {
   )
 
   pcadd := pca + pcb
+  dontTouch(pca)
+  dontTouch(pcb)
+  dontTouch(pcadd)
 
   dnpc := Mux(reset.asBool, "h80000000".U,
           Mux(io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.ecall, io.idu_exu_data.bits.mtvec,      

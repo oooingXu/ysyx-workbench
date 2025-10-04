@@ -346,7 +346,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.AluMux := Mux(isRAW_data, "b0011".U, AluMux)
   io.decode_idu_data.idu_exu_data.branch := decodeBundle(BranchField)
   io.decode_idu_data.idu_exu_data.mret   := decodeBundle(MretField)
-  io.decode_idu_data.idu_exu_data.pcmux  := decodeBundle(PcMuxField)
+  io.decode_idu_data.idu_exu_data.pcmux  := Mux(isRAW_data, 0.U, decodeBundle(PcMuxField))
   io.decode_idu_data.idu_exu_data.rezimm := immgen.io.immgen_decode_data.rezimm
   io.decode_idu_data.idu_exu_data.zimm   := immgen.io.immgen_decode_data.zimm
   io.decode_idu_data.idu_exu_data.rers1  := immgen.io.immgen_decode_data.rers1
