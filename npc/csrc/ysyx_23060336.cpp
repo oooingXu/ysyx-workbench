@@ -187,8 +187,8 @@ static void renew_reg(){
 			cpu.gpr[i] = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__reg_0__DOT__ysyx_23060336_regs_ext__DOT__Memory[i];
 		}
 
-		cpu.mepc    = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mepc;
-		cpu.mtvec   = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mtvec;
+		cpu.mepc    = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mepc << 2;
+		cpu.mtvec   = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mtvec << 2;
 		cpu.mcause  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mcause;
 		cpu.mstatus = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__csr__DOT__mstatus;
 #endif
@@ -198,8 +198,8 @@ static void renew_reg(){
 			cpu.gpr[i] = dut->rootp->ysyx_23060336__DOT__reg_0__DOT__ysyx_23060336_regs_ext__DOT__Memory[i];
 		}
 
-		cpu.mepc    = dut->rootp->ysyx_23060336__DOT__csr__DOT__mepc;
-		cpu.mtvec   = dut->rootp->ysyx_23060336__DOT__csr__DOT__mtvec;
+		cpu.mepc    = dut->rootp->ysyx_23060336__DOT__csr__DOT__mepc << 2;
+		cpu.mtvec   = dut->rootp->ysyx_23060336__DOT__csr__DOT__mtvec << 2;
 		cpu.mcause  = dut->rootp->ysyx_23060336__DOT__csr__DOT__mcause;
 		cpu.mstatus = dut->rootp->ysyx_23060336__DOT__csr__DOT__mstatus;
 #endif
