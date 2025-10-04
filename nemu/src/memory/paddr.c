@@ -84,6 +84,7 @@ void init_mem() {
 }
 
 static void mem_diff_store_update(paddr_t addr, int len, word_t data) {
+	mem_diff.awvalid = true;
 	mem_diff.awaddr = addr;
 	mem_diff.wdata = data;
 	if(len == 4) {
@@ -115,6 +116,7 @@ static paddr_t mem_diff_rdata(paddr_t rdata, paddr_t addr, int len) {
 }
 
 static void mem_diff_load_update(paddr_t rdata, paddr_t addr, int len) {
+	mem_diff.arvalid = true;
 	mem_diff.araddr = addr;
 	mem_diff.rdata  = mem_diff_rdata(rdata, addr, len);
 	if(len == 4) {

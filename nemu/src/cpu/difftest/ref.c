@@ -103,15 +103,19 @@ __EXPORT void difftest_mem_diff(void *mem_dut) {
 #endif
 	MEM_DIFF *diff_mem_dut = (MEM_DIFF *)mem_dut;
 
-	diff_mem_dut->inst   = mem_diff.inst;
-	diff_mem_dut->araddr = mem_diff.araddr;
-	diff_mem_dut->awaddr = mem_diff.awaddr;
-	diff_mem_dut->wdata  = mem_diff.wdata;
-	diff_mem_dut->wstrb  = mem_diff.wstrb;
-	diff_mem_dut->arsize = mem_diff.arsize;
+	diff_mem_dut->inst    = mem_diff.inst;
+	diff_mem_dut->araddr  = mem_diff.araddr;
+	diff_mem_dut->awaddr  = mem_diff.awaddr;
+	diff_mem_dut->wdata   = mem_diff.wdata;
+	diff_mem_dut->wstrb   = mem_diff.wstrb;
+	diff_mem_dut->arsize  = mem_diff.arsize;
+	diff_mem_dut->arvalid = mem_diff.arvalid;
+	diff_mem_dut->awvalid = mem_diff.awvalid;
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
+	mem_diff.arvalid = false;
+	mem_diff.awvalid = false;
 	cpu_exec(n);
 }
 
