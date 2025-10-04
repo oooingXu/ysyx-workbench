@@ -205,7 +205,8 @@ static void init_npc(){
 }
 
 static void trace_and_difftest(){
-	if(!(cpu.reset || (cpu.pc == cpu.dnpc) || (cpu.pc == 0) || (cpu.dnpc == 0) || !cpu.valid)) {
+	//if(!(cpu.reset || (cpu.pc == cpu.dnpc) || (cpu.pc == 0) || (cpu.dnpc == 0) || !cpu.valid)) {
+	if(cpu.valid) {
 		// ftrace
 		IFDEF(CONFIG_FTRACE, ftrace(get_inst(cpu.pc)));
 		// difftest
