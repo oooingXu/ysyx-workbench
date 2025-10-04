@@ -32,7 +32,7 @@ class ysyx_23060336_EXU extends Module {
     s_wait_ready_flush -> Mux(io.exu_lsu_data.ready, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle), s_wait_ready_flush)
   ))
 
-  io.exu_lsu_data.valid := state === s_wait_ready
+  io.exu_lsu_data.valid := state === s_wait_ready || state === s_wait_ready_flush
   io.idu_exu_data.ready := state === s_idle || (state === s_wait_ready && io.exu_lsu_data.ready)
   //io.idu_exu_data.ready := state === s_idle || (io.exu_lsu_data.valid && io.idu_exu_data.valid)
 
