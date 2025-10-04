@@ -131,7 +131,7 @@ rpt:
 	$(MAKE) -C $(YOSYS) rpt
 
 wave:
-	gtkwave waveform.*
+	gtkwave build/waveform.*
 
 perf:
 	$(PERF_REF) $(PERF_BIN)

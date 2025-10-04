@@ -164,7 +164,12 @@ config ABORTRUN
 
 config WAVE
 	depends on TRACE
-	bool "Enable instruction gtkwave"
+	bool "Enable open gtkwave"
+	default n
+
+config LIGHTSSS
+	depends on TRACE
+	bool "Enable open lightsss"
 	default n
 
 config DIFFTEST
