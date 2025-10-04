@@ -235,7 +235,7 @@ static void trace_and_difftest(){
 		// difftest
 		//printf("(npc) Begin: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		IFDEF(CONFIG_DIFFTEST,  difftest_step()); 
-		iringbuf_add(pipeline_inst, pipeline_pc);
+		iringbuf_add(mem_diff.inst, cpu.pc);
 		//printf("(npc) End: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		// exec once inst
 		g_nr_guest_inst++;
