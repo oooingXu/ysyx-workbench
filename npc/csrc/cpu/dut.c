@@ -121,6 +121,19 @@ static bool isa_difftest_checkmem() {
 			printf("dut.wstrb = 0x%08x, ref.wstrb = 0x%08x\n", mem_diff.wstrb, mem_ref.wstrb);
 		}
 	} 
+
+#ifdef CONFIG_DIFFMEM_DEBUG
+			printf("(npc) Diff Load \n");
+			printf("dut.arvalid = %d, ref.arvalid = %d\n", mem_diff.arvalid, mem_ref.arvalid);
+			printf("dut.araddr  = 0x%08x, ref.araddr  = 0x%08x\n", mem_diff.araddr, mem_ref.araddr);
+			printf("dut.arsize  = 0x%08x, ref.arsize  = 0x%08x\n", mem_diff.arsize, mem_ref.arsize);
+			printf("(npc) Diff Store \n");
+			printf("dut.awvalid = %d, ref.awvalid = %d\n", mem_diff.awvalid, mem_ref.awvalid);
+			printf("dut.awaddr  = 0x%08x, ref.awaddr  = 0x%08x\n", mem_diff.awaddr, mem_ref.awaddr);
+			printf("dut.wdata   = 0x%08x, ref.wdata   = 0x%08x\n", mem_diff.wdata, mem_ref.wdata);
+			printf("dut.wstrb   = 0x%08x, ref.wstrb   = 0x%08x\n", mem_diff.wstrb, mem_ref.wstrb);
+#endif
+
 	
 	return mem_ret && inst_ret;
 }
