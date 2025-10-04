@@ -24,11 +24,12 @@ class ysyx_23060336_EXU extends Module {
   val isRAW_control = Wire(Bool())
 
   // state machine
-  val s_idle :: s_wait_ready :: Nil = Enum(2)
+  val s_idle :: s_wait_ready :: s_wait_ready_flush :: Nil = Enum(3)
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(List(
-    s_idle               -> Mux(io.idu_exu_data.valid, s_wait_ready, s_idle),
-    s_wait_ready         -> Mux(isRAW_control, s_idle, Mux(io.exu_lsu_data.ready, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle), s_wait_ready)),
+    s_idle             -> Mux(io.idu_exu_data.valid, s_wait_ready, s_idle),
+    s_wait_ready       -> Mux(io.exu_lsu_data.ready, Mux(isRAW_control, s_idle, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle)), Mux(isRAW_control, s_wait_ready_flush, s_wait_ready)),
+    s_wait_ready_flush -> Mux(io.exu_lsu_data.ready, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle), s_wait_ready_flush)
   ))
 
   io.exu_lsu_data.valid := state === s_wait_ready

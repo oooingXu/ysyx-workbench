@@ -48,7 +48,7 @@ endif
 
 default: $(BIN)
 
-$(shell mkdir -p $(BUILD_DIR))
+#$(shell mkdir -p $(BUILD_DIR))
 
 VERILATOR_CFLAGS += $(shell llvm-config --cflags) 
 VERILATOR_CFLAGS += $(shell sdl2-config --cflags) 
@@ -103,7 +103,7 @@ $(CPU):: verilog
 
 verilog:
 	$(call git_commit, "generate verilog")
-	rm -rf $(BUILD_DIR) test_run_dir $(OBJ) $(VSRC) waveform.*
+	#rm -rf $(BUILD_DIR) test_run_dir $(OBJ) $(VSRC) waveform.*
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(VSRC)
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)

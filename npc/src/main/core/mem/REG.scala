@@ -21,7 +21,7 @@ class ysyx_23060336_REG extends Module{
   io.reg_idu_data.src2 := ysyx_23060336_regs(io.reg_idu_data.rs2)
 
   when(io.reg_wbu_data.wen){
-    ysyx_23060336_regs(io.reg_wbu_data.waddr) := io.reg_wbu_data.wdata
+    ysyx_23060336_regs(io.reg_wbu_data.waddr) := Mux(io.reg_wbu_data.waddr === 0.U, 0.U, io.reg_wbu_data.wdata)
   }
   ysyx_23060336_regs(0) := 0.U
 }

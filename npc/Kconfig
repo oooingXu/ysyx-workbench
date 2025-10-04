@@ -157,6 +157,26 @@ config IRINGBUF
 	bool "Enable printf iringbuf when abort"
 	default n
 
+config IRINGBUF_DEBUG
+	depends on IRINGBUF
+	bool "Enable debug iringbuf"
+	default n
+
+config DIFFTEST
+ depends on TRACE
+ bool "Enable instruction difftest"
+ default n
+
+config PTRACE
+	depends on DIFFTEST
+	bool "Enable instruction ptracer"
+	default n
+
+config DIFFMEM_DEBUG
+	depends on DIFFTEST
+	bool "Enable printf diff mem"
+	default n
+
 config ABORTRUN
 	depends on TRACE
 	bool "Enable run when abort"
@@ -170,16 +190,6 @@ config WAVE
 config LIGHTSSS
 	depends on TRACE
 	bool "Enable open lightsss"
-	default n
-
-config DIFFTEST
- depends on TRACE
- bool "Enable instruction difftest"
- default n
-
-config PTRACE
-	depends on DIFFTEST
-	bool "Enable instruction ptracer"
 	default n
 
 endmenu

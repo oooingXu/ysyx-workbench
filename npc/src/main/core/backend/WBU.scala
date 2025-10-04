@@ -41,6 +41,7 @@ class ysyx_23060336_WBU extends Module {
     seepc.io.dnpc  := io.lsu_wbu_data.bits.exu_wbu_data.dnpc
     seepc.io.inst  := io.lsu_wbu_data.bits.idu_wbu_data.inst
     seepc.io.valid := state === s_reg && !io.lsu_wbu_data.bits.idu_wbu_data.isRAW_data
+    seepc.io.wbu_sram_data <> io.lsu_wbu_data.bits.wbu_sram_data
   }
 
   // useSram / mem_diff
