@@ -20,6 +20,7 @@ void isa_reg_display() {
 	printf("mstatus = 0x%08x, ", cpu.mstatus);
 	printf("mcause = 0x%08x, ", cpu.mcause);
 	printf("mtvec = 0x%08x\n", cpu.mtvec);
+	printf("pc = 0x%08x, dnpc = 0x%08x\n", cpu.pc, cpu.dnpc);
 	printf("\n");
 }
 
