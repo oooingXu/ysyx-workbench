@@ -265,9 +265,9 @@ void sim_once(){
 
 void exec_once(){
 		sim_once(); // clock 1 -> 0
-		renew_reg();
 		if(npc_state.state != NPC_END) trace_and_difftest();
 		sim_once(); // clock 0 -> 1
+		renew_reg();
 		renew_pc();
 }
 
