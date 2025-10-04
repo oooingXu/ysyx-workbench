@@ -29,13 +29,14 @@ bool force_dump_wave = false;
 uint32_t inst_last = 0;
 uint32_t INST_WAIT = 1000;
 
-uint32_t pipeline_pc, pipeline_dnpc, pipeline_inst;
-bool pipeline_valid;
+uint32_t pipeline_pc, pipeline_dnpc, pipeline_inst, pipeline_araddr, pipeline_arsize, pipeline_awaddr, pipeline_wdata, pipeline_wstrb;
+bool pipeline_valid, pipeline_arvalid, pipeline_awvalid;
 
 IFDEF(CONFIG_LIGHTSSS, LightSSS *lightsss = NULL; bool have_initial_fork = false;)
 
 NPCState npc_state;
 CPU_state cpu = {};
+MEM_DIFF mem_diff;
 
 #ifdef CONFIG_SOC
 #include <nvboard.h>
@@ -93,6 +94,19 @@ static void statistic(){
 	} else Log("Finish running in less than 1 us and can not calculate the simulation frequency");
 }
 
+static void mem_diff_update(uint32_t inst, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb) {
+	mem_diff.inst		 = inst;
+	mem_diff.araddr  = araddr;
+	mem_diff.awaddr  = awaddr;
+	mem_diff.wdata   = wdata;
+	mem_diff.wstrb   = wstrb;
+	mem_diff.arsize  = arsize;
+
+	mem_diff.arvalid = arvalid;
+	mem_diff.awvalid = awvalid;
+}
+
+
 extern "C" void set_npc_state(int ebreak, uint32_t wbu_clk_h, uint32_t wbu_clk_l){
 	IFDEF(CONFIG_COUNTER, performance_count(ebreak));
 
@@ -107,11 +121,18 @@ extern "C" void set_npc_state(int ebreak, uint32_t wbu_clk_h, uint32_t wbu_clk_l
 	}
 }
 
-extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, uint32_t inst, bool valid){
-	pipeline_pc    = pc;
-	pipeline_dnpc  = dnpc;
-	pipeline_inst  = inst;
-	pipeline_valid = valid;
+extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, uint32_t inst, bool valid, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb){
+	pipeline_pc      = pc;
+	pipeline_dnpc    = dnpc;
+	pipeline_inst    = inst;
+	pipeline_valid   = valid;
+	pipeline_araddr  = araddr;
+	pipeline_arvalid = arvalid;
+	pipeline_arsize  = arsize;
+	pipeline_awaddr  = awaddr;
+	pipeline_wdata   = wdata;
+	pipeline_awvalid = awvalid;
+	pipeline_wstrb   = wstrb;
 }
 
 static long load_program(char * img,uint32_t addr) {
@@ -156,6 +177,8 @@ static void renew_pc(){
 		cpu.pc    = pipeline_pc;
 		cpu.dnpc  = pipeline_dnpc;
 		cpu.valid = pipeline_valid;
+		mem_diff_update(pipeline_inst, pipeline_araddr, pipeline_arvalid, pipeline_arsize, pipeline_awaddr, pipeline_wdata, pipeline_awvalid, pipeline_wstrb);
+		//printf("(npc) renew_pc: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, cpu.valid = %d\n", cpu.pc, cpu.dnpc, cpu.valid);
 }
 
 static void renew_reg(){
@@ -210,8 +233,10 @@ static void trace_and_difftest(){
 		// ftrace
 		IFDEF(CONFIG_FTRACE, ftrace(get_inst(cpu.pc)));
 		// difftest
+		//printf("(npc) Begin: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		IFDEF(CONFIG_DIFFTEST,  difftest_step()); 
 		iringbuf_add(pipeline_inst, pipeline_pc);
+		//printf("(npc) End: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		// exec once inst
 		g_nr_guest_inst++;
 

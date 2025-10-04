@@ -5,20 +5,6 @@ uint8_t pmem[MSIZE] PG_ALIGN = {};
 uint8_t cmem[0x20] = {};
 uint8_t sram[SRAM_SIZE] PG_ALIGN = {};
 
-MEM_DIFF mem_diff;
-
-static void mem_diff_update(uint32_t inst, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb) {
-	mem_diff.inst		 = inst;
-	mem_diff.araddr  = araddr;
-	mem_diff.awaddr  = awaddr;
-	mem_diff.wdata   = wdata;
-	mem_diff.wstrb   = wstrb;
-	mem_diff.arsize  = arsize;
-
-	mem_diff.arvalid = arvalid;
-	mem_diff.awvalid = awvalid;
-}
-
 //static uint32_t psram[0x4000];
 static uint8_t *psram = NULL;
 static void psram_init(){
@@ -198,7 +184,7 @@ extern "C" void psram_read(uint32_t addr, uint32_t *data, uint32_t wr) {
 
 extern "C" void sram_read(uint32_t inst, uint32_t araddr, bool arvalid, int arsize, uint32_t awaddr, uint32_t wdata, bool awvalid, int wstrb) {
 	if((in_device(araddr) && arvalid) || (in_device(awaddr) && awvalid)) difftest_skip_ref();
-	mem_diff_update(inst, araddr, arvalid, arsize, awaddr, wdata, awvalid, wstrb);
+	//mem_diff_update(inst, araddr, arvalid, arsize, awaddr, wdata, awvalid, wstrb);
 
 	if(in_sram(araddr) && arvalid) {
 		uint32_t rdata = host_read(s_guest_to_host(araddr));
