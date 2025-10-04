@@ -37,7 +37,7 @@ class ysyx_23060336_LSU extends Module{
     s_wait_prepare -> Mux(prepare, Mux(io.exu_lsu_data.valid, s_wait_sign, s_idle), s_wait_prepare)
   ))
 
-  io.exu_lsu_data.ready := state === s_idle || (state === s_wait_sign && !io.exu_lsu_data.bits.idu_lsu_data.MemtoReg && !io.exu_lsu_data.bits.idu_lsu_data.MemWr) || (state === s_wait_rslave && io.axi.arready && io.axi.rvalid && io.axi.rlast)
+  io.exu_lsu_data.ready := state === s_idle || (state === s_wait_sign && !io.exu_lsu_data.bits.idu_lsu_data.MemtoReg && !io.exu_lsu_data.bits.idu_lsu_data.MemWr) || (state === s_wait_rslave && io.axi.arready && io.axi.rvalid && io.axi.rlast) || (state === s_wait_prepare && prepare && io.exu_lsu_data.valid)
   io.lsu_wbu_data.valid := (state === s_wait_sign && !io.exu_lsu_data.bits.idu_lsu_data.MemtoReg && !io.exu_lsu_data.bits.idu_lsu_data.MemWr) || (state === s_wait_prepare && prepare) || (state === s_wait_rslave && io.axi.arready && io.axi.rvalid && io.axi.rlast)
 
   // rdata
