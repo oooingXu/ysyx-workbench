@@ -10,11 +10,11 @@ class ysyx_23060336_IFU extends Module{
     val axi          = new ysyx_23060336_AXI4Master()
   })
 
-  val npc = if(Config.useNPCSim) {"h80000000".U(Base.addrWidth.W)} else {"h30000000".U(Base.addrWidth.W)}
+  val npc = if(Config.useNPCSim) {"h20000000".U(Base.pcWidth.W)} else {"h04000000".U(Base.pcWidth.W)}
   val PC      = RegInit(npc)
   //val finst   = RegInit(0.U(Base.dataWidth.W))
-  val araddr  = Wire(UInt(Base.addrWidth.W))
-  val preaddr = Wire(UInt(Base.addrWidth.W))
+  val araddr  = Wire(UInt(Base.pcWidth.W))
+  val preaddr = Wire(UInt(Base.pcWidth.W))
 
   //val s_idle :: s_wait_rvalid :: s_wait_ready :: s_wait_control_arready :: s_begin :: s_wait_exu_valid :: s_wait_arready :: Nil = Enum(7)
   //val state = RegInit(s_begin)
@@ -65,12 +65,12 @@ class ysyx_23060336_IFU extends Module{
         Mux(io.ifu_idu_data.fire, preaddr, PC)))
 
   araddr  := Mux(flush, io.exu_ifu_raw.dnpc, PC)
-  preaddr := PC + 4.U
+  preaddr := PC + 1.U
   flush   := io.exu_ifu_raw.isRAW_control
 
   //io.axi.rready  := state === s_idle || state === s_wait_rvalid || state === s_wait_exu_valid || state === s_wait_rvalid || state === s_wait_control_arready || state === s_wait_arready
   //io.axi.arvalid := Mux(reset.asBool, false.B, state === s_idle || state === s_begin || state === s_wait_control_arready || (state === s_wait_exu_valid && io.exu_ifu_raw.exu_valid) || state === s_wait_arready)
-  io.axi.araddr  := araddr
+  io.axi.araddr  := Cat(araddr, 0.U(2.W))
   io.axi.rready  := state =/= s_wait_ready
   io.axi.arvalid := state === s_wait_arready
   io.axi.awvalid := false.B

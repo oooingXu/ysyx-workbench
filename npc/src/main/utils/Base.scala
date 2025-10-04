@@ -14,7 +14,7 @@ object Base {
   val AluMuxWidth   = 4
   val rdWidth       = 5
   val csrWidth      = 12
-  val pcWidth       = 32
+  val pcWidth       = 30
 
   // axi
   val burstWidth = 2

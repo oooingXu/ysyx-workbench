@@ -20,6 +20,8 @@ class ysyx_23060336_EXU extends Module {
   val pcadd = Wire(UInt(Base.pcWidth.W))
   val PCMux = Wire(UInt(Base.PCMuxWidth.W))
 
+
+  val pc    = Wire(UInt(Base.pcWidth.W))
   val dnpc  = Wire(UInt(Base.pcWidth.W))
   val isRAW_control = Wire(Bool())
 
@@ -40,15 +42,16 @@ class ysyx_23060336_EXU extends Module {
   io.exu_lsu_data.bits.idu_lsu_data  <> io.idu_exu_data.bits.idu_lsu_data
   io.exu_lsu_data.bits.exu_wbu_data.pc   := io.idu_exu_data.bits.pc
   io.exu_lsu_data.bits.exu_wbu_data.dnpc := dnpc
+  pc   := io.idu_exu_data.bits.pc
 
   // exu <> alu
   ina := MuxLookup(io.idu_exu_data.bits.AluMux, 0.U)(
     Seq(
       "b0111".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.src1,
       "b0001".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.src1,
-      "b0010".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.pc,
+      "b0010".U(Base.AluMuxWidth.W) -> Cat(pc, 0.U(2.W)),
       "b0011".U(Base.AluMuxWidth.W) -> 0.U,  
-      "b0100".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.pc,                
+      "b0100".U(Base.AluMuxWidth.W) -> Cat(pc, 0.U(2.W)),                
       "b0101".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.rers1, 
       "b1000".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.rers1,                     
       "b1001".U(Base.AluMuxWidth.W) -> io.idu_exu_data.bits.rezimm,                     
@@ -76,20 +79,20 @@ class ysyx_23060336_EXU extends Module {
   // exu <> pc_add
   PCMux := Cat(io.idu_exu_data.bits.branch, io.exu_lsu_data.bits.result(0), io.idu_exu_data.bits.pcmux)
 
-  pca := MuxLookup(PCMux, io.idu_exu_data.bits.pc)(
+  pca := MuxLookup(PCMux, pc)(
     Seq(
-      "b0010".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.src1,
-      "b0110".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.src1
+      "b0010".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.src1(31,2),
+      "b0110".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.src1(31,2)
     )
   )
 
-  pcb := MuxLookup(PCMux, 4.U)(
+  pcb := MuxLookup(PCMux, 1.U)(
     Seq(
-      "b0010".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm,
-      "b0110".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm,
-      "b0001".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm,
-      "b0101".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm,
-      "b1101".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm
+      "b0010".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm(31,2),
+      "b0110".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm(31,2),
+      "b0001".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm(31,2),
+      "b0101".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm(31,2),
+      "b1101".U(Base.PCMuxWidth.W) -> io.idu_exu_data.bits.imm(31,2)
     )
   )
 
@@ -98,12 +101,11 @@ class ysyx_23060336_EXU extends Module {
   dontTouch(pcb)
   dontTouch(pcadd)
 
-  dnpc := Mux(reset.asBool, "h80000000".U,
-          Mux(io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.ecall, io.idu_exu_data.bits.mtvec,      
-          Mux(io.idu_exu_data.bits.mret,  io.idu_exu_data.bits.mepc, pcadd)))
+  dnpc := Mux(io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.ecall, io.idu_exu_data.bits.mtvec,      
+          Mux(io.idu_exu_data.bits.mret,  io.idu_exu_data.bits.mepc, pcadd))
 
   io.exu_ifu_raw.dnpc := dnpc
-  isRAW_control := (io.idu_exu_data.bits.pc + 4.U) =/= dnpc && state === s_wait_ready
+  isRAW_control := (pc + 1.U) =/= dnpc && state === s_wait_ready
 
   // exu_idu_raw
   io.exu_idu_raw.exu_regdata   := alu.io.result

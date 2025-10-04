@@ -19,9 +19,9 @@ class ysyx_23060336_CSR extends Module{
   val mvendorid = RegInit("h79737978".U(Base.dataWidth.W))
   val marchid   = RegInit("h15fdf70".U(Base.dataWidth.W))
   val mstatus   = RegInit("h1800".U(Base.dataWidth.W))
-  val mtvec     = RegInit("h0".U(Base.dataWidth.W))
-  val mepc      = RegInit("h0".U(Base.dataWidth.W))
   val mcause    = RegInit("h0".U(Base.dataWidth.W))
+  val mtvec     = RegInit("h0".U(Base.pcWidth.W))
+  val mepc      = RegInit("h0".U(Base.pcWidth.W))
 
   when(io.csr_wbu_data.ecall) {
     mcause := "hb".U
@@ -30,11 +30,11 @@ class ysyx_23060336_CSR extends Module{
 
   when(io.csr_wbu_data.wen){
     when(io.csr_wbu_data.waddr === MTVEC){
-      mtvec := io.csr_wbu_data.wdata
+      mtvec := io.csr_wbu_data.wdata(31, 2)
     } .elsewhen(io.csr_wbu_data.waddr === MSTATUS) {
       mstatus := io.csr_wbu_data.wdata
     } .elsewhen(io.csr_wbu_data.waddr === MEPC) {
-      mepc := io.csr_wbu_data.wdata
+      mepc := io.csr_wbu_data.wdata(31, 2)
     } .elsewhen(io.csr_wbu_data.waddr === MCAUSE) {
       mcause := io.csr_wbu_data.wdata
     }
@@ -42,6 +42,6 @@ class ysyx_23060336_CSR extends Module{
 
   io.csr_idu_data.mepc    := mepc
   io.csr_idu_data.mtvec   := mtvec
-  io.csr_idu_data.csrdata := Mux(io.csr_idu_data.csr === MEPC, mepc, Mux(io.csr_idu_data.csr === MCAUSE, mcause, Mux(io.csr_idu_data.csr === MSTATUS, mstatus, Mux(io.csr_idu_data.csr === mtvec, MTVEC,Mux(io.csr_idu_data.csr === MVENDORID, mvendorid, Mux(io.csr_idu_data.csr === MARCHID, marchid, 0.U))))))
+  io.csr_idu_data.csrdata := Mux(io.csr_idu_data.csr === MEPC, Cat(mepc, 0.U(2.W)), Mux(io.csr_idu_data.csr === MCAUSE, mcause, Mux(io.csr_idu_data.csr === MSTATUS, mstatus, Mux(io.csr_idu_data.csr === Cat(mtvec, 0.U(2.W)), MTVEC,Mux(io.csr_idu_data.csr === MVENDORID, mvendorid, Mux(io.csr_idu_data.csr === MARCHID, marchid, 0.U))))))
 }
 
