@@ -30,7 +30,7 @@ object Base {
   val mstatusWidth = 2
   val mcauseWidth  = 4
 
-  // icache         512B 128B 64B 32B
-  val block = 4 //  2  4 2  4 2 4 2 4
-  val index = 1 //  7  5 5  3 4 2 3 1
+  // icache         512B 128B 64B 32B 16B 8B  4B
+  val block = 2 //  2  4 2  4 2 4 2 4 2 4 2 4 2 4
+  val index = 2 //  7  5 5  3 4 2 3 1 2 x 1 x x x
 }

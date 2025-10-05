@@ -6,5 +6,5 @@ object Config {
   val useCounter = true
   val useDiff = true
   val useSram = true
-  val useDebug = true
+  val useDebug = false
 }
