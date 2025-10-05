@@ -22,7 +22,7 @@ object PcMuxField extends DecodeField[InstructionPattern, UInt] {
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
     case "jalr"   => BitPat("b10")   // I-type pc =  imm + src1
     case "jal"    => BitPat("b01")   // J-type pc += imm
-    //case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" => BitPat("b01") // B-type pc += imm 
+    case "ecall" | "mret" => BitPat("b11") // B-type mtvec | mepc
     case _ => BitPat("b00")          // Default PC+4
   }
 }
@@ -274,6 +274,8 @@ class ysyx_23060336_DECODE extends Module {
   val rs1en      = Wire(Bool())
   val rs2en      = Wire(Bool())
   val branch     = Wire(Bool())
+  val ecall      = Wire(Bool())
+  val mret       = Wire(Bool())
   val rd         = Wire(UInt(Base.rdWidth.W))
   val csr        = Wire(UInt(Base.csrWidth.W))
   val immType    = Wire(UInt(Base.immTypeWidth.W))
@@ -292,6 +294,8 @@ class ysyx_23060336_DECODE extends Module {
   val AluSel  = Wire(UInt(Base.AluSelWidth.W))
 
   val pc      = Wire(UInt(Base.pcWidth.W))
+  val mtvec   = Wire(UInt(Base.pcWidth.W))
+  val mepc    = Wire(UInt(Base.pcWidth.W))
   val pcmux   = Wire(UInt(Base.pcmuxWidth.W))
 
   val dnpc_pc_1     = Wire(UInt(Base.pcWidth.W))
@@ -350,6 +354,8 @@ class ysyx_23060336_DECODE extends Module {
   pc      := io.decode_idu_data.pc
   inst    := io.decode_idu_data.inst
   csrdata := io.decode_idu_data.idu_csr_data.csrdata
+  mepc    := io.decode_idu_data.idu_csr_data.mepc
+  mtvec   := io.decode_idu_data.idu_csr_data.mtvec
 
   rd       := Mux(isRAW_data, 0.U, inst(11, 7))
   MemWr    := Mux(isRAW_data, 0.U, decodeBundle(MemWrField))
@@ -359,13 +365,15 @@ class ysyx_23060336_DECODE extends Module {
   AluSel   := Mux(isRAW_data, 0.U, decodeBundle(AluSelField))
   pcmux    := Mux(isRAW_data, 0.U, decodeBundle(PcMuxField))
 
-  RegWr    := decodeBundle(RegWrField)
-  immType  := decodeBundle(ImmTypeField)
-  recsr    := decodeBundle(RecsrField)
-  rden     := decodeBundle(RdenField)
-  rs1en    := decodeBundle(Rs1enField)
-  rs2en    := decodeBundle(Rs2enField)
-  branch   := decodeBundle(BranchField)
+  RegWr   := decodeBundle(RegWrField)
+  immType := decodeBundle(ImmTypeField)
+  recsr   := decodeBundle(RecsrField)
+  rden    := decodeBundle(RdenField)
+  rs1en   := decodeBundle(Rs1enField)
+  rs2en   := decodeBundle(Rs2enField)
+  branch  := decodeBundle(BranchField)
+  ecall   := decodeBundle(EcallField)
+  mret    := decodeBundle(MretField)
 
   src1       := immgen.io.immgen_decode_data.src1
   src2       := immgen.io.immgen_decode_data.src2
@@ -373,6 +381,9 @@ class ysyx_23060336_DECODE extends Module {
   rers1      := immgen.io.immgen_decode_data.rers1
   rezimm     := immgen.io.immgen_decode_data.rezimm
   isRAW_data := immgen.io.immgen_decode_data.isRAW_data
+
+  dontTouch(mret)
+  dontTouch(ecall)
   dontTouch(isRAW_data)
 
   ina := MuxLookup(AluMux, 0.U)(
@@ -408,16 +419,14 @@ class ysyx_23060336_DECODE extends Module {
 
   dnpc_pc_1     := pc + 1.U
   dnpc_pc_imm   := pc + imm(31, 2)
-  dnpc_src1_imm := src1(31, 2) + imm(31, 2)
+  dnpc_src1_imm := Mux(ecall, mtvec, Mux(mret, mepc, src1(31, 2) + imm(31, 2)))
 
   // idu <> exu
   io.decode_idu_data.idu_exu_data.pc     := pc
   io.decode_idu_data.idu_exu_data.result := result
-  io.decode_idu_data.idu_exu_data.AluSel := AluSel
-  io.decode_idu_data.idu_exu_data.AluMux := AluMux
   io.decode_idu_data.idu_exu_data.branch := branch
   io.decode_idu_data.idu_exu_data.pcmux  := pcmux
-  io.decode_idu_data.idu_exu_data.mret   := decodeBundle(MretField)
+  io.decode_idu_data.idu_exu_data.mret   := mret
   io.decode_idu_data.idu_exu_data.dnpc_pc_1     := dnpc_pc_1
   io.decode_idu_data.idu_exu_data.dnpc_pc_imm   := dnpc_pc_imm
   io.decode_idu_data.idu_exu_data.dnpc_src1_imm := dnpc_src1_imm
@@ -435,7 +444,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rd         := rd
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.RegWr      := RegWr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.CsrWr      := CsrWr
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ecall      := decodeBundle(EcallField)
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ecall      := ecall
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ebreak     := decodeBundle(EbreakField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rden       := rden
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rs1en      := rs1en
@@ -449,8 +458,8 @@ class ysyx_23060336_DECODE extends Module {
 
   // idu <> csr
   io.decode_idu_data.idu_csr_data.csr                  := csr
-  io.decode_idu_data.idu_exu_data.mepc                 := io.decode_idu_data.idu_csr_data.mepc
-  io.decode_idu_data.idu_exu_data.mtvec                := io.decode_idu_data.idu_csr_data.mtvec
+  //io.decode_idu_data.idu_exu_data.mepc                 := io.decode_idu_data.idu_csr_data.mepc
+  //io.decode_idu_data.idu_exu_data.mtvec                := io.decode_idu_data.idu_csr_data.mtvec
   io.decode_idu_data.idu_exu_data.idu_lsu_data.csrdata := csrdata
 
   // decode <> immgen

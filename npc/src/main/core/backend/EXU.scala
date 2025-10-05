@@ -42,7 +42,6 @@ class ysyx_23060336_EXU extends Module {
   io.exu_lsu_data.bits.exu_wbu_data.dnpc := dnpc
   io.exu_lsu_data.bits.result := result
 
-
   // sign
   branch  := io.idu_exu_data.bits.branch
   pcmux   := io.idu_exu_data.bits.pcmux
@@ -59,13 +58,13 @@ class ysyx_23060336_EXU extends Module {
     Seq(
       "b001".U(3.W) -> dnpc_pc_imm,
       "b010".U(3.W) -> dnpc_src1_imm,
+      "b011".U(3.W) -> dnpc_src1_imm,
       "b100".U(3.W) -> dnpc_pc_imm,
       )
   )
   dontTouch(dnpc_s)
 
-  dnpc := Mux(io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.ecall, io.idu_exu_data.bits.mtvec,      
-          Mux(io.idu_exu_data.bits.mret,  io.idu_exu_data.bits.mepc, dnpc_s))
+  dnpc := dnpc_s
 
   io.exu_ifu_raw.dnpc := dnpc
   isRAW_control := dnpc_pc_1 =/= dnpc && state === s_wait_ready
