@@ -7,8 +7,8 @@ class SEEPC extends BlackBox with HasBlackBoxInline{
   val io = IO(new Bundle{
     val clock = Input(Clock())
     val valid = Input(Bool())
-    val pc    = Input(UInt(Base.pcWidth.W))
-    val dnpc  = Input(UInt(Base.pcWidth.W))
+    val pc    = Input(UInt(Base.addrWidth.W))
+    val dnpc  = Input(UInt(Base.addrWidth.W))
     val inst  = Input(UInt(Base.dataWidth.W))
     val wbu_sram_data = new WBU_SRAM_DATA()
   })
@@ -21,8 +21,8 @@ class SEEPC extends BlackBox with HasBlackBoxInline{
     | module SEEPC(
     |   input clock,
     |   input valid,
-    |   input [29:0] pc,
-    |   input [29:0] dnpc,
+    |   input [31:0] pc,
+    |   input [31:0] dnpc,
     |   input [31:0] inst,
     |   input [31:0] wbu_sram_data_araddr,
     |   input [31:0] wbu_sram_data_awaddr,
@@ -34,7 +34,7 @@ class SEEPC extends BlackBox with HasBlackBoxInline{
     | );
     | `ifdef VERILATOR
     | always@(posedge clock) begin
-    |   pipeline_state({pc, 2'b0}, {dnpc, 2'b0}, inst, {31'b0, valid}, wbu_sram_data_araddr, {31'b0, wbu_sram_data_arvalid}, {29'b0, wbu_sram_data_arsize}, wbu_sram_data_awaddr, wbu_sram_data_wdata, {31'b0, wbu_sram_data_awvalid}, {28'b0, wbu_sram_data_wstrb});
+    |   pipeline_state(pc, dnpc, inst, {31'b0, valid}, wbu_sram_data_araddr, {31'b0, wbu_sram_data_arvalid}, {29'b0, wbu_sram_data_arsize}, wbu_sram_data_awaddr, wbu_sram_data_wdata, {31'b0, wbu_sram_data_awvalid}, {28'b0, wbu_sram_data_wstrb});
     | end
     |`endif
     |

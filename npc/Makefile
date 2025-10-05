@@ -78,7 +78,7 @@ INVFLAGS += -I$(SOC_HOME)/perip/spi/rtl
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 
-CXXFLAGS += -mcmodel=medium
+CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecated -Wno-return-type
 #CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 #LDFLAGS  += -lLLVM-19
 #LDFLAGS  += $(shell llvm-config --libs)
@@ -131,7 +131,7 @@ rpt:
 	$(MAKE) -C $(YOSYS) rpt
 
 wave:
-	gtkwave build/waveform.*
+	gtkwave build/waveform.fst
 
 perf:
 	$(PERF_REF) $(PERF_BIN)

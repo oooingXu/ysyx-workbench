@@ -86,6 +86,15 @@ class ysyx_23060336_EXU extends Module {
     exu_counter.io.clock         := clock
     exu_counter.io.state         := state
     exu_counter.io.isRAW_control := isRAW_control
+
+    val pc_debug = Wire(UInt(Base.addrWidth.W))
+    val dnpc_debug = Wire(UInt(Base.addrWidth.W))
+
+    pc_debug := Cat(pc, 0.U(2.W))
+    dnpc_debug := Cat(dnpc, 0.U(2.W))
+    
+    dontTouch(pc_debug)
+    dontTouch(dnpc_debug)
   }
 
 }

@@ -28,7 +28,7 @@ class ysyx_23060336_IDU extends Module{
   ))
 
   io.idu_exu_data.valid := state === s_wait_ready && !io.exu_idu_raw.exu_isRAW_control
-  io.ifu_idu_data.ready := state === s_idle || (state === s_wait_ready && !isRAW_data && io.ifu_idu_data.valid)
+  io.ifu_idu_data.ready := state === s_idle || (state === s_wait_ready && !isRAW_data && io.ifu_idu_data.valid && io.idu_exu_data.ready)
   //io.ifu_idu_data.ready := state === s_idle || (state === s_wait_ready && io.ifu_idu_data.valid)
 
   // idu <> exu
@@ -57,6 +57,10 @@ class ysyx_23060336_IDU extends Module{
     idu_counter.io.clock      := clock
     idu_counter.io.state      := state
     idu_counter.io.isRAW_data := isRAW_data
+
+    val pc_debug = Wire(UInt(Base.addrWidth.W))
+    pc_debug := Cat(io.ifu_idu_data.bits.pc, 0.U(2.W))
+    dontTouch(pc_debug)
   }
 }
 

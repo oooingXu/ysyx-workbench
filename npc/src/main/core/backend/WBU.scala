@@ -39,8 +39,8 @@ class ysyx_23060336_WBU extends Module {
   if(Config.useDebug) {
     val seepc = Module(new SEEPC())
     seepc.io.clock := clock
-    seepc.io.pc    := io.lsu_wbu_data.bits.exu_wbu_data.pc
-    seepc.io.dnpc  := io.lsu_wbu_data.bits.exu_wbu_data.dnpc
+    seepc.io.pc    := Cat(io.lsu_wbu_data.bits.exu_wbu_data.pc, 0.U(2.W))
+    seepc.io.dnpc  := Cat(io.lsu_wbu_data.bits.exu_wbu_data.dnpc, 0.U(2.W))
     seepc.io.inst  := io.lsu_wbu_data.bits.idu_wbu_data.inst
     seepc.io.valid := io.lsu_wbu_data.valid && !io.lsu_wbu_data.bits.idu_wbu_data.isRAW_data
     seepc.io.wbu_sram_data <> io.lsu_wbu_data.bits.wbu_sram_data
