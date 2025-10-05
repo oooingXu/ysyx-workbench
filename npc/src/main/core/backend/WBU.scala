@@ -60,7 +60,6 @@ class ysyx_23060336_WBU extends Module {
   io.wbu_reg_data.wdata := io.lsu_wbu_data.bits.regdata
 
   // wbu <> csr
-  //io.wbu_csr_data.wen   := io.lsu_wbu_data.bits.idu_wbu_data.CsrWr && state === s_reg
   io.wbu_csr_data.wen   := io.lsu_wbu_data.bits.idu_wbu_data.CsrWr && io.lsu_wbu_data.valid
   io.wbu_csr_data.waddr := io.lsu_wbu_data.bits.idu_wbu_data.csr
   io.wbu_csr_data.ecall := io.lsu_wbu_data.bits.idu_wbu_data.ecall
