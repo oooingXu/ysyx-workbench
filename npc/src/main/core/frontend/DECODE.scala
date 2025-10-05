@@ -22,7 +22,7 @@ object PcMuxField extends DecodeField[InstructionPattern, UInt] {
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
     case "jalr"   => BitPat("b10")   // I-type pc =  imm + src1
     case "jal"    => BitPat("b01")   // J-type pc += imm
-    case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" => BitPat("b01") // B-type pc += imm 
+    //case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" => BitPat("b01") // B-type pc += imm 
     case _ => BitPat("b00")          // Default PC+4
   }
 }
@@ -288,11 +288,15 @@ class ysyx_23060336_DECODE extends Module {
   val csrdata = Wire(UInt(Base.dataWidth.W))
   val ina     = Wire(UInt(Base.dataWidth.W))
   val inb     = Wire(UInt(Base.dataWidth.W))
-  val pc      = Wire(UInt(Base.pcWidth.W))
-  val pcmux   = Wire(UInt(Base.pcmuxWidth.W))
   val AluMux  = Wire(UInt(Base.AluMuxWidth.W))
   val AluSel  = Wire(UInt(Base.AluSelWidth.W))
   //val result  = Wire(UInt(Base.dataWidth.W))
+
+  val pc      = Wire(UInt(Base.pcWidth.W))
+  val pcmux   = Wire(UInt(Base.pcmuxWidth.W))
+  val dnpc_pc_1     = Wire(UInt(Base.pcWidth.W))
+  val dnpc_pc_imm   = Wire(UInt(Base.pcWidth.W))
+  val dnpc_src1_imm = Wire(UInt(Base.pcWidth.W))
 
   // rvdecodedb
   val instTable:Iterable[rvdecoderdb.Instruction] = rvdecoderdb.instructions(os.pwd / "rvdecoderdb" / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
@@ -397,6 +401,10 @@ class ysyx_23060336_DECODE extends Module {
     )
   )
 
+  dnpc_pc_1     := pc + 1.U
+  dnpc_pc_imm   := pc + imm(31, 2)
+  dnpc_src1_imm := src1(31, 2) + imm(31, 2)
+
   // idu <> exu
   io.decode_idu_data.idu_exu_data.pc     := pc
   io.decode_idu_data.idu_exu_data.ina    := ina
@@ -406,11 +414,14 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.branch := branch
   io.decode_idu_data.idu_exu_data.pcmux  := pcmux
   io.decode_idu_data.idu_exu_data.mret   := decodeBundle(MretField)
+  io.decode_idu_data.idu_exu_data.dnpc_pc_1     := dnpc_pc_1
+  io.decode_idu_data.idu_exu_data.dnpc_pc_imm   := dnpc_pc_imm
+  io.decode_idu_data.idu_exu_data.dnpc_src1_imm := dnpc_src1_imm
   //io.decode_idu_data.idu_exu_data.rezimm := rezimm
   //io.decode_idu_data.idu_exu_data.zimm   := zimm
   //io.decode_idu_data.idu_exu_data.rers1  := rers1
-  io.decode_idu_data.idu_exu_data.imm    := imm
-  io.decode_idu_data.idu_exu_data.src1   := src1
+  //io.decode_idu_data.idu_exu_data.imm    := imm
+  //io.decode_idu_data.idu_exu_data.src1   := src1
 
   // idu <> lsu
   io.decode_idu_data.idu_exu_data.idu_lsu_data.wstrb    := decodeBundle(WstrbField)

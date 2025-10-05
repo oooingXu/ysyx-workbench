@@ -9,7 +9,7 @@ object Base {
   val instTypeWidth = 3
   val immTypeWidth  = 3
   val RegNumWidth   = 3
-  val PCMuxWidth    = 4
+  val PCMuxWidth    = 3
   val AluSelWidth   = 4
   val AluMuxWidth   = 4
   val rdWidth       = 5
