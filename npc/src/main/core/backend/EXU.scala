@@ -34,7 +34,7 @@ class ysyx_23060336_EXU extends Module {
   ))
 
   io.exu_lsu_data.valid := state === s_wait_ready || state === s_wait_ready_flush
-  io.idu_exu_data.ready := state === s_idle || (state === s_wait_ready && io.exu_lsu_data.ready)
+  io.idu_exu_data.ready := state === s_idle || ((state === s_wait_ready || state === s_wait_ready_flush) && io.exu_lsu_data.ready) 
 
   // exu <> lsu
   io.exu_lsu_data.bits.idu_lsu_data  <> io.idu_exu_data.bits.idu_lsu_data

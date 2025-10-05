@@ -142,6 +142,15 @@ class ysyx_23060336_LSU extends Module{
     val lsu_counter = Module(new LSU_COUNTER())
     lsu_counter.io.clock := clock
     lsu_counter.io.state := state
+
+    val pc_debug = Wire(UInt(Base.addrWidth.W))
+    val dnpc_debug = Wire(UInt(Base.addrWidth.W))
+
+    pc_debug   := Cat(io.lsu_wbu_data.bits.exu_wbu_data.pc, 0.U(2.W))
+    dnpc_debug := Cat(io.lsu_wbu_data.bits.exu_wbu_data.dnpc, 0.U(2.W))
+
+    dontTouch(pc_debug)
+    dontTouch(dnpc_debug)
   }
 }
 
