@@ -201,7 +201,7 @@ static void renew_reg(){
 		cpu.mepc    = dut->rootp->ysyx_23060336__DOT__csr__DOT__mepc << 2;
 		cpu.mtvec   = dut->rootp->ysyx_23060336__DOT__csr__DOT__mtvec << 2;
 		cpu.mcause  = dut->rootp->ysyx_23060336__DOT__csr__DOT__mcause;
-		cpu.mstatus = dut->rootp->ysyx_23060336__DOT__csr__DOT__mstatus;
+		cpu.mstatus = dut->rootp->ysyx_23060336__DOT__csr__DOT__mstatus << 11;
 #endif
 }
 

@@ -26,6 +26,10 @@ object Base {
   val addrWidth  = 32
   val dataWidth  = 32
 
+  // csr
+  val mstatusWidth = 2
+  val mcauseWidth  = 4
+
   // icache         512B 128B 64B 32B
   val block = 4 //  2  4 2  4 2 4 2 4
   val index = 1 //  7  5 5  3 4 2 3 1

@@ -94,7 +94,7 @@ class ysyx_23060336_IFU extends Module{
   //}
 
   // useCounter
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val ifu_counter = Module(new IFU_COUNTER())
     ifu_counter.io.clock   := clock
     ifu_counter.io.state   := state

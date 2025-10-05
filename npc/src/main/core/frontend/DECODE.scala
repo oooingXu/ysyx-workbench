@@ -263,6 +263,7 @@ class ysyx_23060336_DECODE extends Module {
   // immgen
   val immgen = Module(new ysyx_23060336_IMMGEN())
 
+  val RegWr      = Wire(Bool())
   val MemWr      = Wire(Bool())
   val MemtoReg   = Wire(Bool())
   val CsrWr      = Wire(Bool())
@@ -271,12 +272,27 @@ class ysyx_23060336_DECODE extends Module {
   val rden       = Wire(Bool())
   val rs1en      = Wire(Bool())
   val rs2en      = Wire(Bool())
+  val branch     = Wire(Bool())
   val rd         = Wire(UInt(Base.rdWidth.W))
   val csr        = Wire(UInt(Base.csrWidth.W))
-  val AluSel     = Wire(UInt(Base.AluSelWidth.W))
   val immType    = Wire(UInt(Base.immTypeWidth.W))
-  val AluMux     = Wire(UInt(Base.AluMuxWidth.W))
+  //val AluSel     = Wire(UInt(Base.AluSelWidth.W))
+  //val AluMux     = Wire(UInt(Base.AluMuxWidth.W))
   val inst       = Wire(UInt(Base.dataWidth.W))
+
+  val src1    = Wire(UInt(Base.dataWidth.W))
+  val src2    = Wire(UInt(Base.dataWidth.W))
+  val imm     = Wire(UInt(Base.dataWidth.W))
+  val rers1   = Wire(UInt(Base.dataWidth.W))
+  val rezimm  = Wire(UInt(Base.dataWidth.W))
+  val csrdata = Wire(UInt(Base.dataWidth.W))
+  val ina     = Wire(UInt(Base.dataWidth.W))
+  val inb     = Wire(UInt(Base.dataWidth.W))
+  val pc      = Wire(UInt(Base.pcWidth.W))
+  val pcmux   = Wire(UInt(Base.pcmuxWidth.W))
+  val AluMux  = Wire(UInt(Base.AluMuxWidth.W))
+  val AluSel  = Wire(UInt(Base.AluSelWidth.W))
+  //val result  = Wire(UInt(Base.dataWidth.W))
 
   // rvdecodedb
   val instTable:Iterable[rvdecoderdb.Instruction] = rvdecoderdb.instructions(os.pwd / "rvdecoderdb" / "rvdecoderdbtest" / "jvm" / "riscv-opcodes")
@@ -325,47 +341,90 @@ class ysyx_23060336_DECODE extends Module {
   val decodeTable   = new DecodeTable(instList, allfield) 
   val decodeBundle = decodeTable.decode(inst)
 
-  inst     := io.decode_idu_data.inst
-  rd       := inst(11, 7)
   csr      := inst(31, 20)
 
-  MemWr    := decodeBundle(MemWrField)
-  MemtoReg := decodeBundle(MemtoRegField)
-  CsrWr    := decodeBundle(CsrWrField)
-  AluSel   := decodeBundle(AluSelField)
-  AluMux   := decodeBundle(AluMuxField)
+  pc      := io.decode_idu_data.pc
+  inst    := io.decode_idu_data.inst
+  csrdata := io.decode_idu_data.idu_csr_data.csrdata
+
+  rd       := Mux(isRAW_data, 0.U, inst(11, 7))
+  MemWr    := Mux(isRAW_data, 0.U, decodeBundle(MemWrField))
+  MemtoReg := Mux(isRAW_data, 0.U, decodeBundle(MemtoRegField))
+  CsrWr    := Mux(isRAW_data, 0.U, decodeBundle(CsrWrField))
+  AluMux   := Mux(isRAW_data, "b0011".U, decodeBundle(AluMuxField))
+  AluSel   := Mux(isRAW_data, 0.U, decodeBundle(AluSelField))
+  pcmux    := Mux(isRAW_data, 0.U, decodeBundle(PcMuxField))
+
+  RegWr    := decodeBundle(RegWrField)
   immType  := decodeBundle(ImmTypeField)
   recsr    := decodeBundle(RecsrField)
   rden     := decodeBundle(RdenField)
   rs1en    := decodeBundle(Rs1enField)
   rs2en    := decodeBundle(Rs2enField)
+  branch   := decodeBundle(BranchField)
+
+  src1       := immgen.io.immgen_decode_data.src1
+  src2       := immgen.io.immgen_decode_data.src2
+  imm        := immgen.io.immgen_decode_data.imm
+  rers1      := immgen.io.immgen_decode_data.rers1
+  rezimm     := immgen.io.immgen_decode_data.rezimm
+  isRAW_data := immgen.io.immgen_decode_data.isRAW_data
+  dontTouch(isRAW_data)
+
+  ina := MuxLookup(AluMux, 0.U)(
+    Seq(
+      "b0111".U(Base.AluMuxWidth.W) -> src1,
+      "b0001".U(Base.AluMuxWidth.W) -> src1,
+      "b0010".U(Base.AluMuxWidth.W) -> Cat(pc, 0.U(2.W)),
+      "b0011".U(Base.AluMuxWidth.W) -> 0.U,
+      "b0100".U(Base.AluMuxWidth.W) -> Cat(pc, 0.U(2.W)),
+      "b0101".U(Base.AluMuxWidth.W) -> rers1,
+      "b1000".U(Base.AluMuxWidth.W) -> rers1,
+      "b1001".U(Base.AluMuxWidth.W) -> rezimm,
+      "b0110".U(Base.AluMuxWidth.W) -> rezimm
+    )
+  )
+
+  inb := MuxLookup(AluMux, 0.U)(
+    Seq(
+      "b0111".U(Base.AluMuxWidth.W) -> src2,
+      "b0001".U(Base.AluMuxWidth.W) -> imm,
+      "b0010".U(Base.AluMuxWidth.W) -> 4.U,
+      "b0011".U(Base.AluMuxWidth.W) -> imm,
+      "b0101".U(Base.AluMuxWidth.W) -> csrdata,
+      "b0110".U(Base.AluMuxWidth.W) -> csrdata,
+      "b0100".U(Base.AluMuxWidth.W) -> imm
+    )
+  )
 
   // idu <> exu
-  io.decode_idu_data.idu_exu_data.pc     := io.decode_idu_data.pc
-  io.decode_idu_data.idu_exu_data.AluSel := Mux(isRAW_data, 0.U, AluSel)
-  io.decode_idu_data.idu_exu_data.AluMux := Mux(isRAW_data, "b0011".U, AluMux)
-  io.decode_idu_data.idu_exu_data.branch := decodeBundle(BranchField)
+  io.decode_idu_data.idu_exu_data.pc     := pc
+  io.decode_idu_data.idu_exu_data.ina    := ina
+  io.decode_idu_data.idu_exu_data.inb    := inb
+  io.decode_idu_data.idu_exu_data.AluSel := AluSel
+  io.decode_idu_data.idu_exu_data.AluMux := AluMux
+  io.decode_idu_data.idu_exu_data.branch := branch
+  io.decode_idu_data.idu_exu_data.pcmux  := pcmux
   io.decode_idu_data.idu_exu_data.mret   := decodeBundle(MretField)
-  io.decode_idu_data.idu_exu_data.pcmux  := Mux(isRAW_data, 0.U, decodeBundle(PcMuxField))
-  io.decode_idu_data.idu_exu_data.rezimm := immgen.io.immgen_decode_data.rezimm
-  io.decode_idu_data.idu_exu_data.zimm   := immgen.io.immgen_decode_data.zimm
-  io.decode_idu_data.idu_exu_data.rers1  := immgen.io.immgen_decode_data.rers1
-  io.decode_idu_data.idu_exu_data.imm    := immgen.io.immgen_decode_data.imm
-  io.decode_idu_data.idu_exu_data.src1   := immgen.io.immgen_decode_data.src1
+  //io.decode_idu_data.idu_exu_data.rezimm := rezimm
+  //io.decode_idu_data.idu_exu_data.zimm   := zimm
+  //io.decode_idu_data.idu_exu_data.rers1  := rers1
+  io.decode_idu_data.idu_exu_data.imm    := imm
+  io.decode_idu_data.idu_exu_data.src1   := src1
 
   // idu <> lsu
   io.decode_idu_data.idu_exu_data.idu_lsu_data.wstrb    := decodeBundle(WstrbField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.awsize   := decodeBundle(AwsizeField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.arsize   := decodeBundle(ArsizeField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.RegNum   := decodeBundle(RegNumField)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.MemWr    := Mux(isRAW_data, 0.U, MemWr)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.MemtoReg := Mux(isRAW_data, 0.U, MemtoReg)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.src2     := immgen.io.immgen_decode_data.src2
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.MemWr    := MemWr
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.MemtoReg := MemtoReg
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.src2     := src2
 
   // idu <> wbu
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rd         := Mux(isRAW_data, 0.U, rd)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.CsrWr      := Mux(isRAW_data, 0.U, CsrWr)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.RegWr      := decodeBundle(RegWrField)
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rd         := rd
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.RegWr      := RegWr
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.CsrWr      := CsrWr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ecall      := decodeBundle(EcallField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ebreak     := decodeBundle(EbreakField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rden       := rden
@@ -382,7 +441,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_csr_data.csr                  := csr
   io.decode_idu_data.idu_exu_data.mepc                 := io.decode_idu_data.idu_csr_data.mepc
   io.decode_idu_data.idu_exu_data.mtvec                := io.decode_idu_data.idu_csr_data.mtvec
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.csrdata := io.decode_idu_data.idu_csr_data.csrdata
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.csrdata := csrdata
 
   // decode <> immgen
   immgen.io.immgen_decode_data.inst      := inst
@@ -390,7 +449,6 @@ class ysyx_23060336_DECODE extends Module {
   immgen.io.immgen_decode_data.rs1en     := rs1en
   immgen.io.immgen_decode_data.rs2en     := rs2en
   immgen.io.immgen_decode_data.immType   := immType
-  isRAW_data                             := immgen.io.immgen_decode_data.isRAW_data
 
   // idu <> immgen
   immgen.io.immgen_decode_data.idu_valid := io.decode_idu_data.idu_valid

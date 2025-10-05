@@ -117,7 +117,7 @@ class ysyx_23060336_LSU extends Module{
   io.lsu_idu_raw.lsu_MemtoReg := io.exu_lsu_data.bits.idu_lsu_data.MemtoReg
 
   // useCounter
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val lsu_counter = Module(new LSU_COUNTER())
     lsu_counter.io.clock := clock
     lsu_counter.io.state := state

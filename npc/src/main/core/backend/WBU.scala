@@ -22,19 +22,21 @@ class ysyx_23060336_WBU extends Module {
   io.lsu_wbu_data.ready := true.B
 
   // ebreak
-  val ebreak    = Module(new ysyx_23060336_EBREAK())
-  ebreak.io.clock      := clock
-  ebreak.io.ebreak     := io.lsu_wbu_data.bits.idu_wbu_data.ebreak
+  if(Config.useDebug) {
+    val ebreak    = Module(new ysyx_23060336_EBREAK())
+    ebreak.io.clock      := clock
+    ebreak.io.ebreak     := io.lsu_wbu_data.bits.idu_wbu_data.ebreak
+  }
 
   // useCounter
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val wbu_counter = Module(new WBU_COUNTER())
     wbu_counter.io.clock      := clock
     wbu_counter.io.state      := state
   }
 
   // diff pipeline pc/dnpc
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val seepc = Module(new SEEPC())
     seepc.io.clock := clock
     seepc.io.pc    := io.lsu_wbu_data.bits.exu_wbu_data.pc
@@ -45,7 +47,7 @@ class ysyx_23060336_WBU extends Module {
   }
 
   // useSram / mem_diff
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val sram_read = Module(new SRAM_READ())
     sram_read.io.clock := clock
     sram_read.io.inst  := io.lsu_wbu_data.bits.idu_wbu_data.inst

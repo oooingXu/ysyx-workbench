@@ -52,7 +52,7 @@ class ysyx_23060336_IDU extends Module{
   io.idu_csr_data <> decode.io.decode_idu_data.idu_csr_data
 
   // useCounter
-  if(Config.useNPCSim) {
+  if(Config.useDebug) {
     val idu_counter = Module(new IDU_COUNTER())
     idu_counter.io.clock      := clock
     idu_counter.io.state      := state
