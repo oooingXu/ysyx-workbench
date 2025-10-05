@@ -25,15 +25,22 @@ class ysyx_23060336 extends Module {
 
   // pipeline
   def pipelineConnect[T <: Data, T2 <: Data](prevOut: DecoupledIO[T], thisIn: DecoupledIO[T]) = {
-    prevOut.ready := thisIn.ready
     thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
+    prevOut.ready := thisIn.ready
     thisIn.valid  := prevOut.valid 
   }
 
   pipelineConnect(ifu.io.ifu_idu_data, idu.io.ifu_idu_data)
   pipelineConnect(idu.io.idu_exu_data, exu.io.idu_exu_data) 
   pipelineConnect(exu.io.exu_lsu_data, lsu.io.exu_lsu_data)
-  pipelineConnect(lsu.io.lsu_wbu_data, wbu.io.lsu_wbu_data)
+
+  def nopipelineConnect[T <: Data, T2 <: Data](prevOut: DecoupledIO[T], thisIn: DecoupledIO[T]) = {
+    thisIn.bits   := prevOut.bits
+    prevOut.ready := thisIn.ready
+    thisIn.valid  := prevOut.valid 
+  }
+
+  nopipelineConnect(lsu.io.lsu_wbu_data, wbu.io.lsu_wbu_data)
 
   // NPCSim
   if(Config.useNPCSim) {
