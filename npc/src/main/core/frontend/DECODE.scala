@@ -262,6 +262,7 @@ class ysyx_23060336_DECODE extends Module {
 
   // immgen
   val immgen = Module(new ysyx_23060336_IMMGEN())
+  val alu    = Module(new ysyx_23060336_ALU(Base.dataWidth))
 
   val RegWr      = Wire(Bool())
   val MemWr      = Wire(Bool())
@@ -276,8 +277,6 @@ class ysyx_23060336_DECODE extends Module {
   val rd         = Wire(UInt(Base.rdWidth.W))
   val csr        = Wire(UInt(Base.csrWidth.W))
   val immType    = Wire(UInt(Base.immTypeWidth.W))
-  //val AluSel     = Wire(UInt(Base.AluSelWidth.W))
-  //val AluMux     = Wire(UInt(Base.AluMuxWidth.W))
   val inst       = Wire(UInt(Base.dataWidth.W))
 
   val src1    = Wire(UInt(Base.dataWidth.W))
@@ -288,12 +287,13 @@ class ysyx_23060336_DECODE extends Module {
   val csrdata = Wire(UInt(Base.dataWidth.W))
   val ina     = Wire(UInt(Base.dataWidth.W))
   val inb     = Wire(UInt(Base.dataWidth.W))
+  val result  = Wire(UInt(Base.dataWidth.W))
   val AluMux  = Wire(UInt(Base.AluMuxWidth.W))
   val AluSel  = Wire(UInt(Base.AluSelWidth.W))
-  //val result  = Wire(UInt(Base.dataWidth.W))
 
   val pc      = Wire(UInt(Base.pcWidth.W))
   val pcmux   = Wire(UInt(Base.pcmuxWidth.W))
+
   val dnpc_pc_1     = Wire(UInt(Base.pcWidth.W))
   val dnpc_pc_imm   = Wire(UInt(Base.pcWidth.W))
   val dnpc_src1_imm = Wire(UInt(Base.pcWidth.W))
@@ -401,14 +401,18 @@ class ysyx_23060336_DECODE extends Module {
     )
   )
 
+  alu.io.ina := ina
+  alu.io.inb := inb
+  alu.io.sel := AluSel
+  result := alu.io.result
+
   dnpc_pc_1     := pc + 1.U
   dnpc_pc_imm   := pc + imm(31, 2)
   dnpc_src1_imm := src1(31, 2) + imm(31, 2)
 
   // idu <> exu
   io.decode_idu_data.idu_exu_data.pc     := pc
-  io.decode_idu_data.idu_exu_data.ina    := ina
-  io.decode_idu_data.idu_exu_data.inb    := inb
+  io.decode_idu_data.idu_exu_data.result := result
   io.decode_idu_data.idu_exu_data.AluSel := AluSel
   io.decode_idu_data.idu_exu_data.AluMux := AluMux
   io.decode_idu_data.idu_exu_data.branch := branch
@@ -417,11 +421,6 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.dnpc_pc_1     := dnpc_pc_1
   io.decode_idu_data.idu_exu_data.dnpc_pc_imm   := dnpc_pc_imm
   io.decode_idu_data.idu_exu_data.dnpc_src1_imm := dnpc_src1_imm
-  //io.decode_idu_data.idu_exu_data.rezimm := rezimm
-  //io.decode_idu_data.idu_exu_data.zimm   := zimm
-  //io.decode_idu_data.idu_exu_data.rers1  := rers1
-  //io.decode_idu_data.idu_exu_data.imm    := imm
-  //io.decode_idu_data.idu_exu_data.src1   := src1
 
   // idu <> lsu
   io.decode_idu_data.idu_exu_data.idu_lsu_data.wstrb    := decodeBundle(WstrbField)

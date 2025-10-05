@@ -11,25 +11,11 @@ class ysyx_23060336_EXU extends Module {
     val exu_idu_raw  = new EXU_IDU_RAW()
   })
 
-  val alu = Module(new ysyx_23060336_ALU(Base.dataWidth))
-
-  val ina   = Wire(UInt(Base.dataWidth.W))
-  val inb   = Wire(UInt(Base.dataWidth.W))
-  //val pca   = Wire(UInt(Base.pcWidth.W))
-  //val pcb   = Wire(UInt(Base.pcWidth.W))
   val dnpc_s = Wire(UInt(Base.pcWidth.W))
   val pcmux = Wire(UInt(Base.pcmuxWidth.W))
   val PCMux = Wire(UInt(Base.PCMuxWidth.W))
 
-  //val src1    = Wire(UInt(Base.dataWidth.W))
-  //val src2    = Wire(UInt(Base.dataWidth.W))
-  //val rers1   = Wire(UInt(Base.dataWidth.W))
-  //val rezimm  = Wire(UInt(Base.dataWidth.W))
-  //val csrdata = Wire(UInt(Base.dataWidth.W))
-  //val AluMux  = Wire(UInt(Base.AluMuxWidth.W))
-  //val imm     = Wire(UInt(Base.dataWidth.W))
   val result  = Wire(UInt(Base.dataWidth.W))
-  val AluSel  = Wire(UInt(Base.AluSelWidth.W))
   val branch  = Wire(Bool())
   val pc            = Wire(UInt(Base.pcWidth.W))
   val dnpc          = Wire(UInt(Base.pcWidth.W))
@@ -58,27 +44,18 @@ class ysyx_23060336_EXU extends Module {
 
 
   // sign
-  AluSel  := io.idu_exu_data.bits.AluSel
   branch  := io.idu_exu_data.bits.branch
-  result  := io.exu_lsu_data.bits.result(0)
   pcmux   := io.idu_exu_data.bits.pcmux
   pc      := io.idu_exu_data.bits.pc
-  ina     := io.idu_exu_data.bits.ina
-  inb     := io.idu_exu_data.bits.inb
+  result  := io.idu_exu_data.bits.result
+
   dnpc_pc_1     := io.idu_exu_data.bits.dnpc_pc_1
   dnpc_pc_imm   := io.idu_exu_data.bits.dnpc_pc_imm
   dnpc_src1_imm := io.idu_exu_data.bits.dnpc_src1_imm
 
-  // exu <> alu
-
-  alu.io.ina         := ina
-  alu.io.inb         := inb
-  alu.io.sel         := AluSel
-  result := alu.io.result
-
   // exu <> pc_add
   PCMux := Cat(branch && result(0), pcmux)
-  dnpc_s  := MuxLookup(PCMux, dnpc_pc_1)(
+  dnpc_s := MuxLookup(PCMux, dnpc_pc_1)(
     Seq(
       "b001".U(3.W) -> dnpc_pc_imm,
       "b010".U(3.W) -> dnpc_src1_imm,
