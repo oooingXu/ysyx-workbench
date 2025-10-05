@@ -2,9 +2,9 @@ package npc
 
 object Config {
   val useNPCSim = true
-  val useICache = false
+  val useICache = true
   val useCounter = true
   val useDiff = true
   val useSram = true
-  val useDebug = false
+  val useDebug = true
 }

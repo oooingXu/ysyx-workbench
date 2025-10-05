@@ -42,6 +42,9 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
 
   // slave
   slave_offset := Mux(state === s_update_data, offset, io.in.bits.araddr(3, 0))
+  dontTouch(slave_offset)
+  dontTouch(offset)
+  dontTouch(counter)
 
   // maskedaraddr
   if(m == 4) {
