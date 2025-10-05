@@ -15,6 +15,11 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   val icache_lsu = Module(new ysyx_23060336_ICACHE_LSU(m, n))
   val icache_issue = Module(new ysyx_23060336_ICACHE_ISSUE())
 
+  val slave_araddr = Wire(UInt(Base.addrWidth.W))
+  val araddr       = RegInit(0.U(Base.addrWidth.W))
+
+  araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr, araddr)
+  slave_araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr, araddr)
 
   // icache pipeline
   //def icacheConnect[T <: Data, T2 <: Data](prevOut: DecoupledIO[T], thisIn: DecoupledIO[T]) = {
@@ -32,7 +37,7 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   val sram_start = "h0f000000".U(Base.addrWidth.W)
   val sram_end   = "h10000000".U(Base.addrWidth.W)
 
-  val skip_addr  = io.slave.araddr >= sram_start && io.slave.araddr <= sram_end
+  val skip_addr  = slave_araddr >= sram_start && slave_araddr <= sram_end
 
   // state machine
   val s_idle :: s_skip :: s_wait_ready :: Nil = Enum(3)
@@ -55,10 +60,10 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   // icache <> icache_ifu
   icache_ifu.io.in.arvalid := io.slave.arvalid && !skip_addr
   icache_ifu.io.in.coherence_input := io.coherence_input
-  icache_ifu.io.in.araddr  := io.slave.araddr
+  icache_ifu.io.in.araddr  := slave_araddr
 
   // arbiter <> icache_lsu
-  io.master.araddr  := Mux(state === s_skip, io.slave.araddr, icache_lsu.io.lsu_arbiter.araddr)
+  io.master.araddr  := Mux(state === s_skip, slave_araddr, icache_lsu.io.lsu_arbiter.araddr)
   io.master.arvalid := icache_lsu.io.lsu_arbiter.arvalid || (io.slave.arvalid && state === s_skip)
   io.master.rready  := icache_lsu.io.lsu_arbiter.rready || state === s_idle || state === s_skip
   io.master.arlen   := icache_lsu.io.lsu_arbiter.arlen
@@ -67,7 +72,7 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   icache_lsu.io.lsu_arbiter.rlast      := io.master.rlast
   icache_lsu.io.lsu_arbiter.rdata      := io.master.rdata
   icache_lsu.io.lsu_arbiter.arready    := io.master.arready
-  //icache_lsu.io.lsu_arbiter.ifu_araddr := io.slave.araddr
+  //icache_lsu.io.lsu_arbiter.ifu_araddr := slave_araddr
 
   // icache <> icache_issue
   icache_issue.io.ifu_rready := io.slave.rready
