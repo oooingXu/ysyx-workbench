@@ -27,12 +27,13 @@ class IDU_EXU_DATA extends Bundle {
 class IDU_LSU_DATA extends Bundle {
   val MemWr    = Output(Bool())
   val MemtoReg = Output(Bool())
-  val awsize   = Output(UInt(Base.sizeWidth.W))
-  val arsize   = Output(UInt(Base.sizeWidth.W))
-  val wstrb    = Output(UInt(Base.wstrbWidth.W))
+  //val awsize   = Output(UInt(Base.sizeWidth.W))
+  //val arsize   = Output(UInt(Base.sizeWidth.W))
+  //val wstrb    = Output(UInt(Base.wstrbWidth.W))
+  //val RegNum   = Output(UInt(Base.RegNumWidth.W))
+  val func3    = Output(UInt(3.W))
   val src2     = Output(UInt(Base.dataWidth.W))
   val csrdata  = Output(UInt(Base.dataWidth.W))
-  val RegNum   = Output(UInt(Base.RegNumWidth.W))
   val idu_wbu_data = new IDU_WBU_DATA()
 }
 

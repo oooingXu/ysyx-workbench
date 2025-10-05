@@ -91,52 +91,6 @@ object BranchField extends BoolDecodeField[InstructionPattern] {
   }
 }
 
-object WstrbField extends DecodeField[InstructionPattern, UInt] {
-  override def name = "wstrb"
-  override def chiselType = UInt(Base.wstrbWidth.W)
-  override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "sb" => BitPat("b0001")
-    case "sh" => BitPat("b0011")
-    case "sw" => BitPat("b1111")
-    case _    => BitPat("b1111")
-  }
-}
-
-object AwsizeField extends DecodeField[InstructionPattern, UInt] {
-  override def name = "awsize"
-  override def chiselType = UInt(Base.sizeWidth.W)
-  override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "sb" => BitPat("b000")
-    case "sh" => BitPat("b001")
-    case "sw" => BitPat("b010")
-    case _    => BitPat("b111")
-  }
-}
-
-object RegNumField extends DecodeField[InstructionPattern, UInt] {
-  override def name = "regnum"
-  override def chiselType = UInt(Base.RegNumWidth.W)
-  override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "lb"  => BitPat("b000")
-    case "lh"  => BitPat("b001")
-    case "lw"  => BitPat("b010")
-    case "lbu" => BitPat("b011")
-    case "lhu" => BitPat("b100")
-    case _     => BitPat("b111")
-  }
-}
-
-object ArsizeField extends DecodeField[InstructionPattern, UInt] {
-  override def name = "arsize"
-  override def chiselType = UInt(Base.sizeWidth.W)
-  override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "lb" | "lbu" => BitPat("b000")
-    case "lh" | "lhu" => BitPat("b001")
-    case "lw"         => BitPat("b010")
-    case _            => BitPat("b111")
-  }
-}
-
 object AluSelField extends DecodeField[InstructionPattern, UInt] {
   override def name = "alusel"
   override def chiselType = UInt(Base.AluSelWidth.W)
@@ -280,6 +234,7 @@ class ysyx_23060336_DECODE extends Module {
   val csr        = Wire(UInt(Base.csrWidth.W))
   val immType    = Wire(UInt(Base.immTypeWidth.W))
   val inst       = Wire(UInt(Base.dataWidth.W))
+  val func3      = Wire(UInt(3.W))
 
   val src1    = Wire(UInt(Base.dataWidth.W))
   val src2    = Wire(UInt(Base.dataWidth.W))
@@ -345,11 +300,12 @@ class ysyx_23060336_DECODE extends Module {
   //println(s"The length of instList is: ${instList.length}")
 
   // decodefield
-  val allfield = Seq(PcMuxField, EcallField, EbreakField, MretField, MemWrField, RegWrField, MemtoRegField, CsrWrField, BranchField, WstrbField, AwsizeField, RegNumField, ArsizeField, AluSelField, AluMuxField, RecsrField, ImmTypeField, RdenField, Rs1enField, Rs2enField) 
+  val allfield = Seq(PcMuxField, EcallField, EbreakField, MretField, MemWrField, RegWrField, MemtoRegField, CsrWrField, BranchField, AluSelField, AluMuxField, RecsrField, ImmTypeField, RdenField, Rs1enField, Rs2enField) 
   val decodeTable   = new DecodeTable(instList, allfield) 
   val decodeBundle = decodeTable.decode(inst)
 
   csr      := inst(31, 20)
+  func3    := inst(14, 12)
 
   pc      := io.decode_idu_data.pc
   inst    := io.decode_idu_data.inst
@@ -432,10 +388,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.dnpc_src1_imm := dnpc_src1_imm
 
   // idu <> lsu
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.wstrb    := decodeBundle(WstrbField)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.awsize   := decodeBundle(AwsizeField)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.arsize   := decodeBundle(ArsizeField)
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.RegNum   := decodeBundle(RegNumField)
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.func3    := func3
   io.decode_idu_data.idu_exu_data.idu_lsu_data.MemWr    := MemWr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.MemtoReg := MemtoReg
   io.decode_idu_data.idu_exu_data.idu_lsu_data.src2     := src2
@@ -458,8 +411,6 @@ class ysyx_23060336_DECODE extends Module {
 
   // idu <> csr
   io.decode_idu_data.idu_csr_data.csr                  := csr
-  //io.decode_idu_data.idu_exu_data.mepc                 := io.decode_idu_data.idu_csr_data.mepc
-  //io.decode_idu_data.idu_exu_data.mtvec                := io.decode_idu_data.idu_csr_data.mtvec
   io.decode_idu_data.idu_exu_data.idu_lsu_data.csrdata := csrdata
 
   // decode <> immgen
