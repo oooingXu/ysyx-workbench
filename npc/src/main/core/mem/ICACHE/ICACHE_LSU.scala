@@ -10,18 +10,13 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
     val lsu_arbiter = new ICACHE_LSU_ARBITER_DATA()
   })
   val icache = Module(new ysyx_23060336_ICACHE_METADATA(m, n))
-  val counter = Reg(UInt(2.W))
-  val maskedaraddr = io.in.bits.araddr & ~(0x0000000f.U(Base.addrWidth.W))
   val araddr = Reg(UInt(Base.pcWidth.W))
-  val offset = Wire(UInt(m.W))
 
   val slave_tag    = io.in.bits.araddr(31 - 2, m + n - 2)
   val slave_index  = io.in.bits.araddr(m + n - 1 - 2, m - 2)
-  val slave_offset = Wire(UInt(m.W))
 
   val store_tag    = io.in.bits.coherence_output.awaddr(31 - 2, m + n - 2)
   val store_index  = io.in.bits.coherence_output.awaddr(m + n - 1 - 2, m - 2)
-  val store_offset = io.in.bits.araddr(3 - 2, 0)
 
   val fence_i = store_tag === slave_tag && store_index === slave_index
   val hit_miss = slave_tag === icache.io.out_tag && icache.io.out_valid
@@ -41,28 +36,9 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
   io.out.valid := state === s_wait_ready
 
   // slave
-  slave_offset := Mux(state === s_update_data, offset, io.in.bits.araddr(3, 0))
-  dontTouch(slave_offset)
-  dontTouch(offset)
-  dontTouch(counter)
 
-  // maskedaraddr
-  if(m == 4) {
-    offset := MuxLookup(counter, 0.U)(
-      Seq(
-        3.U(2.W) ->  "b1100".U,
-        2.U(2.W) ->  "b1000".U,
-        1.U(2.W) ->  "b0100".U,
-        0.U(2.W) ->  "b0000".U
-      )
-    )
-    araddr := maskedaraddr 
-    io.lsu_arbiter.arlen := 3.U
-  } else {
-    offset := io.in.bits.araddr(3, 0)
-    araddr := io.in.bits.araddr
-    io.lsu_arbiter.arlen := 0.U
-  }
+  araddr := io.in.bits.araddr
+  io.lsu_arbiter.arlen := 0.U
 
   // icache_lsu <> arbiter
   io.lsu_arbiter.arvalid := state === s_sent_request
@@ -74,22 +50,10 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
   icache.io.in_data   := io.lsu_arbiter.rdata
   icache.io.wen       := (state === s_update_data && io.lsu_arbiter.rvalid) || (io.in.bits.coherence_output.awvalid && fence_i)
   icache.io.in_tag    := Mux(io.in.bits.coherence_output.awvalid && fence_i, store_tag, slave_tag)
-  icache.io.in_offset := Mux(io.in.bits.coherence_output.awvalid && fence_i, store_offset, slave_offset)
   icache.io.in_valid  := !(io.in.bits.coherence_output.awvalid && fence_i)
 
   // icache_lsu <> icache_issue
   io.out.bits.icache_out_data := icache.io.out_data
-
-  // counter
-  if(m == 4) {
-    when(state === s_wait_ready) {
-      counter := 0.U
-    } .elsewhen(state === s_update_data && io.lsu_arbiter.rvalid) {
-      counter := counter + 1.U
-    }
-  } else {
-    counter := 0.U
-  }
 
 }
   

@@ -48,7 +48,7 @@ class ysyx_23060336_LSU extends Module{
   io.exu_lsu_data.ready := state === s_idle || (state === s_wait_sign && !MemtoReg && !MemWr) || (state === s_wait_rslave && io.axi.arready && io.axi.rvalid && io.axi.rlast) || (state === s_wait_prepare && prepare && io.exu_lsu_data.valid)
   io.lsu_wbu_data.valid := (state === s_wait_sign && !MemtoReg && !MemWr) || (state === s_wait_prepare && prepare) || (state === s_wait_rslave && io.axi.arready && io.axi.rvalid && io.axi.rlast)
 
-  // sign
+  // signal
   result   := io.exu_lsu_data.bits.result
   src2     := io.exu_lsu_data.bits.idu_lsu_data.src2
   MemtoReg := io.exu_lsu_data.bits.idu_lsu_data.MemtoReg

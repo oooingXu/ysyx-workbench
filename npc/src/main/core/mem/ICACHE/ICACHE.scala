@@ -18,22 +18,6 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   val slave_araddr = Wire(UInt(Base.pcWidth.W))
   val araddr       = Reg(UInt(Base.pcWidth.W))
 
-  araddr := Mux(io.slave.arvalid, io.slave.araddr(31, 2), araddr)
-  slave_araddr := Mux(io.slave.arvalid, io.slave.araddr(31, 2), araddr)
-
-  // icache pipeline
-  //def icacheConnect[T <: Data, T2 <: Data](prevOut: DecoupledIO[T], thisIn: DecoupledIO[T]) = {
-  //  prevOut.ready := thisIn.ready
-  //  thisIn.bits   := RegEnable(prevOut.bits, prevOut.valid && thisIn.ready)
-  //  thisIn.valid  := prevOut.valid
-  //}
-
-  //icacheConnect(icache_ifu.io.out, icache_lsu.io.in)
-  //icacheConnect(icache_lsu.io.out, icache_issue.io.in)
-
-  icache_ifu.io.out <> icache_lsu.io.in
-  icache_lsu.io.out <> icache_issue.io.in
-
   val sram_start = "h03c00000".U(Base.pcWidth.W)
   val sram_end   = "h04000000".U(Base.pcWidth.W)
 
@@ -46,6 +30,13 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
     s_idle       -> Mux(io.slave.arvalid && skip_addr && io.master.arready, s_skip_rlast, s_idle),
     s_skip_rlast   -> Mux(io.master.rlast, s_idle, s_skip_rlast),
   ))
+
+  // signal
+  araddr := Mux(io.slave.arvalid, io.slave.araddr(31, 2), araddr)
+  slave_araddr := Mux(io.slave.arvalid, io.slave.araddr(31, 2), araddr)
+
+  icache_ifu.io.out <> icache_lsu.io.in
+  icache_lsu.io.out <> icache_issue.io.in
 
   // icache <> arbiter
   io.master <> io.slave
@@ -71,7 +62,6 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   icache_lsu.io.lsu_arbiter.rlast      := io.master.rlast
   icache_lsu.io.lsu_arbiter.rdata      := io.master.rdata
   icache_lsu.io.lsu_arbiter.arready    := io.master.arready
-  //icache_lsu.io.lsu_arbiter.ifu_araddr := slave_araddr
 
   // icache <> icache_issue
   icache_issue.io.ifu_rready := io.slave.rready

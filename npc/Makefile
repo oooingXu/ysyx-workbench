@@ -52,29 +52,31 @@ default: $(BIN)
 
 VERILATOR_CFLAGS += $(shell llvm-config --cflags) 
 VERILATOR_CFLAGS += $(shell sdl2-config --cflags) 
-VERILATOR_CFLAGS += -MMD --build --cc --trace-fst\
+VERILATOR_CFLAGS += -MMD --cc --trace-fst\
 									 	-O3 --x-assign fast --x-initial fast\
 									 	--exe -Wno-DECLFILENAME\
 										--timescale "1ns/1ns" --no-timing\
-										--assert --autoflush 
+										--assert --autoflush --build\
+										#--lint-only -Wall 
 
 ifdef CONFIG_SOC
 # constraint file
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
-endif
 
-ifdef CONFIG_SOC
 VSRCS += $(SOC_HOME)/build/ysyxSoCFull.v
 VSRCS += $(shell find $(SOC_HOME)/perip -name "*.v")
+
+INVFLAGS += -I$(SOC_HOME)/perip/uart16550/rtl
+INVFLAGS += -I$(SOC_HOME)/perip/spi/rtl
 endif
+
 CPU := $(abspath $(NPC_HOME)/vsrc/$(CPU_NAME).sv)
 CSRCS += $(SRC_AUTO_BIND)
 CSRCS += $(NPC)
 
-INVFLAGS += -I$(SOC_HOME)/perip/uart16550/rtl
-INVFLAGS += -I$(SOC_HOME)/perip/spi/rtl
+INVFLAGS ?= 
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 

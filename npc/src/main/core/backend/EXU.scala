@@ -42,7 +42,7 @@ class ysyx_23060336_EXU extends Module {
   io.exu_lsu_data.bits.exu_wbu_data.dnpc := dnpc
   io.exu_lsu_data.bits.result := result
 
-  // sign
+  // signal
   branch  := io.idu_exu_data.bits.branch
   pcmux   := io.idu_exu_data.bits.pcmux
   pc      := io.idu_exu_data.bits.pc
