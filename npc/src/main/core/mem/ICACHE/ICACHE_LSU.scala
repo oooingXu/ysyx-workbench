@@ -33,7 +33,7 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
     s_wait_indata  -> s_judge_addr,
     s_judge_addr   -> Mux(hit_miss, s_wait_ready, s_sent_request),
     s_sent_request -> Mux(io.lsu_arbiter.arready, Mux(io.lsu_arbiter.rvalid, Mux(io.lsu_arbiter.rlast, s_wait_ready, s_update_data), s_update_data), s_sent_request),
-    s_update_data  -> Mux(io.lsu_arbiter.rvalid, Mux(io.lsu_arbiter.rlast, s_wait_ready, s_update_data), s_update_data),
+    s_update_data  -> Mux(io.lsu_arbiter.rvalid, Mux(io.lsu_arbiter.rlast, s_idle, s_update_data), s_update_data),
     s_wait_ready   -> Mux(io.out.ready, s_idle, s_wait_ready)
   ))
 
