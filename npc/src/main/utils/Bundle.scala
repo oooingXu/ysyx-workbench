@@ -186,7 +186,7 @@ class IMMGEN_DECODE_DATA extends Bundle {
   val recsr             = Input(Bool())
   val rs1en             = Input(Bool())
   val rs2en             = Input(Bool())
-  val inst              = Input(UInt(Base.dataWidth.W))
+  val inst              = Input(UInt((Base.dataWidth - 7).W))
   val immType           = Input(UInt(Base.immTypeWidth.W))
   val imm               = Output(UInt(Base.dataWidth.W))
   val zimm              = Output(UInt(Base.dataWidth.W))

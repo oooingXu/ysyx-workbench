@@ -134,7 +134,7 @@ class ysyx_23060336_IMMGEN extends Module {
   reg_src2 := io.immgen_decode_data.idu_reg_data.src2
 
   // decode <> immgen
-  inst := io.immgen_decode_data.inst
+  inst := Cat(io.immgen_decode_data.inst, 0.U(7.W))
   io.immgen_decode_data.src1       := src1
   io.immgen_decode_data.src2       := src2
   io.immgen_decode_data.zimm       := zimm

@@ -412,7 +412,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.idu_lsu_data.csrdata := csrdata
 
   // decode <> immgen
-  immgen.io.immgen_decode_data.inst      := inst
+  immgen.io.immgen_decode_data.inst      := inst(31, 7)
   immgen.io.immgen_decode_data.recsr     := recsr
   immgen.io.immgen_decode_data.rs1en     := rs1en
   immgen.io.immgen_decode_data.rs2en     := rs2en

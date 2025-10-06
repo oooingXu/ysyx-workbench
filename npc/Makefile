@@ -56,7 +56,8 @@ VERILATOR_CFLAGS += -MMD --cc --trace-fst\
 									 	-O3 --x-assign fast --x-initial fast\
 									 	--exe -Wno-DECLFILENAME\
 										--timescale "1ns/1ns" --no-timing\
-										--assert --autoflush --build\
+										--assert --autoflush \
+										--build\
 										#--lint-only -Wall 
 
 ifdef CONFIG_SOC
