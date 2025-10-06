@@ -24,7 +24,7 @@ SECTIONS {
 		*(.ssbl*)
 		_essbl = .;
 		. = ALIGN(8);
-	} > psram AT> flash
+	} > sram AT> flash
 	_ssbl_lma = LOADADDR(.ssbl);
 	_ssbl_size = _essbl - _ssbl;
 
@@ -74,8 +74,8 @@ SECTIONS {
   _heap_start = ALIGN(0x1000);
   _heap_end = ORIGIN(psram) + LENGTH(psram);
 
-  _stack_top = ORIGIN(sram);
-	. = _stack_top + LENGTH(sram);
+  _stack_top = ORIGIN(sram) + _ssbl_size;
+	. = _stack_top + LENGTH(sram) - _ssbl_size;
   _stack_pointer = .;
 	_stack_end = .;
 }

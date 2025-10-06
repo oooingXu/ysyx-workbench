@@ -46,12 +46,12 @@ void mem_info() {
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) {
 	if(addr != 0){
-		if( direction == DIFFTEST_TO_REF) {
-#ifdef CONFIG_CPUINFO
-			printf("DFFTEST_TO_REF\n");
-			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x\n", addr, *(uint32_t *)buf);
-#endif
+		if( direction == DIFFTEST_TO_YSYXSOC) {
 			memcpy(guest_to_host(addr), buf, n);
+#ifdef CONFIG_CPUINFO
+			printf("DFFTEST_TO_YSYXSOC\n");
+			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x, buf = 0x%08x\n", addr, paddr_read(addr, 4), *(uint32_t *)buf);
+#endif
 		} else if(direction == DIFFTEST_TO_NPC) {
 			memcpy(p_guest_to_host(addr), buf, n);
 #ifdef CONFIG_CPUINFO

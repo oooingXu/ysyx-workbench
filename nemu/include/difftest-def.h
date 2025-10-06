@@ -21,7 +21,7 @@
 #include <generated/autoconf.h>
 
 #define __EXPORT __attribute__((visibility("default")))
-enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF , DIFFTEST_TO_NPC};
+enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF , DIFFTEST_TO_NPC, DIFFTEST_TO_YSYXSOC};
 
 typedef struct {
 	 uint32_t inst;

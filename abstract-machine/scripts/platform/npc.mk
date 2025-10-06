@@ -29,3 +29,6 @@ run: image
 	@$(MAKE) -C $(NPC_HOME) ISA=$(ISA) run IMG=$(IMAGE).bin
 	#@$(NPC_HOME)/build/ysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
 	
+cleansim:
+	@$(MAKE) -C $(NPC_HOME) clean
+

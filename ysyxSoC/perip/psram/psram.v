@@ -73,7 +73,7 @@ module psram(
 			end
 
 			QPI: begin
-				state <= (qpi_cmd == 8'heb) && (counter == 2) ? QPI_READ : (qpi_cmd == 8'h38) && (counter == 2) ? QPI_WRITE : (qpi_cmd == 8'hf5) && (counter == 2) ? SPI : QPI;
+				state <= ({qpi_cmd[7:4], dio} == 8'heb) && (counter == 1) ? QPI_READ : ({qpi_cmd[7:4], dio} == 8'h38) && (counter == 1) ? QPI_WRITE : ({qpi_cmd[7:4], dio} == 8'hf5) && (counter == 1) ? SPI : QPI;
 				qpi_cmd[7:4] <= counter > 1 ? 0 : counter == 0 ? dio : qpi_cmd[7:4];
 				qpi_cmd[3:0] <= counter > 1 ? 0 : counter == 1 ? dio : qpi_cmd[3:0];
 				saddr <= 0;
