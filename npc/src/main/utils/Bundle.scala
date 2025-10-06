@@ -14,9 +14,9 @@ class IDU_EXU_DATA extends Bundle {
   val pc       = Output(UInt(Base.pcWidth.W))
   val result   = Output(UInt(Base.dataWidth.W))
   val pcmux    = Output(UInt(Base.pcmuxWidth.W))
-  val dnpc_pc_1     = Output(UInt(Base.dataWidth.W))
-  val dnpc_pc_imm   = Output(UInt(Base.dataWidth.W))
-  val dnpc_src1_imm = Output(UInt(Base.dataWidth.W))
+  val dnpc_pc_1     = Output(UInt(Base.pcWidth.W))
+  val dnpc_pc_imm   = Output(UInt(Base.pcWidth.W))
+  val dnpc_src1_imm = Output(UInt(Base.pcWidth.W))
   val idu_lsu_data = new IDU_LSU_DATA()
 }
 
@@ -116,14 +116,14 @@ class REG_WBU_DATA extends Bundle {
 
 class IDU_CSR_DATA extends Bundle {
   val mepc     = Input(UInt(Base.pcWidth.W))
-  val mtvec    = Input(UInt(Base.dataWidth.W))
+  val mtvec    = Input(UInt(Base.pcWidth.W))
   val csrdata  = Input(UInt(Base.dataWidth.W))
   val csr      = Output(UInt(Base.csrWidth.W))
 }
 
 class CSR_IDU_DATA extends Bundle {
   val mepc     = Output(UInt(Base.pcWidth.W))
-  val mtvec    = Output(UInt(Base.dataWidth.W))
+  val mtvec    = Output(UInt(Base.pcWidth.W))
   val csrdata  = Output(UInt(Base.dataWidth.W))
   val csr      = Input(UInt(Base.csrWidth.W))
 }

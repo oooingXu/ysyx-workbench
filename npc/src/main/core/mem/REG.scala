@@ -11,18 +11,13 @@ class ysyx_23060336_REG extends Module{
 
   val ysyx_23060336_regs = Mem(Base.regNumber,UInt(Base.dataWidth.W))
 
-  //when(reset.asBool){
-  //  for(i <- 0 until Base.regNumber){
-  //    ysyx_23060336_regs(i) := 0.U
-  //  }
-  //}
-
   io.reg_idu_data.src1 := ysyx_23060336_regs(io.reg_idu_data.rs1)
   io.reg_idu_data.src2 := ysyx_23060336_regs(io.reg_idu_data.rs2)
 
   when(io.reg_wbu_data.wen){
     ysyx_23060336_regs(io.reg_wbu_data.waddr) := Mux(io.reg_wbu_data.waddr === 0.U, 0.U, io.reg_wbu_data.wdata)
   }
-  ysyx_23060336_regs(0) := 0.U
+
+  //ysyx_23060336_regs(0) := 0.U
 }
   

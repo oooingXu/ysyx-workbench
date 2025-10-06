@@ -12,7 +12,7 @@ object Base {
   val PCMuxWidth    = 3
   val AluSelWidth   = 4
   val AluMuxWidth   = 4
-  val rdWidth       = 5
+  val rdWidth       = 4
   val csrWidth      = 12
   val pcWidth       = 30
 

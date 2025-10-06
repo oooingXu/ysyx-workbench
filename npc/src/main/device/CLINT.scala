@@ -8,13 +8,13 @@ class ysyx_23060336_CLINT extends Module{
     val axi = new ysyx_23060336_AXI4Slave()
   })
 
-  val mtimel = Reg(UInt(Base.dataWidth.W))
-  val mtimeh = Reg(UInt(Base.dataWidth.W))
+  val mtimel = RegInit(0.U(Base.dataWidth.W))
+  val mtimeh = RegInit(0.U(Base.dataWidth.W))
 
   val s_idle :: s_ready :: Nil = Enum(2)
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(List(
-    s_idle -> Mux(io.axi.arvalid, s_ready, s_idle),
+    s_idle  -> Mux(io.axi.arvalid, s_ready, s_idle),
     s_ready -> Mux(io.axi.rready, s_idle, s_ready)
   ))
 
