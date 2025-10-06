@@ -74,7 +74,7 @@ class ysyx_23060336 extends Module {
 
     // icache <-> lsu
     icache.io.coherence_input.awvalid := lsu.io.axi.awvalid
-    icache.io.coherence_input.awaddr  := lsu.io.axi.awaddr
+    icache.io.coherence_input.awaddr  := lsu.io.axi.awaddr(31, 2)
   } else {
     ifu.io.axi <> arbiter.io.ifu
   }

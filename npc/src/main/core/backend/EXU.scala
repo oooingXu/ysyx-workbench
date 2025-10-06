@@ -11,17 +11,17 @@ class ysyx_23060336_EXU extends Module {
     val exu_idu_raw  = new EXU_IDU_RAW()
   })
 
-  val dnpc_s = Wire(UInt(Base.pcWidth.W))
-  val pcmux = Wire(UInt(Base.pcmuxWidth.W))
-  val PCMux = Wire(UInt(Base.PCMuxWidth.W))
-
-  val result  = Wire(UInt(Base.dataWidth.W))
-  val branch  = Wire(Bool())
   val pc            = Wire(UInt(Base.pcWidth.W))
   val dnpc          = Wire(UInt(Base.pcWidth.W))
+  val dnpc_s        = Wire(UInt(Base.pcWidth.W))
   val dnpc_pc_1     = Wire(UInt(Base.pcWidth.W))
   val dnpc_pc_imm   = Wire(UInt(Base.pcWidth.W))
   val dnpc_src1_imm = Wire(UInt(Base.pcWidth.W))
+
+  val PCMux         = Wire(UInt(Base.PCMuxWidth.W))
+  val pcmux         = Wire(UInt(Base.pcmuxWidth.W))
+  val result        = Wire(UInt(Base.dataWidth.W))
+  val branch        = Wire(Bool())
   val isRAW_control = Wire(Bool())
 
   // state machine

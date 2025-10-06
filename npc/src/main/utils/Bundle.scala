@@ -36,8 +36,6 @@ class IDU_WBU_DATA extends Bundle {
   val CsrWr      = Output(Bool())
   val isRAW_data = Output(Bool())
   val rden       = Output(Bool())
-  val rs1en      = Output(Bool())
-  val rs2en      = Output(Bool())
   val inst       = Output(UInt(Base.dataWidth.W))
   val rd         = Output(UInt(Base.rdWidth.W))
   val csr        = Output(UInt(Base.csrWidth.W))
@@ -149,19 +147,19 @@ class CSR_WBU_DATA extends Bundle {
 class ICACHE_IFU_DATA extends Bundle {
   val arready = Output(Bool())
   val arvalid = Input(Bool())
-  val araddr  = Input(UInt(Base.addrWidth.W))
+  val araddr  = Input(UInt(Base.pcWidth.W))
   val coherence_input = new COHERENCE_INPUT()
 }
 
 class ICACHE_IFU_LSU_DATA extends Bundle {
-  val araddr  = Output(UInt(Base.addrWidth.W))
+  val araddr  = Output(UInt(Base.pcWidth.W))
   val coherence_output = new COHERENCE_OUTPUT()
 }
 
 class ICACHE_LSU_ARBITER_DATA extends Bundle {
   val arvalid = Output(Bool())
   val rready  = Output(Bool())
-  val araddr  = Output(UInt(Base.addrWidth.W))
+  val araddr  = Output(UInt(Base.pcWidth.W))
   val arlen   = Output(UInt(Base.lenWidth.W))
   val arready = Input(Bool())
   val rvalid  = Input(Bool())
@@ -175,12 +173,12 @@ class ICACHE_LSU_ISSUE_DATA extends Bundle {
 
 class COHERENCE_INPUT extends Bundle {
   val awvalid = Input(Bool())
-  val awaddr  = Input(UInt(Base.addrWidth.W))
+  val awaddr  = Input(UInt(Base.pcWidth.W))
 }
 
 class COHERENCE_OUTPUT extends Bundle {
   val awvalid = Output(Bool())
-  val awaddr  = Output(UInt(Base.addrWidth.W))
+  val awaddr  = Output(UInt(Base.pcWidth.W))
 }
 
 class IMMGEN_DECODE_DATA extends Bundle {

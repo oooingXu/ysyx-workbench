@@ -15,11 +15,11 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   val icache_lsu = Module(new ysyx_23060336_ICACHE_LSU(m, n))
   val icache_issue = Module(new ysyx_23060336_ICACHE_ISSUE())
 
-  val slave_araddr = Wire(UInt(Base.addrWidth.W))
-  val araddr       = RegInit(0.U(Base.addrWidth.W))
+  val slave_araddr = Wire(UInt(Base.pcWidth.W))
+  val araddr       = Reg(UInt(Base.pcWidth.W))
 
-  araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr, araddr)
-  slave_araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr, araddr)
+  araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr(31, 2), araddr)
+  slave_araddr := Mux(io.slave.arvalid && io.slave.arready, io.slave.araddr(31, 2), araddr)
 
   // icache pipeline
   //def icacheConnect[T <: Data, T2 <: Data](prevOut: DecoupledIO[T], thisIn: DecoupledIO[T]) = {
@@ -34,8 +34,8 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   icache_ifu.io.out <> icache_lsu.io.in
   icache_lsu.io.out <> icache_issue.io.in
 
-  val sram_start = "h0f000000".U(Base.addrWidth.W)
-  val sram_end   = "h10000000".U(Base.addrWidth.W)
+  val sram_start = "h03c00000".U(Base.pcWidth.W)
+  val sram_end   = "h04000000".U(Base.pcWidth.W)
 
   val skip_addr  = slave_araddr >= sram_start && slave_araddr <= sram_end
 
@@ -63,7 +63,7 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   icache_ifu.io.in.araddr  := slave_araddr
 
   // arbiter <> icache_lsu
-  io.master.araddr  := Mux(state === s_skip, slave_araddr, icache_lsu.io.lsu_arbiter.araddr)
+  io.master.araddr  := Mux(state === s_skip, Cat(slave_araddr, 0.U(2.W)), Cat(icache_lsu.io.lsu_arbiter.araddr, 0.U(2.W)))
   io.master.arvalid := icache_lsu.io.lsu_arbiter.arvalid || (io.slave.arvalid && state === s_skip)
   io.master.rready  := icache_lsu.io.lsu_arbiter.rready || state === s_idle || state === s_skip
   io.master.arlen   := icache_lsu.io.lsu_arbiter.arlen
@@ -78,12 +78,14 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   icache_issue.io.ifu_rready := io.slave.rready
 
   // icache_counter
-  val icache_counter = Module(new ICACHE_COUNTER())
-  icache_counter.io.clock          := clock
-  icache_counter.io.slave_arvalid  := icache_lsu.io.in.valid
-  icache_counter.io.slave_rvalid   := icache_lsu.io.out.valid
-  icache_counter.io.master_arvalid := io.master.arvalid
-  icache_counter.io.master_rvalid  := io.master.rvalid
+  if(Config.useDebug) {
+    val icache_counter = Module(new ICACHE_COUNTER())
+    icache_counter.io.clock          := clock
+    icache_counter.io.slave_arvalid  := icache_lsu.io.in.valid
+    icache_counter.io.slave_rvalid   := icache_lsu.io.out.valid
+    icache_counter.io.master_arvalid := io.master.arvalid
+    icache_counter.io.master_rvalid  := io.master.rvalid
+  }
 
 }
 

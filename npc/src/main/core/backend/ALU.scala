@@ -5,16 +5,16 @@ import chisel3.util._
 
 class ysyx_23060336_ALU(n: Int) extends Module {
 	val io = IO(new Bundle{
-		val sel			 = Input(UInt(Base.AluSelWidth.W))
-		val ina			 = Input(UInt(n.W))
-		val inb			 = Input(UInt(n.W))
-		val result   = Output(UInt(n.W))
+		val sel		 = Input(UInt(Base.AluSelWidth.W))
+		val ina		 = Input(UInt(n.W))
+		val inb		 = Input(UInt(n.W))
+		val result = Output(UInt(n.W))
 	})
 
   val zero     = Wire(Bool())
   val carry    = Wire(Bool())
   val overflow = Wire(Bool())
-	val cin			= io.sel(0) | io.sel(3)
+	val cin			 = io.sel(0) | io.sel(3)
 
 	val out1  = Wire(UInt(n.W))
 	val out3  = ~io.ina 
@@ -36,8 +36,8 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   val ge_s  = a_signed >= b_signed
 
   // 相等比较（复用原逻辑）
-  val beq    = io.ina === io.inb
-  val neq   = io.ina =/= io.inb
+  val beq = io.ina === io.inb
+  val neq = io.ina =/= io.inb
 
 	val addsub = Module(new ysyx_23060336_AddSub(n))
 	addsub.io.ina := io.ina

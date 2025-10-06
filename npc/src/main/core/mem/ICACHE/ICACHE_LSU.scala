@@ -10,18 +10,18 @@ class ysyx_23060336_ICACHE_LSU(m: Int, n: Int) extends Module {
     val lsu_arbiter = new ICACHE_LSU_ARBITER_DATA()
   })
   val icache = Module(new ysyx_23060336_ICACHE_METADATA(m, n))
-  val counter = RegInit(0.U(2.W))
+  val counter = Reg(UInt(2.W))
   val maskedaraddr = io.in.bits.araddr & ~(0x0000000f.U(Base.addrWidth.W))
-  val araddr = Reg(UInt(Base.addrWidth.W))
+  val araddr = Reg(UInt(Base.pcWidth.W))
   val offset = Wire(UInt(m.W))
 
-  val slave_tag    = io.in.bits.araddr(31, m + n)
-  val slave_index  = io.in.bits.araddr(m + n - 1, m)
+  val slave_tag    = io.in.bits.araddr(31 - 2, m + n - 2)
+  val slave_index  = io.in.bits.araddr(m + n - 1 - 2, m - 2)
   val slave_offset = Wire(UInt(m.W))
 
-  val store_tag    = io.in.bits.coherence_output.awaddr(31, m + n)
-  val store_index  = io.in.bits.coherence_output.awaddr(m + n - 1, m)
-  val store_offset = io.in.bits.araddr(3, 0)
+  val store_tag    = io.in.bits.coherence_output.awaddr(31 - 2, m + n - 2)
+  val store_index  = io.in.bits.coherence_output.awaddr(m + n - 1 - 2, m - 2)
+  val store_offset = io.in.bits.araddr(3 - 2, 0)
 
   val fence_i = store_tag === slave_tag && store_index === slave_index
   val hit_miss = slave_tag === icache.io.out_tag && icache.io.out_valid

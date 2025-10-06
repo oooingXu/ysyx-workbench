@@ -10,7 +10,6 @@ class ysyx_23060336_CLINT extends Module{
 
   val mtimel = Reg(UInt(Base.dataWidth.W))
   val mtimeh = Reg(UInt(Base.dataWidth.W))
-  val araddr = Reg(UInt(Base.dataWidth.W))
 
   val s_idle :: s_ready :: Nil = Enum(2)
   val state = RegInit(s_idle)
@@ -25,7 +24,6 @@ class ysyx_23060336_CLINT extends Module{
   } 
   
   mtimel := mtimel + 1.U // 低位加 1
-  araddr := io.axi.araddr
 
   io.axi.awready := false.B;
   io.axi.wready  := false.B;
@@ -35,7 +33,7 @@ class ysyx_23060336_CLINT extends Module{
   io.axi.arready := Mux(reset.asBool, false.B, true.B)
   io.axi.rvalid  := state === s_ready
   io.axi.rresp   := 0.U
-  io.axi.rdata   := Mux(state === s_ready, Mux(araddr === "h02000000".U, mtimel, mtimeh), 0.U)
+  io.axi.rdata   := Mux(state === s_ready && io.axi.araddr(25), mtimeh, mtimel)
   io.axi.rlast   := state === s_ready
   io.axi.rid     := 2.U
 

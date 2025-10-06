@@ -400,8 +400,6 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ecall      := ecall
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ebreak     := decodeBundle(EbreakField)
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rden       := rden
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rs1en      := rs1en
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rs2en      := rs2en
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.isRAW_data := isRAW_data
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.csr        := csr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.inst       := inst

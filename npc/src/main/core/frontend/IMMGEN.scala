@@ -54,14 +54,14 @@ class ysyx_23060336_IMMGEN extends Module {
   val conflict_idu_src2 = rs2en 
 
   // conflict 
-  val conflict_exu_rs1 = rs1 === exu_rd && rs1 =/= 0.U && exu_rden && conflict_idu_src1
-  val conflict_exu_rs2 = rs2 === exu_rd && rs2 =/= 0.U && exu_rden && conflict_idu_src2
-
-  val conflict_lsu_rs1 = rs1 === lsu_rd && rs1 =/= 0.U && lsu_rden && conflict_idu_src1  
-  val conflict_lsu_rs2 = rs2 === lsu_rd && rs2 =/= 0.U && lsu_rden && conflict_idu_src2
-
-  val conflict_wbu_rs1 = rs1 === wbu_rd && rs1 =/= 0.U && wbu_rden && conflict_idu_src1
-  val conflict_wbu_rs2 = rs2 === wbu_rd && rs2 =/= 0.U && wbu_rden && conflict_idu_src2
+  val conflict_exu_rs1 = rs1 === exu_rd && exu_rden && rs1 =/= 0.U && conflict_idu_src1
+  val conflict_exu_rs2 = rs2 === exu_rd && exu_rden && rs2 =/= 0.U && conflict_idu_src2
+                                                                      
+  val conflict_lsu_rs1 = rs1 === lsu_rd && lsu_rden && rs1 =/= 0.U && conflict_idu_src1  
+  val conflict_lsu_rs2 = rs2 === lsu_rd && lsu_rden && rs2 =/= 0.U && conflict_idu_src2
+                                                                      
+  val conflict_wbu_rs1 = rs1 === wbu_rd && wbu_rden && rs1 =/= 0.U && conflict_idu_src1
+  val conflict_wbu_rs2 = rs2 === wbu_rd && wbu_rden && rs2 =/= 0.U && conflict_idu_src2
 
   // bypass 
   val bypass_exu = !exu_MemtoReg
