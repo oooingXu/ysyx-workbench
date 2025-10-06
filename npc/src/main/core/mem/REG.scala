@@ -18,6 +18,5 @@ class ysyx_23060336_REG extends Module{
     ysyx_23060336_regs(io.reg_wbu_data.waddr) := Mux(io.reg_wbu_data.waddr === 0.U, 0.U, io.reg_wbu_data.wdata)
   }
 
-  //ysyx_23060336_regs(0) := 0.U
 }
   

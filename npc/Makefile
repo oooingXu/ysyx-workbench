@@ -57,8 +57,8 @@ VERILATOR_CFLAGS += -MMD --cc --trace-fst\
 									 	--exe -Wno-DECLFILENAME\
 										--timescale "1ns/1ns" --no-timing\
 										--assert --autoflush \
-										--build\
-										#--lint-only -Wall 
+										--lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSED
+										#--build\
 
 ifdef CONFIG_SOC
 # constraint file
