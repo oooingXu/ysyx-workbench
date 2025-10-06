@@ -19,7 +19,6 @@ class ysyx_23060336_CLINT extends Module{
   ))
 
   when(mtimel === "hFFFFFFFF".U) { // 如果 mtimel 达到最大值
-    mtimel := 0.U // 重置 mtimel
     mtimeh := mtimeh + 1.U // 高位加 1
   } 
   
@@ -30,11 +29,11 @@ class ysyx_23060336_CLINT extends Module{
   io.axi.bvalid  := false.B;
   io.axi.bresp   := 2.U
   io.axi.bid     := 2.U
-  io.axi.arready := Mux(reset.asBool, false.B, true.B)
+  io.axi.arready := state === s_idle
   io.axi.rvalid  := state === s_ready
-  io.axi.rresp   := 0.U
-  io.axi.rdata   := Mux(state === s_ready && io.axi.araddr(25), mtimeh, mtimel)
   io.axi.rlast   := state === s_ready
+  io.axi.rdata   := Mux(state === s_ready && io.axi.araddr(25), mtimeh, mtimel)
+  io.axi.rresp   := 0.U
   io.axi.rid     := 2.U
 
 }

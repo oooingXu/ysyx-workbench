@@ -40,12 +40,11 @@ class ysyx_23060336_ICACHE(m: Int, n: Int) extends Module{
   val skip_addr  = slave_araddr >= sram_start && slave_araddr <= sram_end
 
   // state machine
-  val s_idle :: s_skip :: s_wait_ready :: Nil = Enum(3)
+  val s_idle :: s_skip :: Nil = Enum(2)
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(List(
-    s_idle       -> Mux(io.slave.arvalid, Mux(skip_addr, s_skip, s_wait_ready), s_idle),
+    s_idle       -> Mux(io.slave.arvalid && skip_addr, s_skip, s_idle),
     s_skip       -> Mux(io.master.rvalid, s_idle, s_skip),
-    s_wait_ready -> Mux(icache_issue.io.icache_issue, s_idle, s_wait_ready)
   ))
 
   // icache <> arbiter
