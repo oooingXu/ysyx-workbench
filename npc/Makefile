@@ -41,9 +41,9 @@ CACHESIM_BIN = $(PERF)/pc_trace.bin
 BIN = $(BUILD_DIR)/$(TOP_NAME)
 NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
 
-ifdef CONFIG_DIFFTEST
 DIFF_REF_PATH = $(NEMU_HOME)/build
-DIFF_REF_SO = $(DIFF_REF_PATH)/riscv32-nemu-interpreter-so
+DIFF_REF_SO ?= $(DIFF_REF_PATH)/riscv32-nemu-interpreter-so
+ifdef CONFIG_DIFFTEST
 endif
 
 default: $(BIN)
@@ -57,8 +57,8 @@ VERILATOR_CFLAGS += -MMD --cc --trace-fst\
 									 	--exe -Wno-DECLFILENAME\
 										--timescale "1ns/1ns" --no-timing\
 										--assert --autoflush \
-										--lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSED
-										#--build\
+										--build\
+										#--lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSED
 
 ifdef CONFIG_SOC
 # constraint file
@@ -82,9 +82,6 @@ INVFLAGS ?=
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 
 CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecated -Wno-return-type
-#CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
-#LDFLAGS  += -lLLVM-19
-#LDFLAGS  += $(shell llvm-config --libs)
 
 $(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)

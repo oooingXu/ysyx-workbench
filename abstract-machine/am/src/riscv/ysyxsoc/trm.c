@@ -10,7 +10,7 @@ extern char _rodata_lma, _rodata, _erodata;
 extern char _data_lma, _data, _edata;
 extern char _bss, _ebss;
 
-//#define RTT
+#define RTT
 #ifdef RTT
 extern char _data_extra_lma, _data_extra, _edata_extra;
 extern char _bss_extra, _ebss_extra;
@@ -49,11 +49,10 @@ static void uart_init(){
 
 void _trm_init() {
 	uart_init();
-	//uint32_t mvendodir, marchid;
-	//asm volatile("csrr %0, mvendorid" : "=r"(mvendodir));
-	//asm volatile("csrr %0, marchid" : "=r"(marchid));
-	//printf("mvendodir = %d\n",mvendodir);
-	//printf("marchid = %d\n",marchid);
+	uint32_t mvendodir, marchid;
+	asm volatile("csrr %0, mvendorid" : "=r"(mvendodir));
+	asm volatile("csrr %0, marchid" : "=r"(marchid));
+	printf("mvendodir = %d, marchid = %d\n",mvendodir, marchid);
 
   int ret = main(mainargs);
   halt(ret);

@@ -30,11 +30,14 @@ static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }
 
+static uint8_t sdram[SDRAM_SIZE];
+static uint8_t* sdram_guest_to_host(paddr_t paddr) { return sdram + paddr - SDRAM_BASE; }
+
 static uint8_t psram[PSRAM_SIZE];
-uint8_t* p_guest_to_host(paddr_t paddr) { return psram + paddr - PSRAM_BASE; }
+uint8_t* psram_guest_to_host(paddr_t paddr) { return psram + paddr - PSRAM_BASE; }
 
 static uint8_t sram[SRAM_SIZE];
-static uint8_t* s_guest_to_host(paddr_t paddr) { return sram + paddr - SRAM_BASE; }
+static uint8_t* sram_guest_to_host(paddr_t paddr) { return sram + paddr - SRAM_BASE; }
 
 static word_t pmem_read(paddr_t addr, int len) {
 	//addr = addr & 0xfffffffc;
@@ -47,26 +50,37 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_host(addr), len, data);
 }
 
+static word_t sdram_read(paddr_t addr, int len) {
+	word_t ret = host_read(sdram_guest_to_host(addr), len);
+	//printf("(nemu) sdram_read addr = 0x%08x, data = 0x%08x, len = %d\n", addr, ret, len);
+	return ret;
+}
+
+static void sdram_write(paddr_t addr, int len, word_t data) {
+	//printf("(nemu) sdram_write pc = 0x%08x, addr = 0x%08x, data = 0x%08x, len = %d\n", cpu.pc ,addr, data, len);
+	host_write(sdram_guest_to_host(addr), len, data);
+}
+
 static word_t psram_read(paddr_t addr, int len) {
-	word_t ret = host_read(p_guest_to_host(addr), len);
+	word_t ret = host_read(psram_guest_to_host(addr), len);
 	//printf("(nemu) psram_read addr = 0x%08x, data = 0x%08x, len = %d\n", addr, ret, len);
 	return ret;
 }
 
 static void psram_write(paddr_t addr, int len, word_t data) {
 	//printf("(nemu) psram_write pc = 0x%08x, addr = 0x%08x, data = 0x%08x, len = %d\n", cpu.pc ,addr, data, len);
-	host_write(p_guest_to_host(addr), len, data);
+	host_write(psram_guest_to_host(addr), len, data);
 }
 
 static word_t sram_read(paddr_t addr, int len) {
-	word_t ret = host_read(s_guest_to_host(addr), len);
+	word_t ret = host_read(sram_guest_to_host(addr), len);
 	//printf("(nemu) sram_read addr = 0x%08x, data = 0x%08x, len = %d\n", addr, ret, len);
 	return ret;
 }
 
 static void sram_write(paddr_t addr, int len, word_t data) {
 	//printf("(nemu) sram_write pc = 0x%08x, addr = 0x%08x, data = 0x%08x, len = %d\n", cpu.pc ,addr, data, len);
-	host_write(s_guest_to_host(addr), len, data);
+	host_write(sram_guest_to_host(addr), len, data);
 }
 
 static void out_of_bound(paddr_t addr) {
@@ -147,6 +161,11 @@ word_t paddr_read(paddr_t addr, int len) {
 		rdata = psram_read(addr, len);
 		mem_diff_load_update(rdata, addr, len);
 		return rdata;
+	} else if(in_sdram(addr)) {
+		IFDEF(CONFIG_PMTRACE, printf("(nemu) sdram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, sdram_read(addr, len), len));
+		rdata = sdram_read(addr, len);
+		mem_diff_load_update(rdata, addr, len);
+		return rdata;
 	}
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
@@ -166,6 +185,9 @@ void paddr_write(paddr_t addr, int len, word_t data) {
  } else if(in_psram(addr)) {
 	 IFDEF(CONFIG_PMTRACE, printf("(nemu) psram WRITE: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, data, len));
 	 psram_write(addr, len, data); return;
+ } else if(in_sdram(addr)) {
+	 IFDEF(CONFIG_PMTRACE, printf("(nemu) sdram WRITE: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, data, len));
+	 sdram_write(addr, len, data); return;
  }
   IFDEF(CONFIG_DEVICE,  mmio_write(addr, len, data); return);
   out_of_bound(addr);

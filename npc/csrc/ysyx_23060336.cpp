@@ -19,7 +19,7 @@ static TOP_NAME *dut = NULL;
 uint64_t cur_inst_cycle = 0;
 uint64_t g_nr_guest_clk = 0;
 uint64_t g_nr_guest_inst = 0;
-static uint64_t g_timer = 0;
+static uint64_t g_timer = 0, g_timer_total_s = 0, g_timer_min = 0, g_timer_s = 0;
 static uint64_t timer_start = 0;
 static uint64_t timer_end = 0;
 static bool			ret = false;
@@ -84,7 +84,10 @@ void fork_child_init() {
 
 static void statistic(){
 	g_nr_guest_inst++;
-	Log("host time spent = %ld us, %ld s", g_timer, g_timer / 1000000);
+	g_timer_total_s = g_timer / 1000000;
+	g_timer_min = g_timer_total_s / 60;
+	g_timer_s = g_timer_total_s % 60;
+	Log("host time spent = %ld us, %ld s, %ld min %ld s", g_timer, g_timer_total_s, g_timer_min, g_timer_s);
 	Log("total guest instructions = %ld", g_nr_guest_inst);
 	Log("total guest clock = %ld", g_nr_guest_clk);
 	if(g_timer > 0) {
