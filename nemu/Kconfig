@@ -198,6 +198,11 @@ config RTRACE
 	bool "Enable instruction rtracer"
 	default n
 
+config DEBUG_C
+	depends on RVC
+	bool "Enable debug C extension"
+	default n
+
 config WATCHPOINT
 	depends on TRACE
 	bool "Enable watchpoint"
