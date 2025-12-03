@@ -29,10 +29,6 @@ typedef struct {
 	word_t mvendorid;
 	word_t marchid;
 
-  double dgpr[32];
-	word_t fflags;
-	word_t frm;
-
 	word_t mie;
 	word_t mscratch;
 	word_t mtval;
@@ -41,6 +37,10 @@ typedef struct {
 	word_t pmpaddr0;
 	word_t mimpid;
 	word_t mhartid;
+
+  double dgpr[32];
+	word_t fflags;
+	word_t frm;
 
 	word_t cyclel;
 	word_t cycleh;
