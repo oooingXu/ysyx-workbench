@@ -4,7 +4,7 @@
 
 extern char _heap_start; 
 extern char _ssbl_lma, _ssbl, _essbl, _text_lma, _text, _etext, _rodata_lma, _rodata, _erodata, _data_lma, _data,  _edata, _bss, _ebss;
-#define _RTT_
+//#define _RTT_
 #ifdef _RTT_
 extern char _data_extra,  _edata_extra , _data_extra_lma;
 extern char _bss_extra,  _ebss_extra;
@@ -40,55 +40,55 @@ extern void _trm_init() {
   halt(ret);
 }
 
-void  __attribute((section(".ssbl")))_bootloader(void) {
-	char *src = &_text_lma;
-	char *dst = &_text;
-
-	while(dst < &_etext) {
-		*dst++ = *src++;
-	}
-
-	src = &_rodata_lma;
-	dst = &_rodata;
-
-	while(dst < &_erodata) {
-		*dst++ = *src++;
-	}
-
-#ifdef _RTT_
-	src = &_data_extra_lma;
-	dst = &_data_extra;
-
-	while(dst < &_edata_extra) {
-		*dst++ = *src++;
-	}
-#endif
-
-	src = &_data_lma;
-	dst = &_data;
-
-	while(dst < &_edata) {
-		*dst++ = *src++;
-	}
-
-#ifdef _RTT_
-	for(dst = &_bss_extra; dst < &_ebss_extra; dst++)
-		*dst = 0;
-#endif
-
-	for(dst = &_bss; dst < &_ebss; dst++)
-		*dst = 0;
-
-	_trm_init();
-}
-
-void __attribute((section(".fsbl")))_fsbl_init(void) {
-	char *src = &_ssbl_lma;
-	char *dst = &_ssbl;
-
-	while(dst < &_essbl) {
-		*dst++ = *src++;
-	}
-
-	_bootloader();
-}
+//void  __attribute((section(".ssbl")))_bootloader(void) {
+//	char *src = &_text_lma;
+//	char *dst = &_text;
+//
+//	while(dst < &_etext) {
+//		*dst++ = *src++;
+//	}
+//
+//	src = &_rodata_lma;
+//	dst = &_rodata;
+//
+//	while(dst < &_erodata) {
+//		*dst++ = *src++;
+//	}
+//
+//#ifdef _RTT_
+//	src = &_data_extra_lma;
+//	dst = &_data_extra;
+//
+//	while(dst < &_edata_extra) {
+//		*dst++ = *src++;
+//	}
+//#endif
+//
+//	src = &_data_lma;
+//	dst = &_data;
+//
+//	while(dst < &_edata) {
+//		*dst++ = *src++;
+//	}
+//
+//#ifdef _RTT_
+//	for(dst = &_bss_extra; dst < &_ebss_extra; dst++)
+//		*dst = 0;
+//#endif
+//
+//	for(dst = &_bss; dst < &_ebss; dst++)
+//		*dst = 0;
+//
+//	_trm_init();
+//}
+//
+//void __attribute((section(".fsbl")))_fsbl_init(void) {
+//	char *src = &_ssbl_lma;
+//	char *dst = &_ssbl;
+//
+//	while(dst < &_essbl) {
+//		*dst++ = *src++;
+//	}
+//
+//	_bootloader();
+//}
