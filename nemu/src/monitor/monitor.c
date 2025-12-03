@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <memory/paddr.h>
+#include "default64mbdtc.h"
 #ifdef CONFIG_FTRACE
 #include "cpu/ftrace.h"
 #endif
@@ -48,6 +49,7 @@ static char *elf_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static int difftest_port = 1234;
+static uint32_t cpu_gpr_11 = 0;
 
 static long load_img() {
   if (img_file == NULL) {
@@ -67,8 +69,31 @@ static long load_img() {
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
+	//int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
+	//int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
+	//for(int i = 0; i < 10; i++){
+	//	printf("%08x\n", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
+	//}
+	//printf("dtb_ptr = 0x%08x\n", dtb_ptr + RESET_VECTOR);
+	//cpu_gpr_11 = dtb_ptr + RESET_VECTOR;
+  //memcpy(guest_to_host(RESET_VECTOR + dtb_ptr), default64mbdtb, sizeof(default64mbdtb));
+
+	//uint32_t *dtb = (uint32_t *)(guest_to_host(RESET_VECTOR + dtb_ptr));
+	//if(dtb[0x13c/4] == 0x00c0ff03) {
+	//	uint32_t validram = dtb_ptr;
+	//	dtb[0x13c/4] = (validram>>24) | (((validram >> 16) & 0xff) << 8) | (((validram >> 8) & 0xff) << 16) | ((validram & 0xff) << 24);
+	//}
+
+	//for(int i = 0; i < sizeof(default64mbdtb); i++){
+	//	printf("%x ", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
+	//}
+
+	//printf("size = 0x%08lx, imgsize = 0x%08lx\n", size, size + sizeof(default64mbdtb) + sizeof(riscv32_CPU_state));
+	//size += sizeof(default64mbdtb) + sizeof(riscv32_CPU_state);
+
   fclose(fp);
-  return size;
+  return CONFIG_MSIZE;
+  //return size;
 }
 
 static int parse_args(int argc, char *argv[]) {
@@ -130,6 +155,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();
+
+	// run nommulinux set dtb
+	cpu.gpr[11] = cpu_gpr_11;
 
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);

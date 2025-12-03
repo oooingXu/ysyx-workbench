@@ -13,11 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include <common.h>
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
 #include "cpu/ringbuffer.h"
+#include "cpu/trace.h"
 #ifndef CONFIG_TARGET_AM
 #include "monitor/sdb/sdb.h"
 #endif
@@ -27,7 +29,7 @@
  * This is useful when you use the `si' command.
  * You can modify this value as you want.
  */
-#define MAX_INST_TO_PRINT 1000
+#define MAX_INST_TO_PRINT 1000000
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
@@ -35,6 +37,33 @@ static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
 void device_update();
+
+IFDEF(CONFIG_CACHESIM, FILE *pc_trace_file = NULL);
+
+#ifdef CONFIG_CACHESIM
+void cache_sim_start() {
+    const char *dir_path = "/home/romeo/ysyx-workbench/npc/perf";
+    const char *file_name = "pc_trace.bin";
+    char file_path[256];
+
+    // 构造完整的文件路径
+    snprintf(file_path, sizeof(file_path), "%s/%s", dir_path, file_name);
+
+    // 打开文件
+    pc_trace_file = fopen(file_path, "wb");
+    if (!pc_trace_file) {
+        perror("Failed to open pc trace file");
+        exit(1);
+    }
+}
+
+void cache_sim_end() {
+    if (pc_trace_file) {
+        fclose(pc_trace_file);
+        pc_trace_file = NULL;
+    }
+}
+#endif
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -69,11 +98,32 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+//uint32_t trap() {
+//	if(cpu.trap & 0x80000000) { // If prefixed with 1 in MSB, int's an interrupt, not a trap.
+//		cpu.mtval = 0;
+//		//cpu.pc += 4;
+//	} else {
+//		cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc; 
+//	}
+//	// TRICKY: The kernel advances mepc automatically
+//	// mstatus & 8 = MIE, & 0x80 = MPIE
+//	// On an interrupt, the systemm moves current MIE into MPIE
+//	cpu.mcause = cpu.trap;
+//	cpu.mepc = cpu.pc;
+//	//printf("& 0x80 << 4 = %x, &0x8 = %x, & 0x8 << 4 = %x\n", ((cpu.mstatus & 0x80) << 4), cpu.mstatus & 0x8, ((cpu.mstatus & 0x8) << 4));
+//	cpu.mstatus = ((cpu.mstatus & 0x80) << 4) | ((cpu.extraflags & 3) << 11) | ((cpu.mstatus & 0x8) << 4);
+//	cpu.extraflags = (cpu.mstatus >> 11) & 0x3;
+//	return cpu.mtvec;
+//	//cpu.extraflags |= 3;
+//}
+
 static void exec_once(Decode *s, vaddr_t pc) {
+	IFDEF(CONFIG_CACHESIM, if (pc_trace_file) fwrite(&pc, sizeof(pc), 1, pc_trace_file);)
+	cpu.cyclel++;
   s->pc = pc;
   s->snpc = pc;
   isa_exec_once(s);
-  cpu.pc = s->dnpc;
+
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
 #ifdef CONFIG_RTRACE 
@@ -105,12 +155,74 @@ static void exec_once(Decode *s, vaddr_t pc) {
 
 static void execute(uint64_t n) {
   Decode s;
+	uint32_t new_time = 0;
   for (;n > 0; n --) {
-    exec_once(&s, cpu.pc);
-    g_nr_guest_inst ++;
-    trace_and_difftest(&s, cpu.pc);
-    if (nemu_state.state != NEMU_RUNNING) break;
-    IFDEF(CONFIG_DEVICE, device_update());
+		//char *s_logbuf_last = s.logbuf;
+		cpu.trap = 0;
+		new_time = (uint32_t)get_time();
+		if(new_time <  cpu.timerl) cpu.timerh++;
+		cpu.timerl = new_time;
+
+		// Handle Timer interrupt
+		//if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
+		//	cpu.extraflags &= ~4; // Clear WFI
+		//	cpu.mip |= 1 << 7; // MTIP of MIP Fire interrupt
+		//	//printf("-");
+		//	//printf("\n\n\nHandle Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+		//} else {
+		//	cpu.mip &= ~(1 << 7);
+		//}
+
+		//// If WFI, don't run processor
+		//if(cpu.extraflags & 4) {
+		//	//printf("\n\n\nWFI\n\n\n");
+		//	continue;
+		//}
+
+		//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3)) {
+		////if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/) {
+		//	// Timer interrupt
+		//	cpu.trap = 0x80000007;
+		//	//printf("*");
+		//	//cpu.pc += 4;
+		//	//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+
+		//} else { // No timer inerrupt, exec_once
+	  //  g_nr_guest_inst ++;
+	  //  exec_once(&s, cpu.pc);
+		//	//printf("+");
+		//}
+
+	  g_nr_guest_inst ++;
+	  exec_once(&s, cpu.pc);
+		IFDEF(CONFIG_IRBTRACE, iringbuf_add(s.isa.inst.val, cpu.pc));
+	  //g_nr_guest_inst ++;
+	  //exec_once(&s, cpu.pc);
+
+		//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/
+		//		&& (cpu.mstatus & 0x8) /*mie*/) {
+		//	// Timer interrupt
+		//	cpu.trap = 0x80000007;
+		//	cpu.pc += 4;
+		//	//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+
+		//} 
+
+		// Handle traps and interrupts
+		//if(cpu.trap) cpu.pc = trap();
+		if(cpu.trap) cpu.pc = isa_raise_intr(cpu.trap, cpu.pc);
+		else cpu.pc = s.dnpc;
+
+		if(cpu.cyclel == 0) cpu.cycleh++;
+
+	  trace_and_difftest(&s, cpu.pc);
+	  if (nemu_state.state != NEMU_RUNNING) {
+			//printf("cpu.pc = 0x%08x\ndnpc = %s\n", cpu.pc, s.logbuf);
+			//printf("last dnpc = %s\n", s_logbuf_last); 
+			IFDEF(CONFIG_IRBTRACE, iringbuf_printf());
+			break;
+		}
+	  IFDEF(CONFIG_DEVICE, device_update());
   }
 }
 
@@ -145,7 +257,11 @@ void cpu_exec(uint64_t n) {
 
   uint64_t timer_start = get_time();
 
+	IFDEF(CONFIG_CACHESIM, cache_sim_start());
+
   execute(n);
+
+	IFDEF(CONFIG_CACHESIM, cache_sim_end());
 
   uint64_t timer_end = get_time();
   g_timer += timer_end - timer_start;

@@ -18,10 +18,9 @@
 #include <difftest-def.h>
 
 word_t vaddr_ifetch(vaddr_t addr, int len) {
-	word_t inst = paddr_read(addr, len);
-	//printf("(nemu) addr = 0x%08x, inst = 0x%08x, len = %d\n", addr, inst, len);
-	mem_diff.inst = inst;
-  return inst;
+	mem_diff.inst = paddr_read(addr, len);
+	IFDEF(CONFIG_PDIFF, printf("(nemu) vaddr_ifetch: inst = %x, addr = %x\n", mem_diff.inst, addr));
+  return paddr_read(addr, len);
 }
 
 word_t vaddr_read(vaddr_t addr, int len) {

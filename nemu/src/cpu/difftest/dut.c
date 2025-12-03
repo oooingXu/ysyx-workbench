@@ -33,6 +33,7 @@ void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 
 static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
+static uint64_t skip_time = 0;
 
 // this is used to let ref skip instructions which
 // can not produce consistent behavior with NEMU
@@ -120,16 +121,26 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
     return;
   }
 
-  if (is_skip_ref) {
+  if (is_skip_ref || (cpu.extraflags & 0x4)) {
     // to skip the checking of an instruction, just copy the reg state to reference design
+		
+		if(cpu.extraflags & 0x4) {
+			skip_time++;
+			//printf("difftest_skip_ref: %ld\n", skip_time);
+		}
     ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
     is_skip_ref = false;
     return;
   }
 
+	if(cpu.trap == 0x80000007)
+	//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3))
+	 	ref_difftest_raise_intr(cpu.mcause);
+	else
   ref_difftest_exec(1);
+
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-  //ref_difftest_raise_intr(ref_r.mcause);
+
 
   checkregs(&ref_r, pc);
 }

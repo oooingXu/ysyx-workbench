@@ -26,20 +26,32 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-	printf("(nemu) gprs\n");
-	for(int i = 0; i < 16 / 4; i++) {
+	printf("nemu pc = 0x%08x\n", cpu.pc);
+	printf("nemu gpr\n");
+	for(int i = 0; i < 8 ; i++) {
 		for(int j = 0; j < 4; j++){
-			printf("%-3s = 0x%08x ",regs[j + 4 * i],cpu.gpr[j + 4 * i]);
+			printf("%2d[%-3s] --->  0x%08x,	", j + i * 4, regs[j + i * 4], cpu.gpr[i]);
 		}
 		printf("\n");
 	}
 
-	printf("(nemu) csrs\n");
-	printf("mepc = 0x%08x, ",cpu.mepc);
-	printf("mstatus = 0x%08x, ",cpu.mstatus);
-	printf("mcause = 0x%08x, ",cpu.mcause);
-	printf("mtvec	= 0x%08x\n",cpu.mtvec);
-	printf("\n");
+	printf("\nnemu csr\n");
+	printf("extraflags ---> 0x%x\n",cpu.extraflags);
+	printf("trap ---> 0x%x\n",cpu.trap);
+	//printf("frm 		---> 0x%x\n",cpu.frm);
+	printf("mepc		---> 0x%x\n",cpu.mepc);
+	printf("mtvec		---> 0x%x\n",cpu.mtvec);
+	printf("mcause	---> 0x%x\n",cpu.mcause);
+	printf("mstatus ---> 0x%x\n",cpu.mstatus);
+	printf("mtval ---> 0x%x\n",cpu.mtval);
+	printf("mip ---> 0x%x\n",cpu.mip);
+	printf("mie ---> 0x%x\n",cpu.mie);
+	printf("timermatchl ---> 0x%x\n",cpu.timermatchl);
+	printf("timermatchh ---> 0x%x\n",cpu.timermatchh);
+	printf("timerl ---> 0x%x\n",cpu.timerl);
+	printf("timerh ---> 0x%x\n",cpu.timerh);
+	printf("cyclel ---> 0x%x\n",cpu.cyclel);
+	printf("cycleh ---> 0x%x\n",cpu.cycleh);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

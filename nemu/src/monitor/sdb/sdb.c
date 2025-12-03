@@ -55,9 +55,9 @@ static int cmd_q(char *args) {
 }
 
 static int cmd_si(char *args) {
-	int n;
+	uint64_t n;
 	if(args != NULL){
-		sscanf(args, "%d", &n);
+		sscanf(args, "%lx", &n);
 	}
 	else{
 		n = 1;

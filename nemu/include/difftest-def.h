@@ -21,19 +21,16 @@
 #include <generated/autoconf.h>
 
 #define __EXPORT __attribute__((visibility("default")))
-enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF , DIFFTEST_TO_NPC, DIFFTEST_TO_YSYXSOC};
+enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF , DIFFTEST_TO_NPC};
 
 typedef struct {
-	 uint32_t inst;
-	 uint32_t araddr;
-	 uint32_t awaddr;
-	 uint32_t rdata;
-	 uint32_t wdata;
-	 int wstrb;
-	 int arsize;
-
-	 bool arvalid;
-	 bool awvalid;
+	uint32_t inst;
+	uint32_t araddr;
+	uint32_t awaddr;
+	uint32_t wdata;
+	int wstrb;
+	int arsize;
+	uint32_t rdata;
 } MEM_DIFF;
 
 extern MEM_DIFF mem_diff;

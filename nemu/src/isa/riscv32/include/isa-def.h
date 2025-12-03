@@ -29,6 +29,35 @@ typedef struct {
 	word_t mvendorid;
 	word_t marchid;
 
+  double dgpr[32];
+	word_t fflags;
+	word_t frm;
+
+	word_t mie;
+	word_t mscratch;
+	word_t mtval;
+	word_t mip;
+	word_t pmpcfgr0;
+	word_t pmpaddr0;
+	word_t mimpid;
+	word_t mhartid;
+
+	word_t cyclel;
+	word_t cycleh;
+	word_t timerl;
+	word_t timerh;
+	word_t timermatchl;
+	word_t timermatchh;
+
+	word_t extraflags;
+
+	// Note: only a few bits are used.  (Machine = 3, User = 0)
+	// Bits 0..1 = privilege.
+	// Bit 2 = WFI (Wait for interrupt)
+	// Bit 3+ = Load/Store reservation LSBs.
+	word_t trap;
+	word_t sztu;
+
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode

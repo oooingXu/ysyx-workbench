@@ -19,12 +19,22 @@
 #include <common.h>
 #include <isa.h>
 
-#define MSTATUS 0x300
-#define MTVEC		0x305
-#define MEPC		0x341
-#define MCAUSE	0x342
+#define FFLAGS    0x001
+#define FRM       0x002
+#define MSTATUS   0x300
+#define MIE  		  0x304
+#define MTVEC		  0x305
+#define MSCRATCH  0x340
+#define MEPC		  0x341
+#define MCAUSE	  0x342
+#define MTVAL     0x343
+#define MIP   	  0x344
+#define PMPCFGR0  0x3a0
+#define PMPADDR0  0x3b0
 #define MVENDORID 0xf11
-#define MARCHID 0xf12
+#define MARCHID   0xf12
+#define MIMPID    0xf13
+#define MHARTID   0xf14
 
 static inline int check_reg_idx(int idx) {
   IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < MUXDEF(CONFIG_RVE, 16, 32)));
@@ -32,26 +42,31 @@ static inline int check_reg_idx(int idx) {
 }
 
 static inline uint32_t *check_csr_idx(word_t idx) {
-	if(idx == MSTATUS) {
-		return &(cpu.mstatus);
-	} else if(idx == MTVEC) {
-		return &(cpu.mtvec);
-	} else if(idx == MEPC) {
-		return &(cpu.mepc);
-	} else if(idx == MCAUSE) {
-		return &(cpu.mcause);
-	} else if(idx == MVENDORID) {
-		return &(cpu.mvendorid);
-	} else if(idx == MARCHID) {
-		return &(cpu.marchid);
-	} else {
-		printf("Faild csr");
-		return 0;
+	switch(idx) {
+		case FFLAGS:		return &(cpu.fflags);
+		case FRM:				return &(cpu.frm);
+		case MSTATUS:   return &(cpu.mstatus);
+		case MIE:       return &(cpu.mie);
+		case MTVEC:     return &(cpu.mtvec);
+		case MEPC:      return &(cpu.mepc);
+		case MCAUSE:    return &(cpu.mcause);
+		case MTVAL:     return &(cpu.mtval);
+		case MSCRATCH:  return &(cpu.mscratch);
+		case MIP:       return &(cpu.mip);
+		case PMPCFGR0:  return &(cpu.pmpcfgr0);
+		case PMPADDR0:  return &(cpu.pmpaddr0);
+		case MVENDORID: return &(cpu.mvendorid);
+		case MARCHID:   return &(cpu.marchid);
+		case MIMPID:		return &(cpu.mimpid);
+		case MHARTID:   return &(cpu.mhartid);
+		default: return &cpu.gpr[0];
+		//default: printf("Faild csr 0x%x\n",idx); assert(0);
 	}
 }
 
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 #define csr(idx) (*check_csr_idx(idx))
+#define dgpr(idx) (cpu.dgpr[idx])
 
 static inline const char* reg_name(int idx) {
   extern const char* regs[];

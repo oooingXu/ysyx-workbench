@@ -25,6 +25,11 @@ void set_nemu_state(int state, vaddr_t pc, int halt_ret) {
   nemu_state.halt_ret = halt_ret;
 }
 
+//__attribute__((noinline))
+//void invalid_inst(vaddr_t thispc) {
+//	cpu.trap = 2;
+//}
+
 __attribute__((noinline))
 void invalid_inst(vaddr_t thispc) {
   uint32_t temp[2];

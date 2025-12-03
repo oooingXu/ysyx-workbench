@@ -33,9 +33,23 @@ static void restart() {
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
 
+	// set dtb
+	//cpu.gpr[11] = 0x87fff924;
+
+	cpu.cyclel = 0;
+	cpu.cycleh = 0;
+	cpu.timerl = 0;
+	cpu.timerh = 0;
+	cpu.timermatchl = 0;
+	cpu.timermatchh = 0;
+
+	cpu.extraflags = 0x3;
 	cpu.mstatus		= 0x1800;
-	cpu.marchid		= 0x15fdf70;
-	cpu.mvendorid = 0x79737978;
+	cpu.marchid		= 0x5;
+	cpu.mvendorid = 0;
+	cpu.mimpid = 0;
+	cpu.pmpaddr0 = 0;
+	//cpu.pmpaddr0 = -1;
 
 }
 

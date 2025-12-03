@@ -18,105 +18,85 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
+#ifdef CONFIG_RVE
 #define R 16
+#else 
+#define R 32
+#endif
 
-void cpu_info() {
-	printf("(nemu) regs\n");
-	for(int i = 0; i < R / 4; i++){
-		for(int j = 0; j < 4; j++){
-			printf("gpr[%2d] = 0x%08x ", j + i * 4, cpu.gpr[j + i * 4]);
+MEM_DIFF mem_diff;
+
+#ifdef CONFIG_PDIFF
+static void cpu_info() {
+	printf("ref info\n");
+	for(int i = 0; i < R / 4; i++) {
+		for(int j = 0; j < 4; j++) {
+			printf("gpr[%d] = %08x\t", i * 4 + j, cpu.gpr[i * 4 + j]);
 		}
 		printf("\n");
 	}
-	printf("(nemu) csrs\n");
-	printf("mepc = 0x%08x mstatus = 0x%08x mcause = 0x%08x mtvec = 0x%08x\n", cpu.mepc, cpu.mstatus, cpu.mcause, cpu.mtvec);
-	printf("mvendorid = 0x%08x marchid = 0x%08x\n", cpu.mvendorid, cpu.marchid);
-	printf("\n");
+	printf("cpu.privilege = 0x%08x\n", cpu.extraflags & 3);
+	printf("cpu.pc        = 0x%08x\n", cpu.pc);
+	printf("cpu.mepc      = 0x%08x\n", cpu.mepc);
+	printf("cpu.mcause    = 0x%08x\n", cpu.mcause);
+	printf("cpu.mtvec     = 0x%08x\n", cpu.mtvec);
+	printf("cpu.mstatus   = 0x%08x\n", cpu.mstatus);
+	printf("cpu.mvendorid = 0x%08x\n", cpu.mvendorid);
+	printf("cpu.marchid   = 0x%08x\n", cpu.marchid);
+	printf("cpu.inst      = 0x%08x\n", mem_diff.inst);
+	printf("cpu.wstrb     = 0x%08x\n", mem_diff.wstrb);
 }
-
-void mem_info() {
-	printf("(nemu) inst   = 0x%08x\n", mem_diff.inst);
-	printf("(nemu) araddr = 0x%08x\n", mem_diff.araddr);
-	printf("(nemu) awaddr = 0x%08x\n", mem_diff.awaddr);
-	printf("(nemu) wdata  = 0x%08x\n", mem_diff.wdata);
-	printf("(nemu) wstrb  = 0x%08x\n", mem_diff.wstrb);
-	printf("(nemu) arsize = 0x%08x\n", mem_diff.arsize);
-
-}
+#endif
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, int direction) {
 	if(addr != 0){
-		if( direction == DIFFTEST_TO_YSYXSOC) {
+		if( direction == DIFFTEST_TO_REF) {
+			IFDEF(CONFIG_PDIFF, printf("REF: difftest_memcpy: addr = 0x%08x\n", addr));
 			memcpy(guest_to_host(addr), buf, n);
-#ifdef CONFIG_CPUINFO
-			printf("DFFTEST_TO_YSYXSOC\n");
-			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x, buf = 0x%08x\n", addr, paddr_read(addr, 4), *(uint32_t *)buf);
-#endif
 		} else if(direction == DIFFTEST_TO_NPC) {
-			memcpy(p_guest_to_host(addr), buf, n);
-#ifdef CONFIG_CPUINFO
-			printf("DFFTEST_TO_NPC\n");
-			printf("difftest_memcpy: addr = 0x%08x, inst = 0x%08x, buf = 0x%08x\n", addr, paddr_read(addr, 4), *(uint32_t *)buf);
-#endif
+			IFDEF(CONFIG_PDIFF, printf("NPC: difftest_memcpy: addr = 0x%08x\n", addr));
+			memcpy(guest_to_host(addr), buf, n);
+			//memcpy(p_guest_to_host(addr), buf, n);
 		} else {
 			assert(0);
 		}
 	}
-#ifdef CONFIG_CPUINFO
-	printf("difftest_memcpy\n");
-	cpu_info();
-#endif
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
 	CPU_state *diff_dut = (CPU_state *)dut;
 	if(direction == DIFFTEST_TO_REF){
 			memcpy(&cpu.gpr ,diff_dut->gpr, R * sizeof(cpu.gpr[0]));
-			cpu.pc        = diff_dut->pc;
-			cpu.mepc      = diff_dut->mepc;
-			cpu.mcause    = diff_dut->mcause;
-			cpu.mtvec     = diff_dut->mtvec;
-			cpu.mstatus   = diff_dut->mstatus;
-			cpu.mvendorid = diff_dut->mvendorid;
-			cpu.marchid   = diff_dut->marchid;
-	} 
-	else {
+			cpu.extraflags = diff_dut->extraflags;
+			cpu.pc         = diff_dut->pc;
+			cpu.mepc       = diff_dut->mepc;
+			cpu.mcause     = diff_dut->mcause;
+			cpu.mtvec      = diff_dut->mtvec;
+			cpu.mstatus    = diff_dut->mstatus;
+			cpu.mvendorid  = diff_dut->mvendorid;
+			cpu.marchid    = diff_dut->marchid;
+			IFDEF(CONFIG_PDIFF, printf("(nemu) difftest_regcpu: TO REF\n"));
+	} else {
 		memcpy(diff_dut->gpr, &cpu.gpr, R * sizeof(cpu.gpr[0]));
-		diff_dut->pc        = cpu.pc;
-		diff_dut->mepc      = cpu.mepc;
-		diff_dut->mcause    = cpu.mcause;
-		diff_dut->mtvec     = cpu.mtvec;
-		diff_dut->mstatus   = cpu.mstatus;
-		diff_dut->mvendorid = cpu.mvendorid;
-		diff_dut->marchid   = cpu.marchid;
+		diff_dut->extraflags = cpu.extraflags;
+		diff_dut->pc         = cpu.pc;
+		diff_dut->mepc       = cpu.mepc;
+		diff_dut->mcause     = cpu.mcause;
+		diff_dut->mtvec      = cpu.mtvec;
+		diff_dut->mstatus    = cpu.mstatus;
+		diff_dut->mvendorid  = cpu.mvendorid;
+		diff_dut->marchid    = cpu.marchid;
+		IFDEF(CONFIG_PDIFF, printf("(nemu) difftest_regcpu: TO DUT\n"));
 	}
-#ifdef CONFIG_CPUINFO
-	printf("difftest_regcpy\n");
-	cpu_info();
-#endif
-}
-
-__EXPORT void difftest_mem_diff(void *mem_dut) {
-#ifdef CONFIG_CPUINFO
-	printf("(nemu) difftest_mem_diff\n");
-	mem_info();
-#endif
-	MEM_DIFF *diff_mem_dut = (MEM_DIFF *)mem_dut;
-
-	diff_mem_dut->inst    = mem_diff.inst;
-	diff_mem_dut->araddr  = mem_diff.araddr;
-	diff_mem_dut->awaddr  = mem_diff.awaddr;
-	diff_mem_dut->wdata   = mem_diff.wdata;
-	diff_mem_dut->wstrb   = mem_diff.wstrb;
-	diff_mem_dut->arsize  = mem_diff.arsize;
-	diff_mem_dut->arvalid = mem_diff.arvalid;
-	diff_mem_dut->awvalid = mem_diff.awvalid;
+	IFDEF(CONFIG_PDIFF, cpu_info());
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
-	mem_diff.arvalid = false;
-	mem_diff.awvalid = false;
 	cpu_exec(n);
+#ifdef CONFIG_PDIFF
+	printf("(nemu) difftest_exec\n");
+	cpu_info();
+#endif
 }
 
 __EXPORT void difftest_raise_intr(word_t NO) {
@@ -124,17 +104,21 @@ __EXPORT void difftest_raise_intr(word_t NO) {
 }
 
 __EXPORT void difftest_init(int port) {
-#ifdef CONFIG_CPUINFO
-	printf("(nemu) difftest_init\n");
-#endif
   void init_mem();
   init_mem();
-#ifdef CONFIG_CPUINFO
-	printf("(nemu) init_mem\n");
-#endif
   /* Perform ISA dependent initialization. */
   init_isa();
-#ifdef CONFIG_CPUINFO
-	printf("(nemu) init_isa\n");
-#endif
 }
+
+__EXPORT void difftest_mem_diff(void *dut) {
+	MEM_DIFF *diff_dut = (MEM_DIFF *)dut;
+
+	diff_dut->inst		 = mem_diff.inst;
+	diff_dut->araddr   = mem_diff.araddr;
+	diff_dut->awaddr   = mem_diff.awaddr;
+	diff_dut->wdata    = mem_diff.wdata;
+	diff_dut->rdata    = mem_diff.rdata;
+	diff_dut->wstrb    = mem_diff.wstrb;
+	diff_dut->arsize   = mem_diff.arsize;
+}
+
