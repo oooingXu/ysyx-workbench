@@ -34,6 +34,7 @@
 
 enum {
   TYPE_I, TYPE_U, TYPE_S,TYPE_R, TYPE_J, TYPE_B, TYPE_M, TYPE_A, 
+	TYPE_CI, TYPE_CIN, TYPE_CU, TYPE_CR, TYPE_CJ, TYPE_CB, TYPE_C16SP, TYPE_C4SPN, TYPE_CLS, TYPE_CLWSP, TYPE_CSWSP,
   TYPE_N, // none
 };
 
@@ -43,11 +44,21 @@ static bool dowrite = 0;
 #define src2R() do { *src2 = R(rs2); } while (0)
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
 #define immU() do { *imm = SEXT(BITS(i, 31, 12), 20) << 12; } while(0)
+#define immCI() do { *imm = SEXT(BITS(i, 12, 12) << 5 | BITS(i, 6, 2), 6); } while(0)
+#define uimmCI() do { *uimm = BITS(i, 12, 12) << 5 | BITS(i, 6, 2); } while(0)
+#define immCU() do { *imm = SEXT(BITS(i, 12, 12) << 17 | BITS(i, 6, 2) << 12, 18); } while(0)
+#define immC16SP() do { *imm = SEXT(BITS(i, 12, 12) << 9 | BITS(i, 6, 6) << 4 | BITS(i, 5, 5) << 6 | BITS(i, 4, 3) << 7 | BITS(i, 2, 2) << 5, 10); } while(0)
+#define uimmC4SPN() do { *uimm = BITS(i, 12, 11) << 4 | BITS(i, 10, 7) << 6 | BITS(i, 6, 6) << 2 | BITS(i, 5, 5) << 3; } while(0)
+#define uimmCLS() do { *uimm = BITS(i, 12, 10) << 3 | BITS(i, 6, 6) << 2 | BITS(i, 5, 5) << 6; } while(0)
+#define uimmCLWSP() do { *uimm = BITS(i, 12, 12) << 5 | BITS(i, 6, 4) << 2 | BITS(i, 3, 2) << 6; } while(0)
+#define uimmCSWSP() do { *uimm = BITS(i, 12, 9) << 2 | BITS(i, 8, 7) << 6; } while(0)
 #define immS() do { *imm = SEXT(BITS(i, 31, 25) << 5 | BITS(i, 11, 7), 12); } while(0)
 #define immB() do { *imm = SEXT((BITS(i, 31, 31) << 11 | BITS(i, 7, 7) << 10 | BITS(i, 30, 25) << 4 | BITS(i, 11, 8)) << 1 , 13); } while(0) 
+#define immCB() do { *imm = SEXT(BITS(i, 12, 12) << 8 | BITS(i, 11, 10) << 3 | BITS(i, 6, 5) << 6 | BITS(i, 4, 3) << 1 | BITS(i, 2, 2) << 5, 9); } while(0) 
 #define immJ() do { *imm = SEXT((BITS(i, 31, 31) << 19 | BITS(i, 19, 12) << 11 | BITS(i, 20, 20) << 10 | BITS(i, 30, 21)) << 1, 21); } while(0) 
+#define immCJ() do { *imm = SEXT((BITS(i, 12, 12) << 11 | BITS(i, 11, 11) << 4 | BITS(i, 10, 9) << 8 | BITS(i, 8, 8) << 10 | BITS(i, 7, 7) << 6| BITS(i, 6, 6) << 7 | BITS(i, 5, 3) << 1 | BITS(i, 2, 2)), 12); } while(0) 
 
-static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, int type) {
+static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, word_t *uimm, int type) {
   uint32_t i = s->isa.inst.val;
   int rs1 = BITS(i, 19, 15);
   int rs2 = BITS(i, 24, 20);
@@ -56,6 +67,16 @@ static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, i
   switch (type) {
     case TYPE_I: src1R();					 immI(); break;
     case TYPE_U:                   immU(); break;
+    case TYPE_CI:                  immCI(); break;
+    case TYPE_CIN:                 uimmCI(); break;
+    case TYPE_CU:                  immCU(); break;
+    case TYPE_CB:                  immCB(); break;
+    case TYPE_CJ:                  immCJ(); break;
+    case TYPE_C16SP:               immC16SP(); break;
+    case TYPE_C4SPN:               uimmC4SPN(); break;
+    case TYPE_CLS:								 uimmCLS(); break;
+    case TYPE_CLWSP:							 uimmCLWSP(); break;
+    case TYPE_CSWSP:							 uimmCSWSP(); break;
     case TYPE_S: src1R(); src2R(); immS(); break;
     case TYPE_B: src1R(); src2R(); immB(); break;
     case TYPE_J:									 immJ(); break;
@@ -75,6 +96,14 @@ static int decode_exec(Decode *s) {
   int rd  = BITS(s->isa.inst.val, 11, 7);
   int rs1 = BITS(s->isa.inst.val, 19, 15);
   int rs2 = BITS(s->isa.inst.val, 24, 20);
+
+	// C
+  int rdc42    = BITS(s->isa.inst.val, 4, 2);
+  int rdc97    = BITS(s->isa.inst.val, 9, 7);
+  int rs1c97   = BITS(s->isa.inst.val, 9, 7);
+  int rs2c42   = BITS(s->isa.inst.val, 4, 2);
+  int rs1_11_7 = BITS(s->isa.inst.val, 11, 7);
+  int rs2_6_2  = BITS(s->isa.inst.val, 6, 2);
   //int rm  = BITS(s->isa.inst.val, 14, 12);
 	
 	typedef union {
@@ -86,7 +115,7 @@ static int decode_exec(Decode *s) {
 	dsrc1.d = D(rs1);
 	dsrc2.d = D(rs2);
 
-  word_t src1 = 0, src2 = 0, imm = 0;
+  word_t src1 = 0, src2 = 0, imm = 0, uimm = 0;
   s->dnpc = s->snpc;
 
   int zimm = BITS(s->isa.inst.val, 19, 15);
@@ -97,7 +126,7 @@ static int decode_exec(Decode *s) {
   //int rs2 = BITS(s->isa.inst.val, 24, 20);
 #define INSTPAT_INST(s) ((s)->isa.inst.val)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */ ) { \
-  decode_operand(s, &src1, &src2, &imm, concat(TYPE_, type)); \
+  decode_operand(s, &src1, &src2, &imm, &uimm, concat(TYPE_, type)); \
   __VA_ARGS__ ; \
 }
 
@@ -181,6 +210,40 @@ static int decode_exec(Decode *s) {
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
   INSTPAT("00010 ?? ????? ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; dowrite = true); 
   INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite) R(rd) = 0; else R(rd) = 1; if(dowrite) Mw(src1, 4, src2); dowrite = 0); 
+
+	// C
+  INSTPAT("????? ?? ????? ???? 011 ? 00010 ????? 01", c.addi16sp,	 C16SP, R(2) = R(2) + imm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.addi16sp: imm = %d, rdc42 = %d, pc = 0x%08x\n", imm, rdc42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 000 ??????? ???? 00", c.addi4spn,	 C4SPN, R(rdc42 + 8) = R(2) + uimm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.addi4spn: uimm = %d, rdc42 = %d, pc = 0x%08x\n", uimm, rdc42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 000 ? ????? ????? 01", c.addi,			 CI, R(rd) += imm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.addi: rd = %d, imm = %d, pc = 0x%08x\n", rd, imm, s->pc)); 
+
+  INSTPAT("????? ?? ????? ???? 010 ? ????? ????? 01", c.li,			   CI, R(rd) = imm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.li: rd = %d, imm = %d, pc = 0x%08x\n", rd, imm, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 ? 10 ??? ????? 01", c.andi,		 CI, R(8 + rdc97) &= imm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.andi: rdc97 = %d, imm = %d, pc = 0x%08x\n", rdc97, imm, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 ? 01 ??? ????? 01", c.srai,		 CIN, R(8 + rdc97) = (int32_t)R(8 + rdc97) >> uimm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.srai: rdc97 = %d, uimm = %d, pc = 0x%08x\n", rdc97, uimm, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 ? 00 ??? ????? 01", c.srli,		 CIN, R(8 + rdc97) = R(8 + rdc97) >> uimm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.srai: rdc97 = %d, uimm = %d, pc = 0x%08x\n", rdc97, uimm, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 000 ? ????? ????? 10", c.slli,			 CIN, R(rd) = R(rd) << uimm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.slli: rd = %d, uimm = %d, pc = 0x%08x\n", rd, uimm, s->pc)); 
+
+  INSTPAT("????? ?? ????? ???? 011 ? ????? ????? 01", c.lui,			 CU, R(rd) = imm; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.lui: rd = %d, imm = 0x%08x, pc = 0x%08x\n", rd, imm, s->pc)); 
+
+  INSTPAT("????? ?? ????? ???? 101 ??????????? 01", c.j,					 CJ, s->dnpc = s->pc + imm; printf("(nemu) : Doing c.j: dnpc = 0x%08x, pc = 0x%08x\n", s->dnpc, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 001 ??????????? 01", c.jal,				 CJ, R(1) = s->pc + 2; s->dnpc = s->pc + imm; printf("(nemu) : Doing c.jal: dnpc = 0x%08x, pc = 0x%08x\n", s->dnpc, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 1 ????? 00000 10", c.jalr,			 CJ, uint32_t t = s->pc + 2; s->dnpc = R(rs1_11_7); R(1) = t; printf("(nemu) : Doing c.jalr: rs1_11_7 = %d, dnpc = 0x%08x, pc = 0x%08x\n", rs1_11_7, s->dnpc, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 0 ????? 00000 10", c.jr,				 CJ, s->dnpc = R(rs1_11_7); printf("(nemu) : Doing c.jr: rs1_11_7 = %d, dnpc = 0x%08x\n", rs1_11_7, s->dnpc)); 
+
+
+  INSTPAT("????? ?? ????? ???? 100011 ??? 11 ??? 01", c.and,			 CR, R(8 + rdc97) &= R(8 + rs2c42); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.and: rdc97 = %d, rs2c42 = %d, pc = 0x%08x\n", rdc97, rs2c42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 1 ????? ????? 10", c.add,			 CR, R(rd) += R(rs2_6_2); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.add: rd = %d, rs2_6_2 = %d, pc = 0x%08x\n", rd, rs2_6_2, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100011 ??? 00 ??? 01", c.sub,			 CR, R(8 + rdc97) -= R(8 + rs2c42); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.sub: rdc97 = %d, rs2c42 = %d, pc = 0x%08x\n", rdc97, rs2c42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100011 ??? 01 ??? 01", c.xor,			 CR, R(8 + rdc97) ^= R(8 + rs2c42); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.xor: rdc97 = %d, rs2c42 = %d, pc = 0x%08x\n", rdc97, rs2c42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100011 ??? 10 ??? 01", c.or,				 CR, R(8 + rdc97) |= R(8 + rs2c42); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.or: rdc97 = %d, rs2c42 = %d, pc = 0x%08x\n", rdc97, rs2c42, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 100 0 ????? ????? 10", c.mv,				 CR, R(rd) = R(rs2_6_2); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.mv: rd = %d, rs2_6_2 = %d, pc = 0x%08x\n", rd, rs2_6_2, s->pc)); 
+
+  INSTPAT("????? ?? ????? ???? 110 ??? ??? ????? 01", c.beqz,			 CB, if(R(8 + rs1c97) == 0) s->dnpc = s->pc + imm; else s->dnpc = s->pc + 2; printf("(nemu) : Doing c.beqz: rs1c97 = %d, imm = 0x%08x, dnpc = 0x%08x, pc = 0x%08x\n", rs1c97, imm, s->dnpc, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 111 ??? ??? ????? 01", c.beqz,			 CB, if(R(8 + rs1c97) != 0) s->dnpc = s->pc + imm; else s->dnpc = s->pc + 2; printf("(nemu) : Doing c.beqz: rs1c97 = %d, imm = 0x%08x, dnpc = 0x%08x, pc = 0x%08x\n", rs1c97, imm, s->dnpc, s->pc)); 
+
+  INSTPAT("????? ?? ????? ???? 010 ??? ??? ?? ??? 00", c.lw,			 CLS, uint32_t t = Mr(R(8 +rs1c97) + uimm, 4); R(rdc42 + 8) = t; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.lw: rdc42 = %d, rs1c97 = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rdc42, rs1c97, uimm, t, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 110 ??? ??? ?? ??? 00", c.sw,			 CLS, Mw(R(8 + rs1c97) + uimm, 4, R(8 + rs2c42)); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.sw: rdc42 = %d, rs1c97 = %d, rs2c42 = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rdc42, rs1c97, rs2c42, uimm, R(8 + rs2c42), s->pc)); 
+  INSTPAT("????? ?? ????? ???? 010 ? ????? ????? 10", c.lwsp,			 CLWSP, uint32_t t = Mr(R(2) + uimm, 4); R(rd) = t; s->dnpc = s->pc + 2; printf("(nemu) : Doing c.lwsp: rd = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rd, uimm, t, s->pc)); 
+  INSTPAT("????? ?? ????? ???? 110 ?????? ????? 10", c.swsp,		 CSWSP, Mw(R(2) + uimm, 4, R(rs2_6_2)); s->dnpc = s->pc + 2; printf("(nemu) : Doing c.swsp: rs2_6_2 = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rs2_6_2, uimm, R(rs2_6_2), s->pc)); 
 
 	// D
 	INSTPAT("????? ?? ????? ????? 011 ????? 0000111", fld,			 I, D(rd) = ((uint64_t)Mr(R(rs1) + imm + 4, 4) << 32) | Mr(R(rs1) + imm, 4));
