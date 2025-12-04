@@ -69,27 +69,35 @@ static long load_img() {
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
-	//int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
-	//int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
-	//for(int i = 0; i < 10; i++){
-	//	printf("%08x\n", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
-	//}
-	//printf("dtb_ptr = 0x%08x\n", dtb_ptr + RESET_VECTOR);
-	//cpu_gpr_11 = dtb_ptr + RESET_VECTOR;
-  //memcpy(guest_to_host(RESET_VECTOR + dtb_ptr), default64mbdtb, sizeof(default64mbdtb));
+#ifdef CONFIG_NOMMULINUX
+	int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
 
-	//uint32_t *dtb = (uint32_t *)(guest_to_host(RESET_VECTOR + dtb_ptr));
-	//if(dtb[0x13c/4] == 0x00c0ff03) {
-	//	uint32_t validram = dtb_ptr;
-	//	dtb[0x13c/4] = (validram>>24) | (((validram >> 16) & 0xff) << 8) | (((validram >> 8) & 0xff) << 16) | ((validram & 0xff) << 24);
-	//}
+#ifdef CONFIG_DEBUG_NOMMULINUX
+	for(int i = 0; i < 10; i++){
+		printf("(nemu) dtb: %08x\n", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
+	}
+	printf("dtb_ptr = 0x%08x\n", dtb_ptr + RESET_VECTOR);
+#endif
 
-	//for(int i = 0; i < sizeof(default64mbdtb); i++){
-	//	printf("%x ", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
-	//}
+	// set dtb_ptr
+	cpu_gpr_11 = dtb_ptr + RESET_VECTOR;
+  memcpy(guest_to_host(RESET_VECTOR + dtb_ptr), default64mbdtb, sizeof(default64mbdtb));
 
-	//printf("size = 0x%08lx, imgsize = 0x%08lx\n", size, size + sizeof(default64mbdtb) + sizeof(riscv32_CPU_state));
-	//size += sizeof(default64mbdtb) + sizeof(riscv32_CPU_state);
+	uint32_t *dtb = (uint32_t *)(guest_to_host(RESET_VECTOR + dtb_ptr));
+	if(dtb[0x13c/4] == 0x00c0ff03) {
+		uint32_t validram = dtb_ptr;
+		dtb[0x13c/4] = (validram>>24) | (((validram >> 16) & 0xff) << 8) | (((validram >> 8) & 0xff) << 16) | ((validram & 0xff) << 24);
+	}
+
+#ifdef CONFIG_DEBUG_NOMMULINUX
+	for(int i = 0; i < sizeof(default64mbdtb); i++){
+		printf("%x ", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
+	}
+	printf("size = 0x%08lx, imgsize = 0x%08lx\n", size, size + sizeof(default64mbdtb) + sizeof(riscv32_CPU_state));
+#endif
+
+	size += sizeof(default64mbdtb) + sizeof(riscv32_CPU_state);
+#endif
 
   fclose(fp);
   return CONFIG_MSIZE;

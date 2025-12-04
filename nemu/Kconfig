@@ -208,6 +208,11 @@ config NOMMULINUX
 	bool "Enable run nommulinux"
 	default n
 
+config DEBUG_NOMMULINUX
+	depends on NOMMULINUX
+	bool "Enable debug nommulinux"
+	default n
+
 config WATCHPOINT
 	depends on TRACE
 	bool "Enable watchpoint"
