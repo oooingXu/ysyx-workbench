@@ -303,13 +303,16 @@ static int decode_exec(Decode *s) {
 	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, IFDEF(CONFIG_ETRACE, printf("met: dnpc = 0x%08x\n", s->dnpc)); 
 			uint32_t startmstatus = cpu.mstatus; 
 			uint32_t startextraflags = cpu.extraflags; 
-			//cpu.mstatus = ((startmstatus & 0x80) >> 4) | ((startextraflags & 3) << 11) | 0x80; 
-			cpu.mstatus = ((startextraflags & 3) << 11); 
+			cpu.mstatus = (startmstatus & 0x1800) | (startmstatus & 0x80) | ((startmstatus & 0x80) >> 4); 
+			//cpu.mstatus = ((startextraflags & 3) << 11); 
 			cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); 
 			s->dnpc = cpu.mepc);
 	//INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, IFDEF(CONFIG_ETRACE, printf("met: dnpc = 0x%08x\n", s->dnpc)); uint32_t startmstatus = cpu.mstatus; uint32_t startextraflags = cpu.extraflags; cpu.mstatus = ((startmstatus & 0x80) >> 4) | ((~(cpu.mstatus >> 11) & 3) << 11) | 0x80; cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); s->dnpc = cpu.mepc);
-  //INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, cpu.trap = 3); // R(10) is $a0
+#ifdef CONFIG_NOMMULINUX
+  INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, cpu.trap = 3); // R(10) is $a0
+#else
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
+#endif
   INSTPAT("0001000 00101 00000 000 00000 11100 11", wfi		 , N, cpu.extraflags |= 4; cpu.mstatus |= 8; s->dnpc = cpu.pc);
 	INSTPAT("0000000 00000 00000 001 00000 00011 11", fence.i, I, );
 	INSTPAT("0000000 00000 00000 000 00000 00011 11", fence, I, );

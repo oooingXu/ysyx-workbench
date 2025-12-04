@@ -67,10 +67,10 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
-	//if(ref_r->mip != cpu.mip) {
-	//	printf("ref_r->mip = 0x%08x, cpu.mip = 0x%08x\n", ref_r->mip, cpu.mip);
-	//	check = false;
-	//}
+	if(ref_r->mip != cpu.mip) {
+		printf("ref_r->mip = 0x%08x, cpu.mip = 0x%08x\n", ref_r->mip, cpu.mip);
+		check = false;
+	}
 
 	//if(ref_r->pmpaddr0 != cpu.pmpaddr0) {
 	//	printf("ref_r->pmpaddr0 = 0x%08x, cpu.pmpaddr0 = 0x%08x\n", ref_r->pmpaddr0, cpu.pmpaddr0);

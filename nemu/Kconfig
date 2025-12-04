@@ -193,9 +193,9 @@ config ETRACE
 	bool "Enable instruction etracer"
 	default n
 
-config RTRACE
+config IRBTRACE
   depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
-	bool "Enable instruction rtracer"
+	bool "Enable iringbuffer tracer"
 	default n
 
 config DEBUG_C

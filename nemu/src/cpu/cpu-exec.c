@@ -18,8 +18,11 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
-#include "cpu/ringbuffer.h"
-#include "cpu/trace.h"
+
+#ifdef CONFIG_IRBTRACE
+#include <cpu/trace.h>
+#endif
+
 #ifndef CONFIG_TARGET_AM
 #include "monitor/sdb/sdb.h"
 #endif
@@ -126,9 +129,6 @@ static void exec_once(Decode *s, vaddr_t pc) {
 
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
-#ifdef CONFIG_RTRACE 
-	RingBuffer_write(iringbuf, s->logbuf);
-#endif
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
   int ilen = s->snpc - s->pc;
   int i;

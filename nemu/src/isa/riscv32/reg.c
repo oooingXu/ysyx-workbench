@@ -16,6 +16,7 @@
 #include <isa.h>
 #include "local-include/reg.h"
 #include <cpu/cpu.h>
+#include <memory/paddr.h>
 
 
 const char *regs[] = {
@@ -26,7 +27,6 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-	printf("nemu pc = 0x%08x\n", cpu.pc);
 	printf("nemu gpr\n");
 	for(int i = 0; i < 8 ; i++) {
 		for(int j = 0; j < 4; j++){
@@ -52,6 +52,8 @@ void isa_reg_display() {
 	printf("timerh ---> 0x%x\n",cpu.timerh);
 	printf("cyclel ---> 0x%x\n",cpu.cyclel);
 	printf("cycleh ---> 0x%x\n",cpu.cycleh);
+	printf("pc = 0x%08x\n", cpu.pc);
+	printf("inst = 0x%08x\n", paddr_read(cpu.pc, 4));
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

@@ -35,12 +35,13 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	cpu.mepc = epc;
 
 	//printf("& 0x80 << 4 = %x, &0x8 = %x, & 0x8 << 4 = %x\n", ((cpu.mstatus & 0x80) << 4), cpu.mstatus & 0x8, ((cpu.mstatus & 0x8) << 4));
-	uint32_t start_mstatus = cpu.mstatus;
+	//uint32_t start_mstatus = cpu.mstatus;
 	uint32_t start_extraflags = cpu.extraflags;
-//	cpu.mstatus = ((cpu.mstatus & 0x80) << 4) | ((cpu.mstatus & 0x8) << 4)| ((start_extraflags & 3) << 11) ;
+	cpu.mstatus = ((cpu.mstatus & 0x8) << 4) | (start_extraflags & 3) << 11 ;
 	//cpu.mstatus = ((cpu.mstatus & 0x8) << 4)| ((start_extraflags & 3) << 11) ;
-	cpu.mstatus = ((start_extraflags & 3) << 11) ;
-	cpu.extraflags = (start_mstatus >> 11) & 0x3;
+	//cpu.mstatus = ((start_extraflags & 3) << 11) ;
+	//cpu.extraflags = (start_mstatus >> 11) & 0x3;
+	cpu.extraflags |= 0x3;
 	return cpu.mtvec;
 	//cpu.extraflags |= 3;
 

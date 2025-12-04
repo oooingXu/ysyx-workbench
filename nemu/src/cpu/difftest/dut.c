@@ -20,8 +20,9 @@
 #include <memory/paddr.h>
 #include <utils.h>
 #include <difftest-def.h>
-#ifdef CONFIG_RTRACE 
-#include <cpu/ringbuffer.h>
+
+#ifdef CONFIG_ITBTRACE 
+#include <cpu/trace.h>
 #endif
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
@@ -100,7 +101,7 @@ static void checkregs(CPU_state *ref, vaddr_t pc) {
     nemu_state.state = NEMU_ABORT;
     nemu_state.halt_pc = pc;
     isa_reg_display();
-		IFDEF(CONFIG_RTRACE, RingBuffer_print());
+		IFDEF(CONFIG_ITBTRACE, iringbuf_printf());
 
   }
 }
