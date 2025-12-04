@@ -49,7 +49,9 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case FRM:				return &(cpu.frm);
 #endif
 
-		case MSTATUS:   return &(cpu.mstatus);
+		case MSTATUS:   
+		//cpu.mstatus &= 0x807ff9aa; 
+			return &(cpu.mstatus);
 		case MIE:       return &(cpu.mie);
 		case MTVEC:     return &(cpu.mtvec);
 		case MEPC:      return &(cpu.mepc);

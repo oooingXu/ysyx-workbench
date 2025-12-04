@@ -45,6 +45,8 @@ enum {
   TYPE_N, // none
 };
 
+enum { TYPE_A_AND_B, TYPE_A_OR_B, TYPE_A_AND_NB,};
+
 #ifdef CONFIG_RVA
 static bool dowrite = 0;
 #endif
@@ -69,6 +71,20 @@ static bool dowrite = 0;
 #define uimmCSWSP() do { *uimm = BITS(i, 12, 9) << 2 | BITS(i, 8, 7) << 6; } while(0)
 #define immCJ() do { *imm = SEXT((BITS(i, 12, 12) << 11 | BITS(i, 11, 11) << 4 | BITS(i, 10, 9) << 8 | BITS(i, 8, 8) << 10 | BITS(i, 7, 7) << 6| BITS(i, 6, 6) << 7 | BITS(i, 5, 3) << 1 | BITS(i, 2, 2)), 12); } while(0) 
 #endif
+
+static void csr_write(uint32_t csr, uint32_t a, uint32_t b, int op){
+	uint32_t tmp = 0;
+	switch(op) {
+		case TYPE_A_AND_B: tmp = a & b; break;
+		case TYPE_A_OR_B: tmp = a | b; break;
+		case TYPE_A_AND_NB: tmp = a & (~b); break;
+		default:;
+	}
+
+	if(csr == MSTATUS) tmp &= 0x807ff9aa;
+
+	C(csr) = tmp;
+}
 
 static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, word_t *uimm, int type) {
   uint32_t i = s->isa.inst.val;
@@ -174,7 +190,7 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = (src1 + imm)&~(word_t)1; IFDEF(CONFIG_FTRACE, jalr_print(s->isa.inst.val, rd, imm, s->pc, s->dnpc)); R(rd) = s->pc + 4);
 	INSTPAT("??????? ????? ????? ??? ????? 11001 11", ret		 , I, s->dnpc = R(1); IFDEF(CONFIG_FTRACE, printf("0x%08x: ret  [%s]\n", s->pc, get_func_name(s->pc))));
-	INSTPAT("000 ???? ???? 00000 000 00000 00011 11", fence	 , I, s->dnpc = s->pc + 4);
+	INSTPAT("000 ???? ???? 00000 000 00000 00011 11", fence	 , I, );
 
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sb: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 1)); Mw(src1 + imm, 1, src2));
   INSTPAT("??????? ????? ????? 001 ????? 01000 11", sh     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sh: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 2)); Mw(src1 + imm, 2, src2));
@@ -291,12 +307,12 @@ static int decode_exec(Decode *s) {
 #endif
 
 	// csr
-	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw	 , I, uint32_t t = C(csr); C(csr) = src1;        R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
-	INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs	 , I, uint32_t t = C(csr); C(csr) = t | src1;    R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
-	INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc	 , I, uint32_t t = C(csr); C(csr) = t & (~src1); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , I, uint32_t t = C(csr); C(csr) = zimm;        R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, uint32_t t = C(csr); C(csr) = t | zimm;    R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, uint32_t t = C(csr); C(csr) = t & (~zimm); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw	 , I, uint32_t t = C(csr); csr_write(csr, 0, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
+	INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
+	INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , I, uint32_t t = C(csr); csr_write(csr, 0, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
 
 	// system
 	INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, IFDEF(CONFIG_ETRACE, printf("ecall: dnpc = 0x%08x\n", cpu.mtvec)); s->dnpc = isa_raise_intr(sysecall(), s->pc));

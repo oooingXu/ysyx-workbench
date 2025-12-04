@@ -209,7 +209,6 @@ static void execute(uint64_t n) {
 		//} 
 
 		// Handle traps and interrupts
-		//if(cpu.trap) cpu.pc = trap();
 		if(cpu.trap) cpu.pc = isa_raise_intr(cpu.trap, cpu.pc);
 		else cpu.pc = s.dnpc;
 

@@ -16,6 +16,21 @@ const static char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+const static char *csrs[4096] = {
+[0x300] = "mstatus",
+[0x301] = "misa",
+[0x302] = "medeleg",
+[0x303] = "mideleg",
+[0x304] = "mie",
+[0x305] = "mtvec",
+[0x306] = "mcounteren",
+[0x340] = "mscratch",
+[0x341] = "mepc",
+[0x342] = "mcause",
+[0x343] = "mtval",
+[0x344] = "mip",
+};
+
 #define R 32
 
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
@@ -105,7 +120,7 @@ static void itrace_u(uint32_t opcode, int rd, uint32_t imm) {
 	}
 }
 
-static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, int rs1, uint32_t imm, uint32_t shamt) {
+static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, int rs1, uint32_t imm, uint32_t shamt, uint32_t csr) {
 	if(rs1 >= R || rd >= R) {
 		printf("I reg fail\n");
 		printf("func7 = %d, func3 = %d, rd = %d, rs1 = %d, imm = %x\n", func7, func3, rd, rs1, imm);
@@ -117,6 +132,12 @@ static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, in
 		if(func3 == 0) {
 			if(imm == 0) printf("ecall\n");
 			else printf("ebreak\n");
+		} else {
+			switch(func3) {
+				case 0x1: printf("csrrw %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				default: printf("inst I decode fail\n");
+			}
+
 		}
 	} else if(opcode == 0x13) {
 		if(func3 > 7) {
@@ -163,6 +184,7 @@ void itrace(uint32_t instr, uint32_t pc) {
 	uint32_t func3 = (instr & 0x7000) >> 12;
 	uint32_t func7 = (instr & 0xfe000000) >> 25;
 	uint32_t shamt = SEXT(BITS(i, 24, 20), 5);
+	uint32_t csr = BITS(i, 31, 20);
 
 	uint32_t immb = SEXT((BITS(i, 31, 31) << 11 | BITS(i, 7, 7) << 10 | BITS(i, 30, 25) << 4 | BITS(i, 11, 8)) << 1 , 13); 
 	uint32_t imms = SEXT(BITS(i, 31, 25) << 5 | BITS(i, 11, 7), 12);
@@ -181,7 +203,7 @@ void itrace(uint32_t instr, uint32_t pc) {
 		case TYPE_S: itrace_s(func3, rs1, rs2, imms); break;
 		case TYPE_J: itrace_j(immj); break;
 		case TYPE_U: itrace_u(opcode, rd, immu); break;
-		case TYPE_I: itrace_i(opcode, func7, func3, rd, rs1, immi, shamt); break;
+		case TYPE_I: itrace_i(opcode, func7, func3, rd, rs1, immi, shamt, csr); break;
 		default: printf("decode fail\n"); nemu_state.state = NEMU_ABORT; 
 	}
 }
