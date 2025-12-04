@@ -129,15 +129,17 @@ static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, in
 	if(opcode == 0x67) {
 		printf("%s %s,%s,%x\n", "jalr", regs[rd], regs[rs1], cpu.gpr[rs1] + imm);
 	} else if(opcode == 0x73) {
-		if(func3 == 0) {
-			if(imm == 0) printf("ecall\n");
-			else printf("ebreak\n");
-		} else {
 			switch(func3) {
+				case 0x0: {
+					switch(imm) {
+						case 0x0: printf("ecall\n"); break;
+						case 0x1: printf("ebreak\n"); break;
+						case 0x302: printf("mret\n"); break;
+						default:printf("inst I decode fail\n");
+					}
+				}
 				case 0x1: printf("csrrw %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
 				default: printf("inst I decode fail\n");
-			}
-
 		}
 	} else if(opcode == 0x13) {
 		if(func3 > 7) {

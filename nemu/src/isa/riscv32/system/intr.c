@@ -25,7 +25,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	//	cpu.mtval = 0;
 	//else 
 	//	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
-	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.pc : 0;
+	cpu.mtval = cpu.trap > 2 && cpu.trap <= 7 ? cpu.pc : 0;
 
 	// TRICKY: The kernel advances mepc automatically
 	// mstatus & 8 = MIE, & 0x80 = MPIE
@@ -37,13 +37,14 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	//printf("& 0x80 << 4 = %x, &0x8 = %x, & 0x8 << 4 = %x\n", ((cpu.mstatus & 0x80) << 4), cpu.mstatus & 0x8, ((cpu.mstatus & 0x8) << 4));
 	//uint32_t start_mstatus = cpu.mstatus;
 	uint32_t start_extraflags = cpu.extraflags;
-	cpu.mstatus = ((cpu.mstatus & 0x8) << 4) | (start_extraflags & 3) << 11 ;
-	//cpu.mstatus = ((cpu.mstatus & 0x8) << 4)| ((start_extraflags & 3) << 11) ;
-	//cpu.mstatus = ((start_extraflags & 3) << 11) ;
-	//cpu.extraflags = (start_mstatus >> 11) & 0x3;
+	uint32_t start_mstatus = cpu.mstatus;
+
+	cpu.mstatus = (start_mstatus & ~0x1888) |                // 清除 MPP、MPIE、MIE
+								((start_extraflags & 0x3) << 11) |        // 设置 MPP
+            		((start_mstatus & 0x8) << 4);
+	//printf("(nemu) intr: start_mstatus = 0x%08x, cpu.mstatus = 0x%08x\n", start_mstatus, cpu.mstatus);
 	cpu.extraflags |= 0x3;
 	return cpu.mtvec;
-	//cpu.extraflags |= 3;
 
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.

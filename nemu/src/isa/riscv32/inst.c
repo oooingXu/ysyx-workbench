@@ -317,7 +317,7 @@ static int decode_exec(Decode *s) {
 	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, IFDEF(CONFIG_ETRACE, printf("met: dnpc = 0x%08x\n", s->dnpc)); 
 			uint32_t startmstatus = cpu.mstatus; 
 			uint32_t startextraflags = cpu.extraflags; 
-			cpu.mstatus = (startmstatus & 0x1800) | (startmstatus & 0x80) | ((startmstatus & 0x80) >> 4); 
+			cpu.mstatus = (startmstatus & 0x807c79a2) | (startmstatus & 0x80) >> 4 | 0x80; // to clean MPRV  and move mstatus.MPIE to mstatus.MIE and set mstatus.MPIE = 1
 			//cpu.mstatus = ((startextraflags & 3) << 11); 
 			cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); 
 			s->dnpc = cpu.mepc);
