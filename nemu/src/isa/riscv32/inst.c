@@ -31,8 +31,6 @@
 #define Mr vaddr_read
 #define Mw vaddr_write
 
-#define MEPC 0x341
-
 #define INT32_MIN              (-2147483647-1)
 
 enum {
@@ -81,7 +79,7 @@ static void csr_write(uint32_t csr, uint32_t a, uint32_t b, int op){
 		default:;
 	}
 
-	if(csr == MSTATUS) tmp &= 0x807ff9aa;
+	if(csr == MSTATUS) tmp &= 0x807e79aa;
 
 	C(csr) = tmp;
 }
