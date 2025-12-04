@@ -134,11 +134,17 @@ static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, in
 					switch(imm) {
 						case 0x0: printf("ecall\n"); break;
 						case 0x1: printf("ebreak\n"); break;
+						case 0x105: printf("wfi\n"); break;
 						case 0x302: printf("mret\n"); break;
 						default:printf("inst I decode fail\n");
 					}
-				}
+				}; break;
 				case 0x1: printf("csrrw %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				case 0x2: printf("csrrs %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				case 0x3: printf("csrrc %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				case 0x5: printf("csrrwi %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				case 0x6: printf("csrrsi %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
+				case 0x7: printf("csrrci %s,%s,%s\n", regs[rd], csrs[csr], regs[rs1]); break;
 				default: printf("inst I decode fail\n");
 		}
 	} else if(opcode == 0x13) {
