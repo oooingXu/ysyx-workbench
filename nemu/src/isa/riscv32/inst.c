@@ -23,7 +23,10 @@
 
 #define R(i) gpr(i)
 #define C(i) csr(i)
+
+#ifdef CONFIG_RVDF
 #define D(i) dgpr(i)
+#endif
 
 #define Mr vaddr_read
 #define Mw vaddr_write
@@ -34,11 +37,17 @@
 
 enum {
   TYPE_I, TYPE_U, TYPE_S,TYPE_R, TYPE_J, TYPE_B, TYPE_M, TYPE_A, 
+
+#ifdef CONFIG_RVC
 	TYPE_CI, TYPE_CIN, TYPE_CU, TYPE_CR, TYPE_CJ, TYPE_CB, TYPE_C16SP, TYPE_C4SPN, TYPE_CLS, TYPE_CLWSP, TYPE_CSWSP,
+#endif
+
   TYPE_N, // none
 };
 
+#ifdef CONFIG_RVA
 static bool dowrite = 0;
+#endif
 
 #define src1R() do { *src1 = R(rs1); } while (0)
 #define src2R() do { *src2 = R(rs2); } while (0)
@@ -101,8 +110,6 @@ static int sysecall() {
 
 static int decode_exec(Decode *s) {
   int rd  = BITS(s->isa.inst.val, 11, 7);
-  int rs1 = BITS(s->isa.inst.val, 19, 15);
-  int rs2 = BITS(s->isa.inst.val, 24, 20);
 
 #ifdef CONFIG_RVC
 	// C
@@ -116,14 +123,18 @@ static int decode_exec(Decode *s) {
 
   //int rm  = BITS(s->isa.inst.val, 14, 12);
 	
+#ifdef CONFIG_RVDF
 	typedef union {
 		double d;
 		uint64_t u;
 	} cvt;
 
+  int rs1 = BITS(s->isa.inst.val, 19, 15);
+  int rs2 = BITS(s->isa.inst.val, 24, 20);
 	cvt dsrc1, dsrc2;
 	dsrc1.d = D(rs1);
 	dsrc2.d = D(rs2);
+#endif
 
   word_t src1 = 0, src2 = 0, imm = 0, uimm = 0;
   s->dnpc = s->snpc;
@@ -208,6 +219,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , M, R(rd) = (int32_t)src2  != 0 ? ((int32_t)src1 == INT32_MIN && (int32_t)src2 == -1) ? 0 : ((uint32_t)((int32_t)src1 % (int32_t)src2)): (int32_t)src1); 
   INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , M, R(rd) = (uint32_t)src2 != 0 ? (uint32_t)src1 % (uint32_t)src2 : (uint32_t)src1); 
 
+#ifdef CONFIG_RVA
 	// A
   INSTPAT("00000 ?? ????? ????? 010 ????? 0101111", amoadd.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t + src2); R(rd) = t); 
   INSTPAT("01100 ?? ????? ????? 010 ????? 0101111", amoand.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t & src2); R(rd) = t); 
@@ -220,6 +232,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
   INSTPAT("00010 ?? ????? ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; dowrite = true); 
   INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite) R(rd) = 0; else R(rd) = 1; if(dowrite) Mw(src1, 4, src2); dowrite = 0); 
+#endif
 
 #ifdef CONFIG_RVC
 	// C
@@ -260,6 +273,7 @@ static int decode_exec(Decode *s) {
 #endif
 
 
+#ifdef CONFIG_RVDF
 	// D
 	INSTPAT("????? ?? ????? ????? 011 ????? 0000111", fld,			 I, D(rd) = ((uint64_t)Mr(R(rs1) + imm + 4, 4) << 32) | Mr(R(rs1) + imm, 4));
 	INSTPAT("????? ?? ????? ????? 011 ????? 0100111", fsd,			 S, Mw(R(rs1) + imm + 4, 4, dsrc2.u >> 32); Mw(R(rs1) + imm, 4, (uint32_t)dsrc2.u));
@@ -274,6 +288,7 @@ static int decode_exec(Decode *s) {
 	INSTPAT("11000 01 00000 ????? ??? ????? 1010011", fcvt.w.d,  R, R(rd) = (int32_t)dsrc1.d);
 	INSTPAT("11010 01 00000 ????? ??? ????? 1010011", fcvt.d.w,  R, D(rd) = (double)(int32_t)src1);
 	INSTPAT("11010 01 00001 ????? ??? ????? 1010011", fcvt.d.wu, R, D(rd) = (double)(uint32_t)src1);
+#endif
 
 	// csr
 	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw	 , I, uint32_t t = C(csr); C(csr) = src1;        R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need

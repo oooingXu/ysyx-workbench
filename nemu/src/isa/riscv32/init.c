@@ -34,7 +34,7 @@ static void restart() {
   cpu.gpr[0] = 0;
 
 	// set dtb
-	//cpu.gpr[11] = 0x87fff924;
+	IFDEF(CONFIG_NOMMULINUX, cpu.gpr[11] = 0x87fff924);
 
 	cpu.cyclel = 0;
 	cpu.cycleh = 0;

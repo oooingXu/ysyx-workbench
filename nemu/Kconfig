@@ -203,6 +203,11 @@ config DEBUG_C
 	bool "Enable debug C extension"
 	default n
 
+config NOMMULINUX
+	depends on TRACE
+	bool "Enable run nommulinux"
+	default n
+
 config WATCHPOINT
 	depends on TRACE
 	bool "Enable watchpoint"

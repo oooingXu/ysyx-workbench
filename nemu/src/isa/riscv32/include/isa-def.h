@@ -38,9 +38,11 @@ typedef struct {
 	word_t mimpid;
 	word_t mhartid;
 
+#ifdef CONFIG_RVDF
   double dgpr[32];
 	word_t fflags;
 	word_t frm;
+#endif
 
 	word_t cyclel;
 	word_t cycleh;

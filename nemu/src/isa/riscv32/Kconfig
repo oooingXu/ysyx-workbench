@@ -8,7 +8,15 @@ config RVE
   bool "Use E extension"
   default n
 
+config RVA
+  bool "Use A extension"
+  default n
+
 config RVC
   bool "Use C extension"
+  default n
+
+config RVDF
+  bool "Use DF extension"
   default n
 endmenu

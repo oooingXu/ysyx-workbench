@@ -43,8 +43,12 @@ static inline int check_reg_idx(int idx) {
 
 static inline uint32_t *check_csr_idx(word_t idx) {
 	switch(idx) {
+
+#ifdef CONFIG_RVDF
 		case FFLAGS:		return &(cpu.fflags);
 		case FRM:				return &(cpu.frm);
+#endif
+
 		case MSTATUS:   return &(cpu.mstatus);
 		case MIE:       return &(cpu.mie);
 		case MTVEC:     return &(cpu.mtvec);
@@ -66,7 +70,10 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
 #define csr(idx) (*check_csr_idx(idx))
+
+#ifdef CONFIG_RVDF
 #define dgpr(idx) (cpu.dgpr[idx])
+#endif
 
 static inline const char* reg_name(int idx) {
   extern const char* regs[];
