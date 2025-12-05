@@ -101,25 +101,6 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
-//uint32_t trap() {
-//	if(cpu.trap & 0x80000000) { // If prefixed with 1 in MSB, int's an interrupt, not a trap.
-//		cpu.mtval = 0;
-//		//cpu.pc += 4;
-//	} else {
-//		cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc; 
-//	}
-//	// TRICKY: The kernel advances mepc automatically
-//	// mstatus & 8 = MIE, & 0x80 = MPIE
-//	// On an interrupt, the systemm moves current MIE into MPIE
-//	cpu.mcause = cpu.trap;
-//	cpu.mepc = cpu.pc;
-//	//printf("& 0x80 << 4 = %x, &0x8 = %x, & 0x8 << 4 = %x\n", ((cpu.mstatus & 0x80) << 4), cpu.mstatus & 0x8, ((cpu.mstatus & 0x8) << 4));
-//	cpu.mstatus = ((cpu.mstatus & 0x80) << 4) | ((cpu.extraflags & 3) << 11) | ((cpu.mstatus & 0x8) << 4);
-//	cpu.extraflags = (cpu.mstatus >> 11) & 0x3;
-//	return cpu.mtvec;
-//	//cpu.extraflags |= 3;
-//}
-
 static void exec_once(Decode *s, vaddr_t pc) {
 	IFDEF(CONFIG_CACHESIM, if (pc_trace_file) fwrite(&pc, sizeof(pc), 1, pc_trace_file);)
 	cpu.cyclel++;
@@ -157,62 +138,55 @@ static void execute(uint64_t n) {
   Decode s;
 	uint32_t new_time = 0;
   for (;n > 0; n --) {
-		//char *s_logbuf_last = s.logbuf;
 		cpu.trap = 0;
 		new_time = (uint32_t)get_time();
 		if(new_time <  cpu.timerl) cpu.timerh++;
 		cpu.timerl = new_time;
 
+#ifdef CONFIG_TIMER_INTR
 		// Handle Timer interrupt
-		//if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
-		//	cpu.extraflags &= ~4; // Clear WFI
-		//	cpu.mip |= 1 << 7; // MTIP of MIP Fire interrupt
-		//	//printf("-");
-		//	//printf("\n\n\nHandle Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
-		//} else {
-		//	cpu.mip &= ~(1 << 7);
-		//}
+		if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
+			cpu.extraflags &= ~4; // Clear WFI
+			cpu.mip |= 0x80; // MTIP of MIP Fire interrupt
+			//printf("-");
+			//printf("\n\n\nHandle Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+			//printf("Handle Timer interrupt: cpu.trap = 0x%08x, mie = 0x%08x, mip = 0x%08x\n", cpu.trap, cpu.mip, cpu.mie /*mtie*/);
+		} else {
+			cpu.mip &= ~0x80;
+		}
 
-		//// If WFI, don't run processor
-		//if(cpu.extraflags & 4) {
-		//	//printf("\n\n\nWFI\n\n\n");
-		//	continue;
-		//}
+		// If WFI, don't run processor
+		if(cpu.extraflags & 4) {
+			//printf("\n\n\nWFI\n\n\n");
+			continue;
+		}
 
 		//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3)) {
-		////if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/) {
-		//	// Timer interrupt
-		//	cpu.trap = 0x80000007;
-		//	//printf("*");
-		//	//cpu.pc += 4;
-		//	//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+		if((cpu.mip & 0x80) && (cpu.mie & 0x80) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/) {
+			// Timer interrupt
+			if(cpu.extraflags & 0x3) cpu.trap = 0x80000007;
+			else cpu.trap = 0x8000000b;
+			//printf("*");
+			//cpu.pc += 4;
+			printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
 
-		//} else { // No timer inerrupt, exec_once
-	  //  g_nr_guest_inst ++;
-	  //  exec_once(&s, cpu.pc);
-		//	//printf("+");
-		//}
+		} else { // No timer inerrupt, exec_once
+	    g_nr_guest_inst ++;
+	    exec_once(&s, cpu.pc);
+			//printf("+");
+		}
+#else 
 
 	  g_nr_guest_inst ++;
 	  exec_once(&s, cpu.pc);
 		IFDEF(CONFIG_IRBTRACE, iringbuf_add(s.isa.inst.val, cpu.pc));
-	  //g_nr_guest_inst ++;
-	  //exec_once(&s, cpu.pc);
-
-		//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/
-		//		&& (cpu.mstatus & 0x8) /*mie*/) {
-		//	// Timer interrupt
-		//	cpu.trap = 0x80000007;
-		//	cpu.pc += 4;
-		//	//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
-
-		//} 
+#endif
 
 		// Handle traps and interrupts
 		if(cpu.trap) cpu.pc = isa_raise_intr(cpu.trap, cpu.pc);
 		else cpu.pc = s.dnpc;
 
-		if(cpu.cyclel == 0) cpu.cycleh++;
+		if(cpu.cyclel == 0xffffffff) cpu.cycleh++;
 
 	  trace_and_difftest(&s, cpu.pc);
 	  if (nemu_state.state != NEMU_RUNNING) {

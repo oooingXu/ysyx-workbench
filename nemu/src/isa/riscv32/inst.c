@@ -317,11 +317,12 @@ static int decode_exec(Decode *s) {
 	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, IFDEF(CONFIG_ETRACE, printf("met: dnpc = 0x%08x\n", s->dnpc)); 
 			uint32_t startmstatus = cpu.mstatus; 
 			uint32_t startextraflags = cpu.extraflags; 
-			cpu.mstatus = (startmstatus & 0x807c79a2) | (startmstatus & 0x80) >> 4 | 0x80; // to clean MPRV  and move mstatus.MPIE to mstatus.MIE and set mstatus.MPIE = 1
-			//cpu.mstatus = ((startextraflags & 3) << 11); 
+			// to clean MPRV  and move mstatus.MPIE to mstatus.MIE and set mstatus.MPIE = 1 and set mstatus.MPP = 0
+			cpu.mstatus = (startmstatus & 0x807c61a2) | (startmstatus & 0x80) >> 4 | 0x80; 
+			// set priv = mstatus.MPP
 			cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); 
+			printf("(nemu) mret: timerl = 0x%08x, timermatchl = 0x%08x, mie = 0x%08x, mip = 0x%08x, mstatus.mpie = 0x%08x, mstatus.mie = 0x%08x, startmstatus = 0x%08x\n", cpu.timerl, cpu.timermatchl, cpu.mie, cpu.mip, cpu.mstatus & 0x80, cpu.mstatus & 0x8, startmstatus);
 			s->dnpc = cpu.mepc);
-	//INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, IFDEF(CONFIG_ETRACE, printf("met: dnpc = 0x%08x\n", s->dnpc)); uint32_t startmstatus = cpu.mstatus; uint32_t startextraflags = cpu.extraflags; cpu.mstatus = ((startmstatus & 0x80) >> 4) | ((~(cpu.mstatus >> 11) & 3) << 11) | 0x80; cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); s->dnpc = cpu.mepc);
 #ifdef CONFIG_NOMMULINUX
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, cpu.trap = 3); // R(10) is $a0
 #else

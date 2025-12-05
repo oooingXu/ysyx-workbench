@@ -203,6 +203,11 @@ config DEBUG_C
 	bool "Enable debug C extension"
 	default n
 
+config TIMER_INTR
+	depends on TRACE
+	bool "Enable timer interrupt"
+	default n
+
 config NOMMULINUX
 	depends on TRACE
 	bool "Enable run nommulinux"

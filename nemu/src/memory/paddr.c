@@ -181,6 +181,7 @@ static void HandleControlStore(uint32_t addr, uint32_t data) {
 		cpu.timermatchh = data;
 	} else if(addr == 0x11004000) { // CLINT
 		cpu.timermatchl = data;
+		//printf("(nemu) : timerl = 0x%08x, timermatchl = 0x%08x, mie = 0x%08x, mip = 0x%08x\n", cpu.timerl, cpu.timermatchl, cpu.mie, cpu.mip);
 	} else if(addr == 0x11100000) { // SYSCON (reboot, poweroff, etc.)
 		cpu.pc += 4;
 	}

@@ -30,7 +30,7 @@ void isa_reg_display() {
 	printf("nemu gpr\n");
 	for(int i = 0; i < 8 ; i++) {
 		for(int j = 0; j < 4; j++){
-			printf("%2d[%-3s] --->  0x%08x,	", j + i * 4, regs[j + i * 4], cpu.gpr[i]);
+			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[i]);
 		}
 		printf("\n");
 	}
