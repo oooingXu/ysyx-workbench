@@ -39,7 +39,8 @@ extern char _pmem_start;
 extern char _heap_end;
 #define PMEM_SIZE (128 * 1024 * 1024)
 #define PMEM_END  ((uintptr_t)&_pmem_start + PMEM_SIZE)
-#define HEAP_END  ((uintptr_t)&_heap_end)
+//#define HEAP_END  ((uintptr_t)&_heap_end)
+#define HEAP_END  PMEM_END
 #define NEMU_PADDR_SPACE \
   RANGE(&_pmem_start, PMEM_END), \
   RANGE(FB_ADDR, FB_ADDR + 0x200000), \
