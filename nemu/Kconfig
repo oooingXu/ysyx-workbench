@@ -203,9 +203,14 @@ config DEBUG_C
 	bool "Enable debug C extension"
 	default n
 
-config TIMER_INTR
+config TIMER_IRQ
 	depends on TRACE
 	bool "Enable timer interrupt"
+	default n
+
+config DEBUG_TIMER_IRQ
+	depends on TIMER_IRQ
+	bool "Enable debug timer interrupt"
 	default n
 
 config NOMMULINUX

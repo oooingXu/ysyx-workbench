@@ -305,12 +305,12 @@ static int decode_exec(Decode *s) {
 #endif
 
 	// csr
-	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw	 , I, uint32_t t = C(csr); csr_write(csr, 0, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
-	INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd)))); // rtt need
-	INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , I, uint32_t t = C(csr); csr_write(csr, 0, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
-	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw	 , I, uint32_t t = C(csr); csr_write(csr, 0, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrw: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n",  cpu.pc, t, src1, csr, C(csr), rd, R(rd)))); // rtt need
+	INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrs: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n",  cpu.pc, t, src1, csr, C(csr), rd, R(rd)))); // rtt need
+	INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc	 , I, uint32_t t = C(csr); csr_write(csr, t, src1, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrc: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n",  cpu.pc, t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , I, uint32_t t = C(csr); csr_write(csr, 0, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrwi: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", cpu.pc, t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_OR_B);   R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrsi: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", cpu.pc, t, src1, csr, C(csr), rd, R(rd))));
+	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , I, uint32_t t = C(csr); csr_write(csr, t, zimm, TYPE_A_AND_NB); R(rd) = t; IFDEF(CONFIG_ETRACE, printf("(nemu) csrrci: pc = 0x%08x, t = 0%08x, src1 = 0x%08x, C(%x) = 0x%08x, R(%d) = 0x%08x\n", cpu.pc, t, src1, csr, C(csr), rd, R(rd))));
 
 	// system
 	INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, IFDEF(CONFIG_ETRACE, printf("ecall: dnpc = 0x%08x\n", cpu.mtvec)); s->dnpc = isa_raise_intr(sysecall(), s->pc));
@@ -321,7 +321,7 @@ static int decode_exec(Decode *s) {
 			cpu.mstatus = (startmstatus & 0x807c61a2) | (startmstatus & 0x80) >> 4 | 0x80; 
 			// set priv = mstatus.MPP
 			cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); 
-			printf("(nemu) mret: timerl = 0x%08x, timermatchl = 0x%08x, mie = 0x%08x, mip = 0x%08x, mstatus.mpie = 0x%08x, mstatus.mie = 0x%08x, startmstatus = 0x%08x\n", cpu.timerl, cpu.timermatchl, cpu.mie, cpu.mip, cpu.mstatus & 0x80, cpu.mstatus & 0x8, startmstatus);
+			IFDEF(CONFIG_ETRACE, printf("(nemu) mret: timerl = 0x%08x, timermatchl = 0x%08x, mie = 0x%08x, mip = 0x%08x, mstatus.mpie = 0x%08x, mstatus.mie = 0x%08x, startmstatus = 0x%08x\n", cpu.timerl, cpu.timermatchl, cpu.mie, cpu.mip, cpu.mstatus & 0x80, cpu.mstatus & 0x8, startmstatus));
 			s->dnpc = cpu.mepc);
 #ifdef CONFIG_NOMMULINUX
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, cpu.trap = 3); // R(10) is $a0

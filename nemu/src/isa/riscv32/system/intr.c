@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <common.h>
 
 #define MSTATUS 0x300
 #define MTVEC		0x305
@@ -42,7 +43,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	cpu.mstatus = (start_mstatus & ~0x1888) |                // 清除 MPP、MPIE、MIE
 								((start_extraflags & 0x3) << 11) |        // 设置 MPP
             		((start_mstatus & 0x8) << 4);
-	printf("(nemu) intr: start_mstatus = 0x%08x, cpu.mstatus = 0x%08x\n", start_mstatus, cpu.mstatus);
+	IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("(nemu) intr: start_mstatus = 0x%08x, cpu.mstatus = 0x%08x\n", start_mstatus, cpu.mstatus));
 	cpu.extraflags |= 0x3;
 	return cpu.mtvec;
 

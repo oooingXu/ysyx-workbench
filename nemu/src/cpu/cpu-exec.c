@@ -143,7 +143,7 @@ static void execute(uint64_t n) {
 		if(new_time <  cpu.timerl) cpu.timerh++;
 		cpu.timerl = new_time;
 
-#ifdef CONFIG_TIMER_INTR
+#ifdef CONFIG_TIMER_IRQ
 		// Handle Timer interrupt
 		if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
 			cpu.extraflags &= ~4; // Clear WFI
@@ -168,7 +168,8 @@ static void execute(uint64_t n) {
 			else cpu.trap = 0x8000000b;
 			//printf("*");
 			//cpu.pc += 4;
-			printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+			//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
 
 		} else { // No timer inerrupt, exec_once
 	    g_nr_guest_inst ++;
