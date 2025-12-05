@@ -9,7 +9,7 @@ static Context* (*user_handler)(Event, Context*) = NULL;
 
 void set_timermatch() {
 	//uint32_t timermatchl = *(volatile uint32_t *)TIMERMATCHL;
-	*(volatile uint32_t *)TIMERMATCHL += 1000;
+	*(volatile uint32_t *)TIMERMATCHL += 0x1000;
 }
 
 Context* __am_irq_handle(Context *c) {
@@ -20,7 +20,7 @@ Context* __am_irq_handle(Context *c) {
 			case 0x8: case 0x9: case 0xb: 
 				ev.event =  EVENT_YIELD; c->mepc += 4; break;
 			case 0x80000007: case 0x80000009: case 0x8000000b:
-				ev.event = EVENT_IRQ_TIMER; set_timermatch(); putch('T'); break;
+				ev.event = EVENT_IRQ_TIMER; set_timermatch(); break;
       default: ev.event = EVENT_ERROR; break;
     }
 
@@ -50,6 +50,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
 	Context *cp = (Context *)(kstack.end - sizeof(Context));
 	cp->mepc = (uintptr_t)entry;
 	cp->gpr[10] = (uintptr_t)(arg);
+	cp->mstatus = 0x1880;
 	
 	return cp;
  // return NULL;
