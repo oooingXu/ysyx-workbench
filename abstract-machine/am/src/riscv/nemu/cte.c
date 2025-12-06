@@ -8,8 +8,7 @@
 static Context* (*user_handler)(Event, Context*) = NULL;
 
 void set_timermatch() {
-	//uint32_t timermatchl = *(volatile uint32_t *)TIMERMATCHL;
-	*(volatile uint32_t *)TIMERMATCHL += 0x1000;
+	*(volatile uint32_t *)TIMERMATCHL += 1000;
 }
 
 Context* __am_irq_handle(Context *c) {
@@ -17,10 +16,12 @@ Context* __am_irq_handle(Context *c) {
     Event ev = {0};
 
     switch (c->mcause) {
+			// ecall
 			case 0x8: case 0x9: case 0xb: 
 				ev.event =  EVENT_YIELD; c->mepc += 4; break;
+			// timer irq
 			case 0x80000007: case 0x80000009: case 0x8000000b:
-				ev.event = EVENT_IRQ_TIMER; set_timermatch(); break;
+				ev.event = EVENT_IRQ_TIMER; set_timermatch(); c->mepc += 4; break;
       default: ev.event = EVENT_ERROR; break;
     }
 
@@ -49,8 +50,8 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
 	Context *cp = (Context *)(kstack.end - sizeof(Context));
 	cp->mepc = (uintptr_t)entry;
-	cp->gpr[10] = (uintptr_t)(arg);
 	cp->mstatus = 0x1880;
+	cp->gpr[10] = (uintptr_t)(arg);
 	
 	return cp;
  // return NULL;
@@ -75,11 +76,11 @@ void iset(bool enable) {
    asm volatile("csrr %0, mstatus" : "=r"(mstatus_val));  // 读取当前 mstatus 值
 
    if (enable) {
-	mie_val |= 0x80;      // 设置时钟中断位 (MTIE)
-	mstatus_val |= 0x8;   // 设置时钟中断位 (mstatus.MIE)
-	} else {
-	mie_val &= ~0x80;     // 清除时钟中断位
-	mstatus_val &= ~0x8;  // 清除时钟中断位
+		mie_val |= 0x80;      // 设置时钟中断位 (MTIE)
+		mstatus_val |= 0x8;   // 设置时钟中断位 (mstatus.MIE)
+	 } else {
+		mie_val &= ~0x80;     // 清除时钟中断位
+		mstatus_val &= ~0x8;  // 清除时钟中断位
 	 }
 
    asm volatile("csrw mie, %0" : : "r"(mie_val));  // 写回 mie
