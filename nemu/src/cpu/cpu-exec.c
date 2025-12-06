@@ -191,6 +191,7 @@ static void execute(uint64_t n) {
 
 			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
 		} 
+
 #endif
 
 	  g_nr_guest_inst ++;

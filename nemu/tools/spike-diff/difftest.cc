@@ -13,9 +13,11 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include "mmu.h"
-#include "sim.h"
+//#include "mmu.h"
+//#include "sim.h"
 #include <common.h>
+#include <memory/vaddr.h>
+#include <memory/paddr.h>
 #include <difftest-def.h>
 
 #define NR_GPR MUXDEF(CONFIG_RVE, 16, 32)
@@ -122,13 +124,13 @@ void sim_t::diff_set_regs(void* diff_context) {
     state->XPR.write(i, (sword_t)ctx->gpr[i]);
   }
   state->pc      = ctx->pc;
-	state->mstatus->write() = ctx->mstatus;
-	state->mie->write()     = ctx->mie    ;
-	state->mtvec->write()   = ctx->mtvec  ;
-	state->mepc->write()    = ctx->mepc   ;
-	state->mcause->write()  = ctx->mcause ;
-	state->mtval->write()   = ctx->mtval  ;
-	state->mip->write()     = ctx->mip    ;
+	//state->mstatus->write() = ctx->mstatus;
+	//state->mie->write()     = ctx->mie    ;
+	//state->mtvec->write()   = ctx->mtvec  ;
+	//state->mepc->write()    = ctx->mepc   ;
+	//state->mcause->write()  = ctx->mcause ;
+	//state->mtval->write()   = ctx->mtval  ;
+	//state->mip->write()     = ctx->mip    ;
 	printf("(spike): diff_set_regs\n");
 }
 

@@ -14,8 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
-//CPU_state cpu;
 
 void dev_raise_intr() {
-	//cpu.intr = true;
+	cpu.INTR = true;
 }
