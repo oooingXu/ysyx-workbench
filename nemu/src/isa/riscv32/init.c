@@ -33,9 +33,6 @@ static void restart() {
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
 
-	// set dtb
-	//IFDEF(CONFIG_NOMMULINUX, cpu.gpr[11] = 0x87fff924);
-
 	cpu.cyclel = 0;
 	cpu.cycleh = 0;
 	cpu.timerl = 0;
@@ -44,12 +41,10 @@ static void restart() {
 	cpu.timermatchh = 0;
 
 	cpu.extraflags = 0x3;
-	//cpu.mstatus		= 0x1800;
 	cpu.marchid		= 0x5;
 	cpu.mvendorid = 0;
 	cpu.mimpid = 0;
 	cpu.pmpaddr0 = 0;
-	//cpu.pmpaddr0 = -1;
 
 }
 

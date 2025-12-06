@@ -185,33 +185,27 @@ static void execute(uint64_t n) {
 			//cpu.pc += 4;
 			//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
 			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
-
-		} else { // No timer inerrupt, exec_once
-	    g_nr_guest_inst ++;
-	    exec_once(&s, cpu.pc);
-			//printf("+");
-		}
-#else 
+		} 
+#endif
 
 	  g_nr_guest_inst ++;
 	  exec_once(&s, cpu.pc);
-#endif
+
 		IFDEF(CONFIG_IRBTRACE, iringbuf_add(s.isa.inst.val, cpu.pc));
 
 		// Handle traps and interrupts
 		if(cpu.trap) cpu.pc = isa_raise_intr(cpu.trap, cpu.pc);
 		else cpu.pc = s.dnpc;
 
-		if(cpu.cyclel == 0xffffffff) cpu.cycleh++;
+		if(cpu.cyclel >= 0xff000000) cpu.cycleh++;
 
 	  trace_and_difftest(&s, cpu.pc);
+
 	  if (nemu_state.state != NEMU_RUNNING) {
-			//printf("cpu.pc = 0x%08x\ndnpc = %s\n", cpu.pc, s.logbuf);
-			//printf("last dnpc = %s\n", s_logbuf_last); 
-		//	IFDEF(CONFIG_IRBTRACE, iringbuf_printf());
 			assert_fail_msg();
 			break;
 		}
+
 	  IFDEF(CONFIG_DEVICE, device_update());
   }
 }

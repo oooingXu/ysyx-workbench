@@ -37,6 +37,7 @@ void iringbuf_abort(int num) {
 
 void iringbuf_printf() {
 	//printf("iringbuf_printf_debug: count = %d\n", count);
+	printf("\n(iringbuf): \n");
 	for(int i = count; i < COUNT + count; i++) {
 		int num = i >= COUNT ? i - COUNT : i;
 		iringbuf_abort(num);

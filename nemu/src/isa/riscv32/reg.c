@@ -29,7 +29,7 @@ const char *regs[] = {
 
 void isa_reg_display() {
 	uint32_t inst = paddr_read(cpu.pc, 4);
-	printf("nemu gpr\n");
+	printf("\n(nemu) gpr:\n");
 	for(int i = 0; i < 8 ; i++) {
 		for(int j = 0; j < 4; j++){
 			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[i]);
@@ -37,7 +37,7 @@ void isa_reg_display() {
 		printf("\n");
 	}
 
-	printf("\nnemu csr\n");
+	printf("\n(nemu) csr:\n");
 	printf("extraflags ---> 0x%x\n",cpu.extraflags);
 	printf("trap ---> 0x%x\n",cpu.trap);
 	//printf("frm 		---> 0x%x\n",cpu.frm);
