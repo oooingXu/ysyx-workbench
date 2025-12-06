@@ -159,10 +159,13 @@ static void execute(uint64_t n) {
 		cpu.timerl = new_time;
 
 #ifdef CONFIG_TIMER_IRQ
+		//uint32_t start_mip = cpu.mip;
+
 		// Handle Timer interrupt
 		if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
 			cpu.extraflags &= ~4; // Clear WFI
 			cpu.mip |= 0x80; // MTIP of MIP Fire interrupt
+			difftest_skip_ref();
 			//printf("-");
 			//printf("\n\n\nHandle Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
 			//printf("Handle Timer interrupt: cpu.trap = 0x%08x, mie = 0x%08x, mip = 0x%08x\n", cpu.trap, cpu.mip, cpu.mie /*mtie*/);
@@ -170,20 +173,22 @@ static void execute(uint64_t n) {
 			cpu.mip &= ~0x80;
 		}
 
+		//if(start_mip != cpu.mip) difftest_skip_ref();
+
 		// If WFI, don't run processor
 		if(cpu.extraflags & 4) {
 			//printf("\n\n\nWFI\n\n\n");
 			continue;
 		}
 
-		//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3)) {
-		if((cpu.mip & 0x80) && (cpu.mie & 0x80) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/) {
+		if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3)) {
+		//if((cpu.mip & 0x80) && (cpu.mie & 0x80) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/) {
 			// Timer interrupt
 			if(cpu.extraflags & 0x3) cpu.trap = 0x80000007;
 			else cpu.trap = 0x8000000b;
-			//printf("*");
-			//cpu.pc += 4;
-			//printf("\n\n\nTimer interrupt: cpu.trap = 0x%08x, %d, %d, %d\n\n\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/);
+
+			difftest_skip_ref();
+
 			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
 		} 
 #endif
@@ -201,10 +206,11 @@ static void execute(uint64_t n) {
 
 	  trace_and_difftest(&s, cpu.pc);
 
-	  if (nemu_state.state != NEMU_RUNNING) {
+	  if (nemu_state.state == NEMU_ABORT) 
 			assert_fail_msg();
+
+	  if (nemu_state.state != NEMU_RUNNING) 
 			break;
-		}
 
 	  IFDEF(CONFIG_DEVICE, device_update());
   }

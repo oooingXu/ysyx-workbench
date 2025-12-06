@@ -15,7 +15,7 @@
 
 #include "mmu.h"
 #include "sim.h"
-#include "../../include/common.h"
+#include <common.h>
 #include <difftest-def.h>
 
 #define NR_GPR MUXDEF(CONFIG_RVE, 16, 32)
@@ -122,6 +122,14 @@ void sim_t::diff_set_regs(void* diff_context) {
     state->XPR.write(i, (sword_t)ctx->gpr[i]);
   }
   state->pc      = ctx->pc;
+	state->mstatus->write() = ctx->mstatus;
+	state->mie->write()     = ctx->mie    ;
+	state->mtvec->write()   = ctx->mtvec  ;
+	state->mepc->write()    = ctx->mepc   ;
+	state->mcause->write()  = ctx->mcause ;
+	state->mtval->write()   = ctx->mtval  ;
+	state->mip->write()     = ctx->mip    ;
+	printf("(spike): diff_set_regs\n");
 }
 
 void sim_t::diff_memcpy(reg_t dest, void* src, size_t n) {
