@@ -28,9 +28,9 @@ typedef struct {
 	uint32_t araddr;
 	uint32_t awaddr;
 	uint32_t wdata;
+	uint32_t rdata;
 	int wstrb;
 	int arsize;
-	uint32_t rdata;
 } MEM_DIFF;
 
 extern MEM_DIFF mem_diff;

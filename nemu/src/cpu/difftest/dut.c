@@ -65,27 +65,51 @@ void difftest_skip_dut(int nr_ref, int nr_dut) {
 }
 
 void init_difftest(char *ref_so_file, long img_size, int port) {
-  assert(ref_so_file != NULL);
 
-  void *handle;
-  handle = dlopen(ref_so_file, RTLD_LAZY);
-  assert(handle);
+	if(ref_so_file == NULL) {
+		printf("(npc) Do not have ref_so_file\n");
+	}
+	assert(ref_so_file != NULL);
 
-  ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");
-  assert(ref_difftest_memcpy);
+	void *handle;
+	handle = dlopen(ref_so_file, RTLD_LAZY);
+	//debug("handle = %p", handle);
+	if(handle == NULL) {
+		printf("(npc) Do not have ref_so_file\n");
+	}
+	assert(handle);
 
-  ref_difftest_regcpy = dlsym(handle, "difftest_regcpy");
-  assert(ref_difftest_regcpy);
+	ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");
+	if(ref_difftest_memcpy == NULL) {
+		printf("(nemu) difftest_memcpy init fail\n");
+	}
+	assert(ref_difftest_memcpy);
 
-  ref_difftest_exec = dlsym(handle, "difftest_exec");
-  assert(ref_difftest_exec);
+	ref_difftest_regcpy = (void (*)(void*, bool))dlsym(handle, "difftest_regcpy");
+	if(ref_difftest_regcpy == NULL) {
+		printf("(nemu) difftest_regcpy init fail\n");
+	}
+	assert(ref_difftest_regcpy);
 
-  ref_difftest_raise_intr = dlsym(handle, "difftest_raise_intr");
-  assert(ref_difftest_raise_intr);
+	ref_difftest_exec = (void (*)(uint64_t))dlsym(handle, "difftest_exec");
+	if(ref_difftest_exec == NULL) {
+		printf("(nemu) difftest_exec init fail\n");
+	}
+	assert(ref_difftest_exec);
 
-  void (*ref_difftest_init)(int) = dlsym(handle, "difftest_init");
-  assert(ref_difftest_init);
+	ref_difftest_raise_intr = dlsym(handle, "difftest_raise_intr");
+	if(ref_difftest_raise_intr == NULL) {
+		printf("(nemu) difftest_raise_intr init fail\n");
+	}
+	assert(ref_difftest_raise_intr);
 
+	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
+	if(ref_difftest_init == NULL) {
+		printf("(nemu) difftest_init init fail\n");
+	}
+	assert(ref_difftest_init);
+
+	Log("(nemu) difftest init success: the ref-so is %s\n", ref_so_file);
   Log("Differential testing: %s", ANSI_FMT("ON", ANSI_FG_GREEN));
   Log("The result of every instruction will be compared with %s. "
       "This will help you a lot for debugging, but also significantly reduce the performance. "
