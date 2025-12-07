@@ -121,23 +121,14 @@ void sim_t::diff_set_regs(void* diff_context) {
   for (int i = 0; i < NR_GPR; i++) {
     state->XPR.write(i, (uint32_t)ctx->gpr[i]);
   }
-  state->pc      = ctx->pc;
-	//state->mstatus->write() = ctx->mstatus;
-	//state->mie->write()     = ctx->mie    ;
-	//state->mtvec->write()   = ctx->mtvec  ;
-	//state->mepc->write()    = ctx->mepc   ;
-	//state->mcause->write()  = ctx->mcause ;
-	//state->mtval->write()   = ctx->mtval  ;
-	//state->mip->write()     = ctx->mip    ;
-
-state->mstatus->write(ctx->mstatus);
-state->mie->write(ctx->mie);
-state->mtvec->write(ctx->mtvec);
-state->mepc->write(ctx->mepc);
-state->mcause->write(ctx->mcause);
-state->mtval->write(ctx->mtval);
-state->mip->write(ctx->mip);
-	//printf("(spike): diff_set_regs\n");
+  state->pc = ctx->pc;
+	state->mstatus->write(ctx->mstatus);
+	state->mie->write(ctx->mie);
+	state->mtvec->write(ctx->mtvec);
+	state->mepc->write(ctx->mepc);
+	state->mcause->write(ctx->mcause);
+	state->mtval->write(ctx->mtval);
+	state->mip->write(ctx->mip);
 }
 
 void sim_t::diff_memcpy(reg_t dest, void* src, size_t n) {

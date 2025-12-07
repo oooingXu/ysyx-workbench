@@ -187,7 +187,7 @@ static void execute(uint64_t n) {
 			if(cpu.extraflags & 0x3) cpu.trap = 0x80000007;
 			else cpu.trap = 0x8000000b;
 
-			difftest_skip_ref();
+			//difftest_skip_ref();
 
 			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
 		} 

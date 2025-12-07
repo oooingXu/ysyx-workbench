@@ -47,6 +47,7 @@ enum { TYPE_A_AND_B, TYPE_A_OR_B, TYPE_A_AND_NB,};
 
 #ifdef CONFIG_RVA
 static bool dowrite = 0;
+static uint32_t addr_A = 0;
 #endif
 
 #define src1R() do { *src1 = R(rs1); } while (0)
@@ -244,8 +245,10 @@ static int decode_exec(Decode *s) {
   INSTPAT("01000 ?? ????? ????? 010 ????? 0101111", amoor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t | src2); R(rd) = t); 
   INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t); 
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
-  INSTPAT("00010 ?? ????? ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; dowrite = true); 
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite) R(rd) = 0; else R(rd) = 1; if(dowrite) Mw(src1, 4, src2); dowrite = 0); 
+  INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; } dowrite = 0; addr_A = 0;); 
+  //INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
+  //INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; } dowrite = 0; addr_A = 0;); 
 #endif
 
 #ifdef CONFIG_RVC
@@ -278,7 +281,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("????? ?? ????? ???? 100 0 ????? ????? 10", c.mv,				 CR, R(rd) = R(rs2_6_2); s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.mv: rd = %d, rs2_6_2 = %d, pc = 0x%08x\n", rd, rs2_6_2, s->pc))); 
 
   INSTPAT("????? ?? ????? ???? 110 ??? ??? ????? 01", c.beqz,			 CB, if(R(8 + rs1c97) == 0) s->dnpc = s->pc + imm; else s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.beqz: rs1c97 = %d, imm = 0x%08x, dnpc = 0x%08x, pc = 0x%08x\n", rs1c97, imm, s->dnpc, s->pc))); 
-  INSTPAT("????? ?? ????? ???? 111 ??? ??? ????? 01", c.beqz,			 CB, if(R(8 + rs1c97) != 0) s->dnpc = s->pc + imm; else s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.beqz: rs1c97 = %d, imm = 0x%08x, dnpc = 0x%08x, pc = 0x%08x\n", rs1c97, imm, s->dnpc, s->pc))); 
+  INSTPAT("????? ?? ????? ???? 111 ??? ??? ????? 01", c.bnez,			 CB, if(R(8 + rs1c97) != 0) s->dnpc = s->pc + imm; else s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.beqz: rs1c97 = %d, imm = 0x%08x, dnpc = 0x%08x, pc = 0x%08x\n", rs1c97, imm, s->dnpc, s->pc))); 
 
   INSTPAT("????? ?? ????? ???? 010 ??? ??? ?? ??? 00", c.lw,			 CLS, uint32_t t = Mr(R(8 +rs1c97) + uimm, 4); R(rdc42 + 8) = t; s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.lw: rdc42 = %d, rs1c97 = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rdc42, rs1c97, uimm, t, s->pc))); 
   INSTPAT("????? ?? ????? ???? 110 ??? ??? ?? ??? 00", c.sw,			 CLS, Mw(R(8 + rs1c97) + uimm, 4, R(8 + rs2c42)); s->dnpc = s->pc + 2; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.sw: rdc42 = %d, rs1c97 = %d, rs2c42 = %d, uimm = %d, mem = 0x%08x, pc = 0x%08x\n", rdc42, rs1c97, rs2c42, uimm, R(8 + rs2c42), s->pc))); 

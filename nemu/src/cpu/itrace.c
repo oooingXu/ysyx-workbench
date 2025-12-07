@@ -5,7 +5,7 @@
 uint32_t itrace_pc = 0;
 
 enum {
-  TYPE_I, TYPE_U, TYPE_S,TYPE_R, TYPE_J, TYPE_B,
+  TYPE_I, TYPE_U, TYPE_S,TYPE_R, TYPE_J, TYPE_B, TYPE_A, TYPE_C,
   TYPE_N, // none
 };
 
@@ -59,6 +59,33 @@ const char *instLOAD[] = {
 	"lb", "lh", "lw", "lbu", "lhu"
 };
 
+static void itrace_a(int func_31_27, int func3, int rd, int rs1, int rs2) {
+	if(rd >= R || rs1 >= R || rs2 >= R || func3 > 7) {
+		printf("inst A decode fail\n");
+		printf("func_31_27 = %d, func3 = %d, rs1 = %d, rs2 = %d, rd = %d\n", func_31_27, func3, rs1, rs2, rd);
+		assert(0);
+	}
+
+	if(func3 == 2) {
+		switch(func_31_27){
+			case 0x0:  printf("%s %s,%s,%s\n", "amoadd.w",  regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x1:  printf("%s %s,%s,%s\n", "amoswap.w", regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x2:  printf("%s %s\n", "lr.w", regs[rs1]); break;
+			case 0x3:  printf("%s %s,%s\n", "sc.w", regs[rs1], regs[rs2]); break;
+			case 0x4:  printf("%s %s,%s,%s\n", "amoxor.w",  regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x8:  printf("%s %s,%s,%s\n", "amoor.w",   regs[rd], regs[rs1], regs[rs2]); break;
+			case 0xc:  printf("%s %s,%s,%s\n", "amoand.w",  regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x10: printf("%s %s,%s,%s\n", "amomin.w",  regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x14: printf("%s %s,%s,%s\n", "amomax.w",  regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x18: printf("%s %s,%s,%s\n", "amominu.w", regs[rd], regs[rs1], regs[rs2]); break;
+			case 0x1c: printf("%s %s,%s,%s\n", "amomaxu.w", regs[rd], regs[rs1], regs[rs2]); break;
+			default: printf("inst A decode fail\n");
+		}
+
+	}
+
+}
+
 static void itrace_b(uint32_t func3, int rs1, int rs2, uint32_t imm) {
 	if(rs1 >= R || rs2 >= R || func3 > 7) {
 		printf("inst B decode fail\n");
@@ -67,6 +94,9 @@ static void itrace_b(uint32_t func3, int rs1, int rs2, uint32_t imm) {
 	}
 
 	printf("%s %s,%s,%x\n", instB[func3], regs[rs1], regs[rs2], itrace_pc + imm);
+}
+
+static void itrace_c(uint32_t func3, int rs1, int rs2, uint32_t imm) {
 }
 
 static void itrace_r(uint32_t func7, uint32_t func3, int rd, int rs1, int rs2) {
@@ -94,7 +124,6 @@ static void itrace_r(uint32_t func7, uint32_t func3, int rd, int rs1, int rs2) {
 }
 
 static void itrace_j(uint32_t imm) {
-	//printf("itrace_j: itrace_pc = 0x%08x, imm = 0x%08x\n", itrace_pc, imm);
 	printf("%s %x\n", "jal", itrace_pc + imm);
 }
 
@@ -169,21 +198,22 @@ static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, in
 }
 
 static int type_instr(uint32_t opcode) {
-	if(opcode == 0x63) {
-		return TYPE_B;
-	} else if(opcode == 0x33) {
-		return TYPE_R;
-	} else if(opcode == 0x23) {
-		return TYPE_S;
-	} else if(opcode == 0x6f) {
-		return TYPE_J;
-	} else if(opcode == 0x17 || opcode == 0x37) {
-		return TYPE_U;
-	} else if(opcode == 0x67 || opcode == 0x73 || opcode == 0x13 || opcode == 0x03) {
-		return TYPE_I;
-	} else {
-		return TYPE_N;
-	}
+	if((opcode & 3) == 3) {
+		switch(opcode){
+			case 0x03: return TYPE_I; break;
+			case 0x13: return TYPE_I; break;
+			case 0x17: return TYPE_U; break;
+			case 0x23: return TYPE_S; break;
+			case 0x2f: return TYPE_A; break;
+			case 0x33: return TYPE_R; break;
+			case 0x37: return TYPE_U; break;
+			case 0x63: return TYPE_B; break;
+			case 0x67: return TYPE_I; break;
+			case 0x6f: return TYPE_J; break;
+			case 0x73: return TYPE_I; break;
+			default: return TYPE_N;
+		}
+	} else return TYPE_C;
 }
 
 void itrace(uint32_t instr, uint32_t pc) {
@@ -191,6 +221,7 @@ void itrace(uint32_t instr, uint32_t pc) {
 	uint32_t opcode = instr & 0x7f;
 	uint32_t func3 = (instr & 0x7000) >> 12;
 	uint32_t func7 = (instr & 0xfe000000) >> 25;
+	uint32_t func_31_27 = (instr & 0xfe000000) >> 27;
 	uint32_t shamt = SEXT(BITS(i, 24, 20), 5);
 	uint32_t csr = BITS(i, 31, 20);
 
@@ -206,7 +237,9 @@ void itrace(uint32_t instr, uint32_t pc) {
 	itrace_pc = pc;
 
 	switch(type_instr(opcode)) {
+		case TYPE_A: itrace_a(func_31_27, func3, rd, rs1, rs2); break;
 		case TYPE_B: itrace_b(func3, rs1, rs2, immb); break;
+		case TYPE_C: itrace_c(func3, rs1, rs2, immb); break;
 		case TYPE_R: itrace_r(func7, func3, rd, rs1, rs2); break;
 		case TYPE_S: itrace_s(func3, rs1, rs2, imms); break;
 		case TYPE_J: itrace_j(immj); break;
