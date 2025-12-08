@@ -73,6 +73,8 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
+
+	// difftest
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 #ifdef CONFIG_WATCHPOINT
 		WP *wp = get_head();
@@ -110,8 +112,8 @@ static void statistic() {
   else Log("Finish running in less than 1 us and can not calculate the simulation frequency");
 }
 
-void assert_fail_msg() {
-  isa_reg_display();
+void assert_fail_msg(uint32_t pc) {
+  isa_reg_display(pc);
 	IFDEF(CONFIG_IRBTRACE, iringbuf_printf());
   statistic();
 }
@@ -208,7 +210,7 @@ static void execute(uint64_t n) {
 	  trace_and_difftest(&s, cpu.pc);
 
 	  if (nemu_state.state == NEMU_ABORT) 
-			assert_fail_msg();
+			assert_fail_msg(s.pc);
 
 	  if (nemu_state.state != NEMU_RUNNING) 
 			break;

@@ -126,6 +126,11 @@ static int sysecall() {
 static int decode_exec(Decode *s) {
   int rd  = BITS(s->isa.inst.val, 11, 7);
 
+#ifdef CONFIG_DEBUG_A
+  int rs1 = BITS(s->isa.inst.val, 19, 15);
+  int rs2 = BITS(s->isa.inst.val, 24, 20);
+#endif
+
 #ifdef CONFIG_RVC
 	// C
   int rdc42    = BITS(s->isa.inst.val, 4, 2);
@@ -144,8 +149,6 @@ static int decode_exec(Decode *s) {
 		uint64_t u;
 	} cvt;
 
-  int rs1 = BITS(s->isa.inst.val, 19, 15);
-  int rs2 = BITS(s->isa.inst.val, 24, 20);
 	cvt dsrc1, dsrc2;
 	dsrc1.d = D(rs1);
 	dsrc2.d = D(rs2);
@@ -195,8 +198,9 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 001 ????? 01000 11", sh     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sh: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 2)); Mw(src1 + imm, 2, src2));
   INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sw: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 4)); Mw(src1 + imm, 4, src2));
 
-  INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, s->dnpc = (src1 == src2) ? (s->pc + imm): s->dnpc);
-  INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, s->dnpc = ((int32_t)src1 != (int32_t)src2) ? (s->pc + (int32_t)imm): s->dnpc); 
+  INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, s->dnpc = (src1 == src2) ? (s->pc + imm) : s->dnpc);
+  INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, s->dnpc = (src1 != src2) ? (s->pc + imm) : s->dnpc); 
+  //INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, s->dnpc = ((int32_t)src1 != (int32_t)src2) ? (s->pc + (int32_t)imm): s->dnpc; printf("(nemu) bne: src1 = 0x%08x, src2 = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, pc = 0x%08x, dnpc = 0x%08x\n", src1, src2, rs1, R(rs1), rs2, R(rs2), s->pc, s->dnpc)); 
   INSTPAT("??????? ????? ????? 100 ????? 11000 11", blt    , B, s->dnpc = ((int32_t)src1 <  (int32_t)src2) ? (s->pc + imm): s->dnpc); 
 
   INSTPAT("??????? ????? ????? 101 ????? 11000 11", bge    , B, s->dnpc = ((int32_t)src1 >=  (int32_t)src2)  ? (s->pc + imm): s->dnpc); 
@@ -246,9 +250,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t); 
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
   INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; } dowrite = 0; addr_A = 0;); 
-  //INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
-  //INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; } dowrite = 0; addr_A = 0;); 
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; }  IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, addr_A = 0x%08x, dowrite = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), addr_A, dowrite, s->pc, s->dnpc)); dowrite = 0; addr_A = 0); 
 #endif
 
 #ifdef CONFIG_RVC

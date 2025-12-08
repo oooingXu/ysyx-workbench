@@ -22,8 +22,9 @@ static uint32_t ref_mstatus, dut_mstatus;
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	bool check = true;
+
 	if(ref_r->pc != cpu.pc) {
-		printf("ref_r->pc = 0x%08x, cpu.pc = 0x%08x\n", ref_r->pc, cpu.pc);
+		printf("ref_r->dnpc = 0x%08x, cpu.dnpc = 0x%08x\n", ref_r->pc, cpu.pc);
 		check = false;
 	}
 	for(int i = 0; i < 32; i++){

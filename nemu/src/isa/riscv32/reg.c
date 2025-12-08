@@ -27,12 +27,12 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
-void isa_reg_display() {
-	uint32_t inst = paddr_read(cpu.pc, 4);
+void isa_reg_display(uint32_t pc) {
+	uint32_t inst = paddr_read(pc, 4);
 	printf("\n(nemu) gpr:\n");
 	for(int i = 0; i < 8 ; i++) {
 		for(int j = 0; j < 4; j++){
-			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[i]);
+			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[j + i * 4]);
 		}
 		printf("\n");
 	}
@@ -54,9 +54,9 @@ void isa_reg_display() {
 	printf("timerh ---> 0x%x\n",cpu.timerh);
 	printf("cyclel ---> 0x%x\n",cpu.cyclel);
 	printf("cycleh ---> 0x%x\n",cpu.cycleh);
-	printf("pc = 0x%08x\n", cpu.pc);
+	printf("pc = 0x%08x\n", pc);
 	printf("inst = 0x%08x\n", inst);
-	itrace(inst, cpu.pc);
+	itrace(inst, pc);
 
 }
 

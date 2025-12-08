@@ -71,7 +71,7 @@ static int cmd_info(char *args) {
 		printf("No args.");
 	}
 	else if(strcmp(args, "r") == 0) {
-		isa_reg_display();
+		isa_reg_display(cpu.pc);
 	}
 	else if(strcmp(args, "w") == 0) {
 		watchpoint_display();
