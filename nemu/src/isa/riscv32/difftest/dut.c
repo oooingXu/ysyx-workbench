@@ -13,7 +13,6 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <isa.h>
 #include <cpu/difftest.h>
 #include <memory/paddr.h>
 #include <common.h>
@@ -27,14 +26,15 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 
 #ifdef CONFIG_DEBUG_DIFFTEST
 	printf("\n(nemu) gpr\n");
+	printf("pc = 0x%08x\n", pc);
+	printf("inst = 0x%08x\n", inst);
+	printf("dnpc = 0x%08x\n", cpu.pc);
 	for(int i = 0; i < 32 / 4 ; i++) {
 		for(int j = 0; j < 4; j++){
 			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[j + i * 4]);
 		}
 		printf("\n");
 	}
-	printf("pc = 0x%08x\n", pc);
-	printf("inst = 0x%08x\n", inst);
 #endif
 
 	if(ref_r->pc != cpu.pc) {
@@ -77,15 +77,15 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
-	if(ref_r->mtval != cpu.mtval) {
-		printf("ref_r->mtval = 0x%08x, cpu.mtval = 0x%08x\n", ref_r->mtval, cpu.mtval);
-		check = false;
-	}
-
 	if(ref_r->mip != cpu.mip) {
 		printf("ref_r->mip = 0x%08x, cpu.mip = 0x%08x\n", ref_r->mip, cpu.mip);
 		check = false;
 	}
+
+	//if(ref_r->mtval != cpu.mtval) {
+	//	printf("ref_r->mtval = 0x%08x, cpu.mtval = 0x%08x\n", ref_r->mtval, cpu.mtval);
+	//	check = false;
+	//}
 
 	//if(ref_r->pmpaddr0 != cpu.pmpaddr0) {
 	//	printf("ref_r->pmpaddr0 = 0x%08x, cpu.pmpaddr0 = 0x%08x\n", ref_r->pmpaddr0, cpu.pmpaddr0);

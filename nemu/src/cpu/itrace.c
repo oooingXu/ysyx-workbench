@@ -9,13 +9,6 @@ enum {
   TYPE_N, // none
 };
 
-const static char *regs[] = {
-  "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
-  "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
-  "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
-  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
-};
-
 const static char *csrs[4096] = {
 [0x300] = "mstatus",
 [0x301] = "misa",
@@ -70,7 +63,7 @@ static void itrace_a(int func_31_27, int func3, int rd, int rs1, int rs2) {
 		switch(func_31_27){
 			case 0x0:  printf("%s %s,%s,%s\n", "amoadd.w",  regs[rd], regs[rs1], regs[rs2]); break;
 			case 0x1:  printf("%s %s,%s,%s\n", "amoswap.w", regs[rd], regs[rs1], regs[rs2]); break;
-			case 0x2:  printf("%s %s\n", "lr.w", regs[rs1]); break;
+			case 0x2:  printf("%s %s, (%s)\n", "lr.w", regs[rd], regs[rs1]); break;
 			case 0x3:  printf("%s %s,%s\n", "sc.w", regs[rs1], regs[rs2]); break;
 			case 0x4:  printf("%s %s,%s,%s\n", "amoxor.w",  regs[rd], regs[rs1], regs[rs2]); break;
 			case 0x8:  printf("%s %s,%s,%s\n", "amoor.w",   regs[rd], regs[rs1], regs[rs2]); break;
