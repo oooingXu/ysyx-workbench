@@ -19,6 +19,12 @@
 #include <difftest-def.h>
 
 #define NR_GPR MUXDEF(CONFIG_RVE, 16, 32)
+const char *regs[] = {
+  "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+  "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+  "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+};
 
 #define MSTATUS   0x300
 #define MIE  		  0x304
@@ -106,6 +112,19 @@ void sim_t::diff_get_regs(void* diff_context) {
 	ctx->mimpid		 = 0;
 	ctx->mhartid   = 0;
 	
+#ifdef CONFIG_DEBUG_DIFFTEST
+  mmu_t* mmu = p->get_mmu();
+	printf("\n(spike) gpr\n");
+	for(int i = 0; i < NR_GPR / 4 ; i++) {
+		for(int j = 0; j < 4; j++){
+			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], state->XPR[j + i * 4]);
+		}
+		printf("\n");
+	}
+	printf("pc = 0x%08x\n", (uint32_t)state->pc);
+	printf("inst = 0x%08x\n", mmu->load<uint32_t>(state->pc));
+#endif
+
 	//ctx->mscratch  = state->mscratch->read();
 	//ctx->pmpcfgr0  = state->pmpcfgr0->read();
 	//ctx->mvendorid = state->mvendorid->read();

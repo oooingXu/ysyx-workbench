@@ -233,6 +233,11 @@ config BATCH
 	bool "Enable batch"
 	default y
 
+config CONFIG_DEBUG_DIFFTEST
+	depends on TRACE
+	bool "Enable debug difftest"
+	default n
+
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
   bool "Enable differential testing"

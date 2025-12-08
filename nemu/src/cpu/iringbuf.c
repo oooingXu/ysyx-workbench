@@ -40,9 +40,11 @@ void iringbuf_printf() {
 	printf("\n(iringbuf): \n");
 	for(int i = count; i < COUNT + count; i++) {
 		int num = i >= COUNT ? i - COUNT : i;
-		iringbuf_abort(num);
-		printf("pc = 0x%08x, inst = 0x%08x, ", iring_pc[num], iring_inst[num]); 
-		itrace(iring_inst[num], iring_pc[num]);
+		if(iring_pc[num]) {
+			iringbuf_abort(num);
+			printf("pc = 0x%08x, inst = 0x%08x, ", iring_pc[num], iring_inst[num]); 
+			itrace(iring_inst[num], iring_pc[num]);
+		}
 	}
 }
 

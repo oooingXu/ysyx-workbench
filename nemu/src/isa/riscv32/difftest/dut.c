@@ -16,12 +16,26 @@
 #include <isa.h>
 #include <cpu/difftest.h>
 #include <memory/paddr.h>
+#include <common.h>
 #include "../local-include/reg.h"
 
 static uint32_t ref_mstatus, dut_mstatus;
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	bool check = true;
+	uint32_t inst = paddr_read(pc, 4);
+
+#ifdef CONFIG_DEBUG_DIFFTEST
+	printf("\n(nemu) gpr\n");
+	for(int i = 0; i < 32 / 4 ; i++) {
+		for(int j = 0; j < 4; j++){
+			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[j + i * 4]);
+		}
+		printf("\n");
+	}
+	printf("pc = 0x%08x\n", pc);
+	printf("inst = 0x%08x\n", inst);
+#endif
 
 	if(ref_r->pc != cpu.pc) {
 		printf("ref_r->dnpc = 0x%08x, cpu.dnpc = 0x%08x\n", ref_r->pc, cpu.pc);
@@ -29,7 +43,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	}
 	for(int i = 0; i < 32; i++){
 		if(ref_r->gpr[i] != cpu.gpr[i]){
-			printf("ref_r->gpr[%d] = 0x%08x, cpu.gpr[%d] = 0x%08x, pc = 0x%08x, inst = 0x%08x\n", i, ref_r->gpr[i], i, cpu.gpr[i], pc, paddr_read(pc, 4));
+			printf("ref_r->gpr[%d] = 0x%08x, cpu.gpr[%d] = 0x%08x, pc = 0x%08x, inst = 0x%08x\n", i, ref_r->gpr[i], i, cpu.gpr[i], pc, inst);
 			check = false;
 		}
 	}
