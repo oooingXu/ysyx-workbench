@@ -156,14 +156,9 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
     return;
   }
 
-	if(cpu.trap == 0x80000007)
-	//if((cpu.mip & (1 << 7)) && (cpu.mie & (1 << 7)) /*mtie*/ && (cpu.mstatus & 0x8) /*mie*/ && (cpu.extraflags & 0x3))
-	 	ref_difftest_raise_intr(cpu.mcause);
-	else
-		ref_difftest_exec(1);
+	ref_difftest_exec(1);
 
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-
 
   checkregs(&ref_r, pc);
 }

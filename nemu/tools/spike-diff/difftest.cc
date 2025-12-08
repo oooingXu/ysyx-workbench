@@ -174,15 +174,17 @@ __EXPORT void difftest_regcpy(void* dut, bool direction) {
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
-  mmu_t* mmu = p->get_mmu();
 #ifdef CONFIG_DEBUG_DIFFTEST
+  mmu_t* mmu = p->get_mmu();
+	uint32_t pc = (uint32_t)state->pc;
+	uint32_t inst = mmu->load<uint32_t>(state->pc);
 	printf("\n(spike) gpr\n");
-	printf("pc = 0x%08x\n", (uint32_t)state->pc);
-	printf("inst = 0x%08x\n", mmu->load<uint32_t>(state->pc));
 #endif
   s->diff_step(n);
 #ifdef CONFIG_DEBUG_DIFFTEST
+	printf("pc = 0x%08x\n", pc);
 	printf("dnpc = 0x%08x\n", (uint32_t)state->pc);
+	printf("inst = 0x%08x\n", inst);
 #endif
 }
 

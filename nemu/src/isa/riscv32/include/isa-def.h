@@ -60,8 +60,6 @@ typedef struct {
 	// Bit 3+ = Load/Store reservation LSBs.
 	word_t trap;
 
-	bool INTR;
-
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode

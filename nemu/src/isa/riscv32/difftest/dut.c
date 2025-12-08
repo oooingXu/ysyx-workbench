@@ -16,6 +16,7 @@
 #include <cpu/difftest.h>
 #include <memory/paddr.h>
 #include <common.h>
+#include <cpu/trace.h>
 #include "../local-include/reg.h"
 
 static uint32_t ref_mstatus, dut_mstatus;
@@ -27,8 +28,9 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 #ifdef CONFIG_DEBUG_DIFFTEST
 	printf("\n(nemu) gpr\n");
 	printf("pc = 0x%08x\n", pc);
-	printf("inst = 0x%08x\n", inst);
 	printf("dnpc = 0x%08x\n", cpu.pc);
+	printf("inst = 0x%08x\n", inst);
+	itrace(inst, pc);
 	for(int i = 0; i < 32 / 4 ; i++) {
 		for(int j = 0; j < 4; j++){
 			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[j + i * 4]);

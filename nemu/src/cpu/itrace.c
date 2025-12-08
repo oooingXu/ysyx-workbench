@@ -181,12 +181,14 @@ static void itrace_i(uint32_t opcode, uint32_t func7, uint32_t func3, int rd, in
 			printf("%s %s,%s,%x\n", instI[func3], regs[rd], regs[rs1], imm);
 		}
 	} else if(opcode == 0x03) {
-		if(func3 > 4) {
-			printf("inst LOAD decode fail\n");
-			printf("func7 = %d, func3 = %d, rd = %d, rs1 = %d, imm = %x\n", func7, func3, rd, rs1, imm);
-			assert(0);
+		switch(func3){
+			case 0: printf("%s %s,%x(%s)\n", "lb", regs[rd], cpu.gpr[rs1] + imm, regs[rs1]); break;
+			case 1: printf("%s %s,%x(%s)\n", "lh", regs[rd], cpu.gpr[rs1] + imm, regs[rs1]); break;
+			case 2: printf("%s %s,%x(%s)\n", "lw", regs[rd], cpu.gpr[rs1] + imm, regs[rs1]); break;
+			case 4: printf("%s %s,%x(%s)\n", "lbu", regs[rd], cpu.gpr[rs1] + imm, regs[rs1]); break;
+			case 5: printf("%s %s,%x(%s)\n", "lhu", regs[rd], cpu.gpr[rs1] + imm, regs[rs1]); break;
+			default: printf("inst LOAD decode fail\n");
 		}
-			printf("%s %s,%x(%s)\n", instLOAD[func3], regs[rd], cpu.gpr[rs1] + imm, regs[rs1]);
 	}
 }
 
