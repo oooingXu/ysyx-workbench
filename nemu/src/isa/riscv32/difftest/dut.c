@@ -84,10 +84,10 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
-	//if(ref_r->mtval != cpu.mtval) {
-	//	printf("ref_r->mtval = 0x%08x, cpu.mtval = 0x%08x\n", ref_r->mtval, cpu.mtval);
-	//	check = false;
-	//}
+	if(ref_r->mtval != cpu.mtval) {
+		printf("ref_r->mtval = 0x%08x, cpu.mtval = 0x%08x\n", ref_r->mtval, cpu.mtval);
+		check = false;
+	}
 
 	//if(ref_r->pmpaddr0 != cpu.pmpaddr0) {
 	//	printf("ref_r->pmpaddr0 = 0x%08x, cpu.pmpaddr0 = 0x%08x\n", ref_r->pmpaddr0, cpu.pmpaddr0);

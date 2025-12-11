@@ -234,7 +234,7 @@ config BATCH
 	default y
 
 config DEBUG_DIFFTEST
-	depends on TRACE
+	depends on DIFFTEST
 	bool "Enable debug difftest"
 	default n
 

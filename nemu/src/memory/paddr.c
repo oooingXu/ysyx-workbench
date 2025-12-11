@@ -68,10 +68,13 @@ static void sram_write(paddr_t addr, int len, word_t data) {
 	host_write(s_guest_to_host(addr), len, data);
 }
 
-//static void out_of_bound(paddr_t addr) {
-//  panic("(nemu) address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD,
-//      addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
-//}
+static void out_of_bound(paddr_t addr) {
+  //panic("(nemu) paddr: address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD,
+  //    addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
+  printf("(nemu) paddr: address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD "\n",
+      addr, PMEM_LEFT, PMEM_RIGHT, cpu.pc);
+	nemu_state.state = NEMU_ABORT;
+}
 
 void init_mem() {
 #if   defined(CONFIG_PMEM_MALLOC)
@@ -213,6 +216,10 @@ word_t paddr_read(paddr_t addr, int len) {
 		IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
 		cpu.trap = 5; // Handle access violation on instruction read
 	}
+
+	if(cpu.trap == 5) 
+		out_of_bound(addr);
+	 //difftest_skip_ref();
 	//read_unusual(addr);
   //out_of_bound(addr);
   return 0;
@@ -239,5 +246,8 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 	 IFDEF(CONFIG_DEVICE,  mmio_write(addr, len, data); return);
 	 cpu.trap = 7;
  }
-  //out_of_bound(addr);
+
+ if(cpu.trap == 7)
+		out_of_bound(addr);
+	 //difftest_skip_ref();
 }
