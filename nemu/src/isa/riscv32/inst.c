@@ -17,6 +17,7 @@
 #include <cpu/cpu.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
+#include <cpu/difftest.h>
 #ifndef CONFIG_TARGET_AM
 	#include "cpu/ftrace.h"
 #endif
@@ -246,8 +247,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("01000 ?? ????? ????? 010 ????? 0101111", amoor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t | src2); R(rd) = t); 
   INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t); 
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
-  INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; }  IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, addr_A = 0x%08x, dowrite = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), addr_A, dowrite, s->pc, s->dnpc)); dowrite = 0; addr_A = 0); 
+  INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, difftest_skip_ref(); uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, difftest_skip_ref(); if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; }  IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, addr_A = 0x%08x, dowrite = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), addr_A, dowrite, s->pc, s->dnpc)); dowrite = 0; addr_A = 0); 
 #endif
 
 #ifdef CONFIG_RVC
