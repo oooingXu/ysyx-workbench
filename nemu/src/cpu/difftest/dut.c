@@ -156,7 +156,10 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
     return;
   }
 
-	ref_difftest_exec(1);
+	if(cpu.trap == 0x80000007)
+		ref_difftest_raise_intr(cpu.mcause);
+	else
+		ref_difftest_exec(1);
 
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
 
