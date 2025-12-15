@@ -157,7 +157,7 @@ static void execute(uint64_t n) {
   for (;n > 0; n --) {
 		cpu.trap = 0;
 		new_time = (uint32_t)get_time();
-		if(new_time <  cpu.timerl) 
+		if(new_time <  cpu.timerl) cpu.timerh++;
 			cpu.timerl = new_time;
 
 #ifdef CONFIG_TIMER_IRQ
