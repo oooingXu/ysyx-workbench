@@ -71,6 +71,8 @@ static long load_img() {
 
 #ifdef CONFIG_NOMMULINUX
 	int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
+	// align the address
+	dtb_ptr &= ~0x7;
 
 #ifdef CONFIG_DEBUG_NOMMULINUX
 	for(int i = 0; i < 10; i++){
