@@ -240,6 +240,6 @@ void itrace(uint32_t instr, uint32_t pc) {
 		case TYPE_J: itrace_j(immj); break;
 		case TYPE_U: itrace_u(opcode, rd, immu); break;
 		case TYPE_I: itrace_i(opcode, func7, func3, rd, rs1, immi, shamt, csr); break;
-		default: printf("decode fail\n"); nemu_state.state = NEMU_ABORT; 
+		default: printf("decode fail\n"); //nemu_state.state = NEMU_ABORT; 
 	}
 }
