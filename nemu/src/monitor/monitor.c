@@ -15,7 +15,7 @@
 
 #include <isa.h>
 #include <memory/paddr.h>
-#include <default64mbdtc.h>
+#include "default64mbdtc.h"
 #ifdef CONFIG_FTRACE
 #include "cpu/ftrace.h"
 #endif
@@ -70,7 +70,7 @@ static long load_img() {
   assert(ret == 1);
 
 #ifdef CONFIG_NOMMULINUX
-	int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(CPU_state);
+	int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
 
 #ifdef CONFIG_DEBUG_NOMMULINUX
 	for(int i = 0; i < 10; i++){
@@ -94,7 +94,7 @@ static long load_img() {
 	for(int i = 0; i < sizeof(default64mbdtb); i++){
 		printf("%x ", *(guest_to_host(RESET_VECTOR + dtb_ptr + i)));
 	}
-	printf("\nsize = 0x%08lx, imgsize = 0x%08lx\n", size, size + sizeof(default64mbdtb) + sizeof(CPU_state));
+	printf("\nsize = 0x%08lx, imgsize = 0x%08lx\n", size, size + sizeof(default64mbdtb) + sizeof(riscv32_CPU_state));
 #endif
 
 	//size += sizeof(default64mbdtb) + sizeof(riscv32_CPU_state);
