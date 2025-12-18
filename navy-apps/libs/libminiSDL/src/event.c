@@ -13,39 +13,17 @@ int SDL_PushEvent(SDL_Event *ev) {
 }
 
 int SDL_PollEvent(SDL_Event *ev) {
-  CallbackHelper(2);
-  char buf[20];
-  if (NDL_PollEvent(buf, sizeof(buf)) == 0) return 0;
-  ev->type = buf[1] == 'u' ? SDL_KEYUP : SDL_KEYDOWN;
-  for (int i = 0; i < 83; i++) {
-    if (strcmp(keyname[i], buf + 3) == 0) {
-      ev->key.keysym.sym = i;
-      return 1;
-    }
-  }
   return 0;
 }
 
 int SDL_WaitEvent(SDL_Event *event) {
-  char buf[20];
-  while (1) {
-    if (NDL_PollEvent(buf, sizeof(buf)) == 0) continue;
-    event->type = buf[1] == 'u' ? SDL_KEYUP : SDL_KEYDOWN;
-    for (int i = 0; i < 83; i++) {
-      if (strcmp(keyname[i], buf + 3) == 0) {
-        event->key.keysym.sym = i;
-        return 1;
-      }
-    }
-  }
-  return 0;
+  return 1;
 }
 
 int SDL_PeepEvents(SDL_Event *ev, int numevents, int action, uint32_t mask) {
   return 0;
 }
 
-uint8_t *SDL_GetKeyState(int *numkeys) {
-  if (numkeys) *numkeys = 83;
-  return key_state;
+uint8_t* SDL_GetKeyState(int *numkeys) {
+  return NULL;
 }
