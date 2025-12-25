@@ -1,8 +1,8 @@
 #ifndef ARCH_H__
 #define ARCH_H__
 
-#ifndef __USE_GNU
-# define __USE_GNU
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
 #endif
 
 #include <ucontext.h>
@@ -20,7 +20,5 @@ struct Context {
 #define GPR3 uc.uc_mcontext.gregs[REG_RDX]
 #define GPR4 uc.uc_mcontext.gregs[REG_RCX]
 #define GPRx uc.uc_mcontext.gregs[REG_RAX]
-
-#undef __USE_GNU
 
 #endif

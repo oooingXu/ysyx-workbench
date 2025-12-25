@@ -12,7 +12,8 @@ AM_SRCS := native/trm.c \
            native/ioe/audio.c \
            native/ioe/disk.c \
 
-CFLAGS  += -fpie
+override CROSS_COMPILE :=
+CFLAGS  += -fpie -D_GNU_SOURCE
 ASFLAGS += -fpie -pie
 comma = ,
 LDFLAGS_CXX = $(addprefix -Wl$(comma), $(LDFLAGS))
