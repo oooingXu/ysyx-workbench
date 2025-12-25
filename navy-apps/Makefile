@@ -38,7 +38,9 @@ endif
 ### Create the destination directory (`build/$ISA`)
 WORK_DIR  = $(shell pwd)
 DST_DIR   = $(WORK_DIR)/build/$(ISA)
+NANOS_DIR  = $(NANOS_HOME)/build
 $(shell mkdir -p $(DST_DIR))
+$(shell mkdir -p $(NANOS_DIR))
 
 ### Compilation targets (application or archive)
 APP     ?= $(WORK_DIR)/build/$(NAME)-$(ISA)
@@ -78,6 +80,7 @@ CC        = $(CROSS_COMPILE)gcc
 CXX       = $(CROSS_COMPILE)g++
 LD        = $(CROSS_COMPILE)ld
 AR        = $(CROSS_COMPILE)ar
+OBJDUMP   = $(CROSS_COMPILE)objdump
 
 ### Compilation flags
 INC_PATH += $(WORK_DIR)/include $(foreach l,$(LIBS_INC),$(NAVY_HOME)/libs/$(l)/include/)
@@ -128,8 +131,14 @@ $(foreach lib, $(LIBS), $(eval $(call LIB_TEMPLATE,$(lib))))
 
 ### Rule (link): objects (`*.o`) and libraries (`*.a`) -> `$(APP)`, the final ELF binary to be packed into application (ld)
 $(APP): $(LINKAGE)
+	@echo LINKAGE = $(LINKAGE)
 	@echo + LD "->" $(shell realpath $@ --relative-to .)
+	@echo $(LD) $(LDFLAGS) -o $@ $(WL)--start-group $^ $(WL)--end-group
 	@$(LD) $(LDFLAGS) -o $@ $(WL)--start-group $^ $(WL)--end-group
+	@echo cp $@ $(NANOS_DIR)/ramdisk.img
+	@cp $@ $(NANOS_DIR)/ramdisk.img
+	@echo OBJDUMP -d $@ \> $(NANOS_DIR)/ramdisk.txt 
+	@$(OBJDUMP) -d $@ > $(NANOS_DIR)/ramdisk.txt
 
 ### Rule (archive): objects (`*.o`) -> `ARCHIVE.a` (ar)
 $(ARCHIVE): $(LINKAGE)

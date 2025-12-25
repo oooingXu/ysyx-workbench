@@ -13,6 +13,14 @@ static char *event_name[] = {
 static char *sys_name[] = {
 "SYS_exit",
 "SYS_yield",
+"SYS_open",
+"SYS_read",
+"SYS_write",
+"SYS_kill",
+"SYS_getpid",
+"SYS_close",
+"SYS_lseek",
+"SYS_brk",
 };
 
 #endif
@@ -20,8 +28,8 @@ static char *sys_name[] = {
 static Context* do_event(Event e, Context* c) {
 
 #ifdef STRACE
-	if(e.event < 3 && c->GPR1 < 2) 
-	printf("(nanos-lite): e.event = %s, c->GPR1 = %s, c->GPRx = %d\n", event_name[e.event], sys_name[c->GPR1], c->GPRx);
+	if(e.event < 3 && c->GPR1 < 10) 
+	printf("STRACE (nanos-lite) begin: e.event = %s, c->GPR1 = %s, c->GPR1 = %d, c->GPR2 = 0x%08x, c->GPR3 = 0x%08x, c->GPR4 = 0x%08x, c->GPRx = %d\n", event_name[e.event], sys_name[c->GPR1], c->GPR1, c->GPR2, c->GPR3, c->GPR4, c->GPRx);
 #endif
 
   switch (e.event) {
@@ -29,6 +37,11 @@ static Context* do_event(Event e, Context* c) {
 		case EVENT_SYSCALL: do_syscall(c); break;
     default: panic("Unhandled event ID = %d", e.event);
   }
+
+#ifdef STRACE
+	if(e.event < 3 && c->GPR1 < 10) 
+	printf("STRACE (nanos-lite) end: c->GPR1 = %d, c->GPR2 = 0x%08x, c->GPR3 = 0x%08x, c->GPR4 = 0x%08x, c->GPRx = %d\n", c->GPR1, c->GPR2, c->GPR3, c->GPR4, c->GPRx);
+#endif
 
   return c;
 }

@@ -4,6 +4,8 @@
 
 int main(int argc, char *argv[], char *envp[]);
 extern char **environ;
+//void _exit(int status);
+
 void call_main(uintptr_t *args) {
   char *empty[] =  {NULL };
   environ = empty;

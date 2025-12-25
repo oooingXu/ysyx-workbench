@@ -45,6 +45,9 @@
 #error _syscall_ is not implemented
 #endif
 
+extern uint32_t _end;
+intptr_t pbrk = 0;
+
 intptr_t _syscall_(intptr_t type, intptr_t a0, intptr_t a1, intptr_t a2) {
   register intptr_t _gpr1 asm (GPR1) = type;
   register intptr_t _gpr2 asm (GPR2) = a0;
@@ -66,17 +69,21 @@ int _open(const char *path, int flags, mode_t mode) {
 }
 
 int _write(int fd, void *buf, size_t count) {
-  _exit(SYS_write);
-  return 0;
+  return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+	if(pbrk == 0) pbrk = (uint32_t)&_end;
+
+	intptr_t old_brk = pbrk;
+	pbrk += increment;
+
+	intptr_t ret = _syscall_(SYS_brk, pbrk, 0, 0);
+	return ret == -1 ? (void *)-1 : (void *)old_brk;
 }
 
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
-  return 0;
+	return _syscall_(SYS_read, fd, (intptr_t)buf, count);
 }
 
 int _close(int fd) {
