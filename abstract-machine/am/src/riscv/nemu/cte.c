@@ -18,7 +18,14 @@ Context* __am_irq_handle(Context *c) {
     switch (c->mcause) {
 			// ecall
 			case 0x8: case 0x9: case 0xb: 
-				ev.event =  EVENT_YIELD; c->mepc += 4; break;
+				// judge if SYSCALL from a5/a7
+				//printf("(nemu am_cte): c->GPR1 = %d\n", c->GPR1);
+				switch(c->GPR1) {
+					case -1: ev.event = EVENT_YIELD; break;
+					default: ev.event =  EVENT_SYSCALL; 
+				}
+
+				c->mepc += 4; break;
 			// timer irq
 			case 0x80000007: case 0x80000009: case 0x8000000b:
 				ev.event = EVENT_IRQ_TIMER; set_timermatch(); c->mepc += 4; break;
