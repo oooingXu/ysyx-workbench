@@ -69,7 +69,7 @@ static long load_img() {
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
-#ifdef CONFIG_NOMMULINUX
+#ifdef CONFIG_NOMMULINUX_MINIRV
 	int dtb_ptr = CONFIG_MSIZE - sizeof(default64mbdtb) - sizeof(riscv32_CPU_state);
 	// align the address
 	dtb_ptr &= ~0x7;

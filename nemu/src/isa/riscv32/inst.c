@@ -118,10 +118,10 @@ static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, w
 }
 
 static int sysecall() {
-	if(cpu.extraflags & 0x3) 
-		return 0xb;
-	else 
+	if((cpu.extraflags & 0x3) == 0) 
 		return 0x8;
+	else 
+		return 0xb;
 }
 
 static int decode_exec(Decode *s) {

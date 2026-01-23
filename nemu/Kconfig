@@ -218,6 +218,11 @@ config NOMMULINUX
 	bool "Enable run nommulinux"
 	default n
 
+config NOMMULINUX_MINIRV
+	depends on NOMMULINUX
+	bool "Enable run nommulinux in minirv"
+	default n
+
 config DEBUG_NOMMULINUX
 	depends on NOMMULINUX
 	bool "Enable debug nommulinux"
