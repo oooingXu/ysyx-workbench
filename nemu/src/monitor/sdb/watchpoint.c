@@ -67,7 +67,7 @@ void watchpoint_display() {
 			WP *wp = head;
 			printf("Active watchpoints:\n");
 			while (wp != NULL) {
-					printf("Watchpoint %d: expr = '%s', value = %u\n", wp->NO, wp->expr, wp->old_value);
+					printf("Watchpoint %d: expr = '%s', value = 0x%08x\n", wp->NO, wp->expr, wp->old_value);
 				  wp = wp->next;
 			}
 		}

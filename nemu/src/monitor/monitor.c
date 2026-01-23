@@ -103,8 +103,12 @@ static long load_img() {
 #endif
 
   fclose(fp);
-  return CONFIG_MSIZE;
-  //return size;
+#ifdef CONFIG_NOMMULINUX
+  //return CONFIG_MSIZE;
+  return size;
+#else
+  return size;
+#endif
 }
 
 static int parse_args(int argc, char *argv[]) {

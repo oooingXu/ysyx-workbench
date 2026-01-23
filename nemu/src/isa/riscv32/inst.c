@@ -18,9 +18,6 @@
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
-#ifndef CONFIG_TARGET_AM
-	#include "cpu/ftrace.h"
-#endif
 
 #define R(i) gpr(i)
 #define C(i) csr(i)

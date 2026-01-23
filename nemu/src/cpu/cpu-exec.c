@@ -82,16 +82,15 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 			bool success = true;
 			debug("success = %d\n",success);
 			debug("expr = %s\n",wp->expr);
-			uint32_t tmp = expr(wp->expr, &success);
+			wp->new_value = expr(wp->expr, &success);
 			if(success){
-				if(tmp != wp->old_value){
-					wp->new_value = tmp;
-					printf("old_value = %u\n",wp->old_value);
-					printf("new_value = %u\n",wp->new_value);
+				if(wp->new_value != wp->old_value){
+					printf("old_value = 0x%08x\n",wp->old_value);
+					printf("new_value = 0x%08x\n",wp->new_value);
 					debug("cpu.exec.c No equal.\n");
-					nemu_state.state = NEMU_STOP;
+					if(nemu_state.state == NEMU_RUNNING)
+						nemu_state.state = NEMU_STOP;
 					wp->old_value = wp->new_value;
-					wp->new_value = 0;
 				}
 			}
 			else{
