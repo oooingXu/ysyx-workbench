@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
+#include <cpu/trace.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -107,9 +108,15 @@ static int cmd_p(char* args) {
 	bool success = true;
 	uint32_t number = expr(args,&success);
 	if(success == true){
-		printf("%u\n",number);
+		printf("0x%08x\n",number);
 	}
 	
+	return 0;
+}
+
+static int cmd_pirb(char* args){
+	iringbuf_printf();
+
 	return 0;
 }
 
@@ -207,6 +214,7 @@ static struct {
 	{ "info", "Print the SUBCMD information", cmd_info},
 	{ "x", "Scan the memory", cmd_x},
 	{ "p", "Print expression", cmd_p},
+	{ "pirb", "Print expression", cmd_pirb},
 	{ "w", "Create the watchpoint", cmd_w},
 	{ "d", "Delete the watchpoint", cmd_d},
 	{ "t", "Test the expr", cmd_t},
