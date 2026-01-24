@@ -189,8 +189,6 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = (src1 + imm) & ~(word_t)1; IFDEF(CONFIG_FTRACE, jalr_print(s->isa.inst.val, rd, imm, s->pc, s->dnpc)); R(rd) = s->pc + 4);
 	INSTPAT("??????? ????? ????? ??? ????? 11001 11", ret		 , I, s->dnpc = R(1); IFDEF(CONFIG_FTRACE, printf("0x%08x: ret  [%s]\n", s->pc, get_func_name(s->pc))));
-	INSTPAT("000 ???? ???? 00000 000 00000 00011 11", fence	 , I, );
-
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sb: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 1)); Mw(src1 + imm, 1, src2));
   INSTPAT("??????? ????? ????? 001 ????? 01000 11", sh     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sh: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 2)); Mw(src1 + imm, 2, src2));
   INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sw: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 4)); Mw(src1 + imm, 4, src2));
@@ -330,7 +328,9 @@ static int decode_exec(Decode *s) {
 #endif
   INSTPAT("0001000 00101 00000 000 00000 11100 11", wfi		 , N, cpu.extraflags |= 4; cpu.mstatus |= 8; s->dnpc = cpu.pc);
 	INSTPAT("0000000 00000 00000 001 00000 00011 11", fence.i, I, );
-	INSTPAT("0000000 00000 00000 000 00000 00011 11", fence, I, );
+	//INSTPAT("0000000 00000 00000 000 00000 00011 11", fence, I, );
+	INSTPAT("0000 ???? ???? 00000 000 00000 00011 11", fence	 , I, );
+
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
