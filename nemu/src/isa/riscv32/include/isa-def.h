@@ -20,6 +20,8 @@
 extern const char *regs[]; 
 
 typedef struct {
+	word_t extraflags;
+
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   vaddr_t pc;
 
@@ -51,8 +53,6 @@ typedef struct {
 	word_t timerh;
 	word_t timermatchl;
 	word_t timermatchh;
-
-	word_t extraflags;
 
 	// Note: only a few bits are used.  (Machine = 3, User = 0)
 	// Bits 0..1 = privilege.

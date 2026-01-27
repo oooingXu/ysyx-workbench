@@ -21,6 +21,7 @@
 
 #define FFLAGS    0x001
 #define FRM       0x002
+#define MISA      0x301
 #define MSTATUS   0x300
 #define MIE  		  0x304
 #define MTVEC		  0x305
@@ -31,6 +32,8 @@
 #define MIP   	  0x344
 #define PMPCFGR0  0x3a0
 #define PMPADDR0  0x3b0
+#define CYCLE     0xc00
+#define CYCLEH    0xc80
 #define MVENDORID 0xf11
 #define MARCHID   0xf12
 #define MIMPID    0xf13
@@ -42,6 +45,9 @@ static inline int check_reg_idx(int idx) {
 }
 
 static inline uint32_t *check_csr_idx(word_t idx) {
+	// MISA is read-only, return a constant
+	static uint32_t misa_value = 0x40401101;  // RV32IMA + X extensions
+
 	switch(idx) {
 
 #ifdef CONFIG_RVDF
@@ -49,6 +55,7 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case FRM:				return &(cpu.frm);
 #endif
 
+		case MISA:      return &misa_value;
 		case MSTATUS:   return &(cpu.mstatus);
 		case MIE:       return &(cpu.mie);
 		case MTVEC:     return &(cpu.mtvec);
@@ -59,6 +66,8 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case MIP:       return &(cpu.mip);
 		case PMPCFGR0:  return &(cpu.pmpcfgr0);
 		case PMPADDR0:  return &(cpu.pmpaddr0);
+		case CYCLE:     return &(cpu.cyclel);
+		case CYCLEH:    return &(cpu.cycleh);
 		case MVENDORID: return &(cpu.mvendorid);
 		case MARCHID:   return &(cpu.marchid);
 		case MIMPID:		return &(cpu.mimpid);

@@ -59,6 +59,7 @@ static debug_module_config_t difftest_dm_config = {
 };
 
 struct diff_context_t {
+	uint32_t prv;
   uint32_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   uint32_t pc;
 
@@ -131,6 +132,7 @@ void sim_t::diff_get_regs(void* diff_context) {
 
 	//pc
   ctx->pc      = state->pc;
+  ctx->prv     = state->prv;
 }
 
 void sim_t::diff_set_regs(void* diff_context) {
@@ -177,6 +179,7 @@ __EXPORT void difftest_exec(uint64_t n) {
 #ifdef CONFIG_DEBUG_DIFFTEST
   mmu_t* mmu = p->get_mmu();
 	uint32_t pc = (uint32_t)state->pc;
+	uint32_t prv = (uint32_t)state->prv;
 	uint32_t inst = mmu->load<uint32_t>(state->pc);
 	printf("\n(spike) gpr\n");
 #endif
@@ -185,6 +188,7 @@ __EXPORT void difftest_exec(uint64_t n) {
 	printf("pc = 0x%08x\n", pc);
 	printf("dnpc = 0x%08x\n", (uint32_t)state->pc);
 	printf("inst = 0x%08x\n", inst);
+	printf("pre_prv = %d, prv = %d\n", prv, (uint32_t)state->prv);
 #endif
 }
 

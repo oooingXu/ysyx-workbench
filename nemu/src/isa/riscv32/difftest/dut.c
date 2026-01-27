@@ -30,6 +30,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	printf("pc = 0x%08x\n", pc);
 	printf("dnpc = 0x%08x\n", cpu.pc);
 	printf("inst = 0x%08x\n", inst);
+	printf("prv = %d\n", cpu.extraflags & 0x3);
 	itrace(inst, pc);
 	for(int i = 0; i < 32 / 4 ; i++) {
 		for(int j = 0; j < 4; j++){
@@ -39,10 +40,16 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	}
 #endif
 
+	if(ref_r->extraflags != (cpu.extraflags & 0x3)) {
+		printf("ref_r->prv = %d, cpu.prv = %d\n", ref_r->extraflags, cpu.extraflags & 0x3);
+		check = false;
+	}
+
 	if(ref_r->pc != cpu.pc) {
 		printf("ref_r->dnpc = 0x%08x, cpu.dnpc = 0x%08x\n", ref_r->pc, cpu.pc);
 		check = false;
 	}
+
 	for(int i = 0; i < 32; i++){
 		if(ref_r->gpr[i] != cpu.gpr[i]){
 			printf("ref_r->gpr[%d] = 0x%08x, cpu.gpr[%d] = 0x%08x, pc = 0x%08x, inst = 0x%08x\n", i, ref_r->gpr[i], i, cpu.gpr[i], pc, inst);

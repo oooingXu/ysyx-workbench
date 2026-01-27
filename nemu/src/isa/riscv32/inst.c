@@ -43,11 +43,6 @@ enum {
 
 enum { TYPE_A_AND_B, TYPE_A_OR_B, TYPE_A_AND_NB,};
 
-#ifdef CONFIG_RVA
-static bool dowrite = 0;
-static uint32_t addr_A = 0;
-#endif
-
 #define src1R() do { *src1 = R(rs1); } while (0)
 #define src2R() do { *src2 = R(rs2); } while (0)
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
@@ -242,8 +237,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("01000 ?? ????? ????? 010 ????? 0101111", amoor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t | src2); R(rd) = t); 
   INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t); 
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
-  INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; addr_A = src1; dowrite = true); 
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, if(dowrite && src1 == addr_A) {R(rd) = 0; Mw(src1, 4, src2); } else { R(rd) = 1; }  IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, addr_A = 0x%08x, dowrite = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), addr_A, dowrite, s->pc, s->dnpc)); dowrite = 0; addr_A = 0); 
+  INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; cpu.extraflags = (cpu.extraflags & 0x07) | (src1 << 3); IFDEF(CONFIG_DEBUG_A, printf("(nemu) lr.w: addr = 0x%08x, value = 0x%08x, rd = %d, extraflags = 0x%08x, pc = 0x%08x\n", src1, t, rd, cpu.extraflags, s->pc)));
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, uint32_t rval = ((cpu.extraflags >> 3) != (src1 & 0x1fffffff)); R(rd) = rval; if(!rval) { Mw(src1, 4, src2); } cpu.extraflags = (cpu.extraflags & 0x07); IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, reserved_addr = 0x%08x, src1 = 0x%08x, rval = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), cpu.extraflags >> 3, src1, rval, s->pc, s->dnpc))); 
 #endif
 
 #ifdef CONFIG_RVC
@@ -327,9 +322,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
 #endif
   INSTPAT("0001000 00101 00000 000 00000 11100 11", wfi		 , N, cpu.extraflags |= 4; cpu.mstatus |= 8; s->dnpc = cpu.pc);
-	INSTPAT("0000000 00000 00000 001 00000 00011 11", fence.i, I, );
-	//INSTPAT("0000000 00000 00000 000 00000 00011 11", fence, I, );
-	INSTPAT("0000 ???? ???? 00000 000 00000 00011 11", fence	 , I, );
+	INSTPAT("0000000 00000 00000 001 00000 0001111", fence.i, I, );
+	INSTPAT("???? ???? ???? 00000 000 00000 0001111", fence	 , I, );
 
 
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
