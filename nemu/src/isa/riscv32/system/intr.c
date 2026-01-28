@@ -26,7 +26,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	//	cpu.mtval = 0;
 	//else 
 	//	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
-	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.pc : 0;
+	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
 
 	// TRICKY: The kernel advances mepc automatically
 	// mstatus & 8 = MIE, & 0x80 = MPIE

@@ -73,9 +73,13 @@ static void csr_write(uint32_t csr, uint32_t a, uint32_t b, int op){
 		default:;
 	}
 
-	if(csr == MSTATUS) tmp &= 0x807e79aa;
-
-	C(csr) = tmp;
+	//if(csr == MSTATUS) tmp &= 0x807e79aa;
+	switch(csr) {
+		case MSCRATCH: case MTVEC: case MIE: case MIP: case MEPC: case MSTATUS: case MCAUSE: case MTVAL:
+			C(csr) = tmp;
+			break;
+		default:
+	}
 }
 
 static void decode_operand(Decode *s, word_t *src1, word_t *src2, word_t *imm, word_t *uimm, int type) {
@@ -240,7 +244,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
   INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
   INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; cpu.extraflags = (cpu.extraflags & 0x07) | (src1 << 3); IFDEF(CONFIG_DEBUG_A, printf("(nemu) lr.w: addr = 0x%08x, value = 0x%08x, rd = %d, extraflags = 0x%08x, pc = 0x%08x\n", src1, t, rd, cpu.extraflags, s->pc)));
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, uint32_t rval = ((cpu.extraflags >> 3) != (src1 & 0x1fffffff)); R(rd) = rval; if(!rval) { Mw(src1, 4, src2); cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4);} IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, reserved_addr = 0x%08x, src1 = 0x%08x, rval = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), cpu.extraflags >> 3, src1, rval, s->pc, s->dnpc))); 
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, uint32_t rval = ((cpu.extraflags >> 3) != (src1 & 0x1fffffff)); R(rd) = rval; if(!rval) { Mw(src1, 4, src2);} cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4); IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, reserved_addr = 0x%08x, src1 = 0x%08x, rval = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), cpu.extraflags >> 3, src1, rval, s->pc, s->dnpc))); 
 #endif
 
 #ifdef CONFIG_RVC
@@ -313,7 +317,8 @@ static int decode_exec(Decode *s) {
 			uint32_t startmstatus = cpu.mstatus; 
 			uint32_t startextraflags = cpu.extraflags; 
 			// to clean MPRV  and move mstatus.MPIE to mstatus.MIE and set mstatus.MPIE = 1 and set mstatus.MPP = 0
-			cpu.mstatus = (startmstatus & 0x807c61a2) | (startmstatus & 0x80) >> 4 | 0x80; 
+			//cpu.mstatus = (startmstatus & 0x807c61a2) | (startmstatus & 0x80) >> 4 | 0x80; 
+			cpu.mstatus = (( startmstatus & 0x80) >> 4) | ((startextraflags & 3) << 11) | 0x80;
 			// set priv = mstatus.MPP
 			cpu.extraflags = (startextraflags & ~3) | ((startmstatus >> 11) & 3); 
 			IFDEF(CONFIG_ETRACE, printf("(nemu) mret: timerl = 0x%08x, timermatchl = 0x%08x, mie = 0x%08x, mip = 0x%08x, mstatus.mpie = 0x%08x, mstatus.mie = 0x%08x, startmstatus = 0x%08x\n", cpu.timerl, cpu.timermatchl, cpu.mie, cpu.mip, cpu.mstatus & 0x80, cpu.mstatus & 0x8, startmstatus));
