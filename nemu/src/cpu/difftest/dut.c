@@ -29,6 +29,7 @@ void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) =
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
+uint32_t (*ref_difftest_store)(uint32_t waddr, uint32_t *wdata) = NULL;
 
 #ifdef CONFIG_DIFFTEST
 
@@ -103,6 +104,12 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 	}
 	assert(ref_difftest_raise_intr);
 
+	ref_difftest_store = dlsym(handle, "difftest_store");
+	if(ref_difftest_store == NULL) {
+		printf("(nemu) difftest_store init fail\n");
+	}
+	assert(ref_difftest_store);
+
 	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
 	if(ref_difftest_init == NULL) {
 		printf("(nemu) difftest_init init fail\n");
@@ -162,6 +169,9 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
 		ref_difftest_exec(1);
 
   ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+
+	if(cpu.wvalid)
+		ref_difftest_store(cpu.waddr, &ref_r.wdata);
 
   checkregs(&ref_r, pc);
 }

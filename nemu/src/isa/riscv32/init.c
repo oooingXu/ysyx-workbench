@@ -44,7 +44,7 @@ static void restart() {
 	cpu.marchid		= 0x5;
 	cpu.mvendorid = 0;
 	cpu.mimpid = 0;
-	cpu.pmpaddr0 = 0;
+	//cpu.pmpaddr0 = 0;
 
 }
 

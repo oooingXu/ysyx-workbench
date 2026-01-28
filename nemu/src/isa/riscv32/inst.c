@@ -150,6 +150,8 @@ static int decode_exec(Decode *s) {
   word_t src1 = 0, src2 = 0, imm = 0, uimm = 0;
   s->dnpc = s->snpc;
 
+	cpu.wvalid = 0;
+
   int zimm = BITS(s->isa.inst.val, 19, 15);
 	uint32_t csr = BITS(s->isa.inst.val, 31, 20);
 	//printf("inst = 0x%08x\n", s->isa.inst.val);
@@ -184,9 +186,9 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = (src1 + imm) & ~(word_t)1; IFDEF(CONFIG_FTRACE, jalr_print(s->isa.inst.val, rd, imm, s->pc, s->dnpc)); R(rd) = s->pc + 4);
 	INSTPAT("??????? ????? ????? ??? ????? 11001 11", ret		 , I, s->dnpc = R(1); IFDEF(CONFIG_FTRACE, printf("0x%08x: ret  [%s]\n", s->pc, get_func_name(s->pc))));
-  INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sb: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 1)); Mw(src1 + imm, 1, src2));
-  INSTPAT("??????? ????? ????? 001 ????? 01000 11", sh     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sh: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 2)); Mw(src1 + imm, 2, src2));
-  INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sw: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 4)); Mw(src1 + imm, 4, src2));
+  INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sb: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 1)); Mw(src1 + imm, 1, src2); cpu.waddr = src1 + imm; cpu.wdata = Mr(src1 + imm, 4); cpu.wvalid = 1);
+  INSTPAT("??????? ????? ????? 001 ????? 01000 11", sh     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sh: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 2)); Mw(src1 + imm, 2, src2); cpu.waddr = src1 + imm; cpu.wdata = Mr(src1 + imm, 4); cpu.wvalid = 1);
+  INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, IFDEF(CONFIG_MTRACE, printf("(nemu) sw: addr = 0x%08x, data = 0x%08x, size = %d\n", src1 + imm, src2, 4)); Mw(src1 + imm, 4, src2); cpu.waddr = src1 + imm; cpu.wdata = Mr(src1 + imm, 4); cpu.wvalid = 1);
 
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, s->dnpc = (src1 == src2) ? (s->pc + imm) & ~(uint32_t)1: s->dnpc);
   INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, s->dnpc = (src1 != src2) ? (s->pc + imm) & ~(uint32_t)1: s->dnpc); 
@@ -228,17 +230,17 @@ static int decode_exec(Decode *s) {
 
 #ifdef CONFIG_RVA
 	// A
-  INSTPAT("00000 ?? ????? ????? 010 ????? 0101111", amoadd.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t + src2); R(rd) = t); 
-  INSTPAT("01100 ?? ????? ????? 010 ????? 0101111", amoand.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t & src2); R(rd) = t); 
-  INSTPAT("10100 ?? ????? ????? 010 ????? 0101111", amomax.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (int32_t)t > (int32_t)src2 ? t : src2); R(rd) = t); 
-  INSTPAT("11100 ?? ????? ????? 010 ????? 0101111", amomaxu.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (uint32_t)t > (uint32_t)src2 ? t : src2); R(rd) = t); 
-  INSTPAT("10000 ?? ????? ????? 010 ????? 0101111", amomin.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (int32_t)t < (int32_t)src2 ? t : src2); R(rd) = t); 
-  INSTPAT("11000 ?? ????? ????? 010 ????? 0101111", amominu.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (uint32_t)t < (uint32_t)src2 ? t : src2); R(rd) = t); 
-  INSTPAT("01000 ?? ????? ????? 010 ????? 0101111", amoor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t | src2); R(rd) = t); 
-  INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t); 
-  INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t); 
+  INSTPAT("00000 ?? ????? ????? 010 ????? 0101111", amoadd.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t + src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("01100 ?? ????? ????? 010 ????? 0101111", amoand.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t & src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("10100 ?? ????? ????? 010 ????? 0101111", amomax.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (int32_t)t > (int32_t)src2 ? t : src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("11100 ?? ????? ????? 010 ????? 0101111", amomaxu.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (uint32_t)t > (uint32_t)src2 ? t : src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("10000 ?? ????? ????? 010 ????? 0101111", amomin.w,  A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (int32_t)t < (int32_t)src2 ? t : src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("11000 ?? ????? ????? 010 ????? 0101111", amominu.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, (uint32_t)t < (uint32_t)src2 ? t : src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("01000 ?? ????? ????? 010 ????? 0101111", amoor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t | src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("00100 ?? ????? ????? 010 ????? 0101111", amoxor.w,	 A, uint32_t t = Mr(src1, 4); Mw(src1, 4, t ^ src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
+  INSTPAT("00001 ?? ????? ????? 010 ????? 0101111", amoswap.w, A, uint32_t t = Mr(src1, 4); Mw(src1, 4, src2); R(rd) = t; cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4)); 
   INSTPAT("00010 ?? 00000 ????? 010 ????? 0101111", lr.w,			 A, uint32_t t = Mr(src1, 4); R(rd) = t; cpu.extraflags = (cpu.extraflags & 0x07) | (src1 << 3); IFDEF(CONFIG_DEBUG_A, printf("(nemu) lr.w: addr = 0x%08x, value = 0x%08x, rd = %d, extraflags = 0x%08x, pc = 0x%08x\n", src1, t, rd, cpu.extraflags, s->pc)));
-  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, uint32_t rval = ((cpu.extraflags >> 3) != (src1 & 0x1fffffff)); R(rd) = rval; if(!rval) { Mw(src1, 4, src2); } IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, reserved_addr = 0x%08x, src1 = 0x%08x, rval = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), cpu.extraflags >> 3, src1, rval, s->pc, s->dnpc))); 
+  INSTPAT("00011 ?? ????? ????? 010 ????? 0101111", sc.w,			 A, uint32_t rval = ((cpu.extraflags >> 3) != (src1 & 0x1fffffff)); R(rd) = rval; if(!rval) { Mw(src1, 4, src2); cpu.wvalid = 1; cpu.waddr = src1; cpu.wdata = Mr(src1, 4);} IFDEF(CONFIG_DEBUG_A, printf("(nemu) sc.w: R(%d) = 0x%08x, R(%d) = 0x%08x, R(%d) = 0x%08x, reserved_addr = 0x%08x, src1 = 0x%08x, rval = %d, pc = 0x%08x, dnpc = 0x%08x\n", rs1, R(rs1), rs2, R(rs2), rd, R(rd), cpu.extraflags >> 3, src1, rval, s->pc, s->dnpc))); 
 #endif
 
 #ifdef CONFIG_RVC

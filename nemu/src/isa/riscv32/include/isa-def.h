@@ -20,6 +20,10 @@
 extern const char *regs[]; 
 
 typedef struct {
+	// Note: only a few bits are used.  (Machine = 3, User = 0)
+	// Bits 0..1 = privilege.
+	// Bit 2 = WFI (Wait for interrupt)
+	// Bit 3+ = Load/Store reservation LSBs.
 	word_t extraflags;
 
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
@@ -29,17 +33,25 @@ typedef struct {
 	word_t mcause;
 	word_t mtvec;
 	word_t mstatus;
-	word_t mvendorid;
-	word_t marchid;
 
 	word_t mie;
 	word_t mscratch;
 	word_t mtval;
 	word_t mip;
-	word_t pmpcfgr0;
-	word_t pmpaddr0;
+
+	word_t wdata;
+
+	word_t waddr;
+	word_t wvalid;
+
+	//word_t pmpcfgr0;
+	//word_t pmpaddr0;
+
 	word_t mimpid;
 	word_t mhartid;
+
+	word_t mvendorid;
+	word_t marchid;
 
 #ifdef CONFIG_RVDF
   double dgpr[32];
@@ -54,10 +66,6 @@ typedef struct {
 	word_t timermatchl;
 	word_t timermatchh;
 
-	// Note: only a few bits are used.  (Machine = 3, User = 0)
-	// Bits 0..1 = privilege.
-	// Bit 2 = WFI (Wait for interrupt)
-	// Bit 3+ = Load/Store reservation LSBs.
 	word_t trap;
 	//bool INTR;
 

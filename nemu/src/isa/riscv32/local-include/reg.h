@@ -64,8 +64,8 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case MTVAL:     return &(cpu.mtval);
 		case MSCRATCH:  return &(cpu.mscratch);
 		case MIP:       return &(cpu.mip);
-		case PMPCFGR0:  return &(cpu.pmpcfgr0);
-		case PMPADDR0:  return &(cpu.pmpaddr0);
+		//case PMPCFGR0:  return &(cpu.pmpcfgr0);
+		//case PMPADDR0:  return &(cpu.pmpaddr0);
 		case CYCLE:     return &(cpu.cyclel);
 		case CYCLEH:    return &(cpu.cycleh);
 		case MVENDORID: return &(cpu.mvendorid);

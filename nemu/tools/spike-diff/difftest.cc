@@ -67,17 +67,20 @@ struct diff_context_t {
 	uint32_t mcause;
 	uint32_t mtvec;
 	uint32_t mstatus;
-	uint32_t mvendorid;
-	uint32_t marchid;
 
 	uint32_t mie;
 	uint32_t mscratch;
 	uint32_t mtval;
 	uint32_t mip;
-	uint32_t pmpcfgr0;
-	uint32_t pmpaddr0;
-	uint32_t mimpid;
-	uint32_t mhartid;
+
+	//uint32_t mvendorid;
+	//uint32_t marchid;
+
+	//uint32_t pmpcfgr0;
+	//uint32_t pmpaddr0;
+
+	//uint32_t mimpid;
+	//uint32_t mhartid;
 };
 
 
@@ -107,13 +110,14 @@ void sim_t::diff_get_regs(void* diff_context) {
 	ctx->mcause    = state->mcause->read();
 	ctx->mtval     = state->mtval->read();
 	ctx->mip       = state->mip->read();
-	ctx->pmpaddr0  = state->pmpaddr[0]->read();
 	ctx->mscratch  = 0;
-	ctx->pmpcfgr0  = 0;
-	ctx->mvendorid = 0;
-	ctx->marchid   = 0;
-	ctx->mimpid		 = 0;
-	ctx->mhartid   = 0;
+
+	//ctx->pmpaddr0  = state->pmpaddr[0]->read();
+	//ctx->pmpcfgr0  = 0;
+	//ctx->mvendorid = 0;
+	//ctx->marchid   = 0;
+	//ctx->mimpid		 = 0;
+	//ctx->mhartid   = 0;
 	
 #ifdef CONFIG_DEBUG_DIFFTEST
 	for(int i = 0; i < NR_GPR / 4 ; i++) {
@@ -220,6 +224,12 @@ __EXPORT void difftest_raise_intr(uint64_t NO) {
 	//printf("\n\n\ndifftest_raise_intr NO = 0x%08lx\n\n\n", NO);
   trap_t t(NO);
   p->take_trap_public(t, state->pc);
+}
+
+__EXPORT void difftest_store(uint32_t waddr, uint32_t *wdata) {
+  mmu_t* mmu = p->get_mmu();
+
+	*wdata = mmu->load<uint32_t>(waddr);
 }
 
 }

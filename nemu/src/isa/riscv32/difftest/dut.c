@@ -96,6 +96,11 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
+	if(cpu.wvalid && (ref_r->wdata != cpu.wdata)) {
+		printf("ref_r->wdata = 0x%08x, cpu.wdata = 0x%08x\n", ref_r->wdata, cpu.wdata);
+		check = false;
+	}
+
 	//if(ref_r->pmpaddr0 != cpu.pmpaddr0) {
 	//	printf("ref_r->pmpaddr0 = 0x%08x, cpu.pmpaddr0 = 0x%08x\n", ref_r->pmpaddr0, cpu.pmpaddr0);
 	//	check = false;
