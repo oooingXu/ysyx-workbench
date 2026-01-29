@@ -104,8 +104,7 @@ static long load_img() {
 
   fclose(fp);
 #ifdef CONFIG_NOMMULINUX
-  //return CONFIG_MSIZE;
-  return size;
+  return CONFIG_MSIZE;
 #else
   return size;
 #endif
