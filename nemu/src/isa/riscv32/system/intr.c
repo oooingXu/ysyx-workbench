@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <common.h>
+#include <cpu/difftest.h>
 
 #define MSTATUS 0x300
 #define MTVEC		0x305
@@ -26,6 +27,10 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	//	cpu.mtval = 0;
 	//else 
 	//	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
+
+	if(cpu.trap & 0x80000000)  														 
+		difftest_skip_ref();
+
 	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
 
 	// TRICKY: The kernel advances mepc automatically

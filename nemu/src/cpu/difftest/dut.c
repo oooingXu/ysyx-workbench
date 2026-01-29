@@ -30,7 +30,7 @@ void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 
-void (*ref_difftest_mem)(uint32_t addr) = NULL;
+void (*ref_difftest_pmem)(uint32_t addr) = NULL;
 uint32_t (*ref_difftest_store)(uint32_t waddr, uint32_t *wdata) = NULL;
 
 #ifdef CONFIG_DIFFTEST
@@ -54,7 +54,7 @@ void difftest_skip_ref() {
 }
 
 void p_ref_mem(uint32_t addr) {
-	ref_difftest_mem(addr);
+	ref_difftest_pmem(addr);
 }
 
 // this is used to deal with instruction packing in QEMU.
@@ -110,11 +110,11 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 	}
 	assert(ref_difftest_raise_intr);
 
-	ref_difftest_mem = dlsym(handle, "difftest_mem");
-	if(ref_difftest_mem == NULL) {
-		printf("(nemu) difftest_mem init fail\n");
+	ref_difftest_pmem = dlsym(handle, "difftest_pmem");
+	if(ref_difftest_pmem == NULL) {
+		printf("(nemu) difftest_pmem init fail\n");
 	}
-	assert(ref_difftest_mem);
+	assert(ref_difftest_pmem);
 
 	ref_difftest_store = dlsym(handle, "difftest_store");
 	if(ref_difftest_store == NULL) {

@@ -164,7 +164,6 @@ static void execute(uint64_t n) {
 		if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
 			cpu.extraflags &= ~4; // Clear WFI
 			cpu.mip |= 0x80; // MTIP of MIP Fire interrupt
-			difftest_skip_ref();
 		} else {
 			cpu.mip &= ~0x80;
 		}
@@ -181,17 +180,22 @@ static void execute(uint64_t n) {
 			//else cpu.trap = 0x8000000b;
 
 			cpu.trap = 0x80000007;
-			cpu.pc -= 4;
 			
-			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: cpu.trap = 0x%08x, %d, %d, %d", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
-		} 
+			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("Timer interrupt: trap = 0x%08x, mip = %d, mtie = %d, mie = %d\n", cpu.trap, (cpu.mip & (1 << 7)) , (cpu.mie & (1 << 7)) /*mtie*/, (cpu.mstatus & 0x8) /*mie*/));
+			IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("timerl = 0x%08x, timerh = 0x%08x, timermatchl = 0x%08x, timermatchh = 0x%08x\n", cpu.timerl, cpu.timerh, cpu.timermatchl, cpu.timermatchh));
 
-#endif
+		} else {
+			g_nr_guest_inst ++;
+	  	exec_once(&s, cpu.pc);
+			IFDEF(CONFIG_IRBTRACE, iringbuf_add(s.isa.inst.val, cpu.pc));
+		}	
 
+#else
 	  g_nr_guest_inst ++;
 	  exec_once(&s, cpu.pc);
 
 		IFDEF(CONFIG_IRBTRACE, iringbuf_add(s.isa.inst.val, cpu.pc));
+#endif
 
 		// Handle traps and interrupts
 		if(cpu.trap) cpu.pc = isa_raise_intr(cpu.trap, cpu.pc);
