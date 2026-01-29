@@ -73,8 +73,8 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 			cpu.mcause     = diff_dut->mcause;
 			cpu.mtvec      = diff_dut->mtvec;
 			cpu.mstatus    = diff_dut->mstatus;
-			cpu.mvendorid  = diff_dut->mvendorid;
-			cpu.marchid    = diff_dut->marchid;
+			//cpu.mvendorid  = diff_dut->mvendorid;
+			//cpu.marchid    = diff_dut->marchid;
 			IFDEF(CONFIG_PDIFF, printf("(nemu) difftest_regcpu: TO REF\n"));
 	} else {
 		memcpy(diff_dut->gpr, &cpu.gpr, R * sizeof(cpu.gpr[0]));
@@ -84,8 +84,8 @@ __EXPORT void difftest_regcpy(void *dut, bool direction) {
 		diff_dut->mcause     = cpu.mcause;
 		diff_dut->mtvec      = cpu.mtvec;
 		diff_dut->mstatus    = cpu.mstatus;
-		diff_dut->mvendorid  = cpu.mvendorid;
-		diff_dut->marchid    = cpu.marchid;
+		//diff_dut->mvendorid  = cpu.mvendorid;
+		//diff_dut->marchid    = cpu.marchid;
 		IFDEF(CONFIG_PDIFF, printf("(nemu) difftest_regcpu: TO DUT\n"));
 	}
 	IFDEF(CONFIG_PDIFF, cpu_info());

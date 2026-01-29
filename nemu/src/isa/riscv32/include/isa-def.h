@@ -40,18 +40,17 @@ typedef struct {
 	word_t mip;
 
 	word_t wdata;
-
 	word_t waddr;
 	word_t wvalid;
 
 	//word_t pmpcfgr0;
 	//word_t pmpaddr0;
 
-	word_t mimpid;
-	word_t mhartid;
+	//word_t mimpid;
+	//word_t mhartid;
 
-	word_t mvendorid;
-	word_t marchid;
+	//word_t mvendorid;
+	//word_t marchid;
 
 #ifdef CONFIG_RVDF
   double dgpr[32];
@@ -61,6 +60,7 @@ typedef struct {
 
 	word_t cyclel;
 	word_t cycleh;
+
 	word_t timerl;
 	word_t timerh;
 	word_t timermatchl;

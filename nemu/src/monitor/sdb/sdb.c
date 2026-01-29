@@ -16,6 +16,7 @@
 #include <isa.h>
 #include <cpu/cpu.h>
 #include <cpu/trace.h>
+#include <cpu/difftest.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -108,9 +109,20 @@ static int cmd_p(char* args) {
 	bool success = true;
 	uint32_t number = expr(args,&success);
 	if(success == true){
-		printf("0x%08x\n",number);
+		printf("(dut): 0x%08x\n",number);
 	}
 	
+	return 0;
+}
+
+static int cmd_p_ref(char* args){
+#ifdef CONFIG_DIFFTEST 
+		uint32_t addr;
+
+		sscanf(args,"*%x",&addr);
+		p_ref_mem(addr);
+#endif
+
 	return 0;
 }
 
@@ -214,6 +226,7 @@ static struct {
 	{ "info", "Print the SUBCMD information", cmd_info},
 	{ "x", "Scan the memory", cmd_x},
 	{ "p", "Print expression", cmd_p},
+	{ "p_ref", "Print expression of ref mem", cmd_p_ref},
 	{ "pirb", "Print expression", cmd_pirb},
 	{ "w", "Create the watchpoint", cmd_w},
 	{ "d", "Delete the watchpoint", cmd_d},

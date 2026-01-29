@@ -41,9 +41,9 @@ static void restart() {
 	cpu.timermatchh = 0;
 
 	cpu.extraflags = 0x3;
-	cpu.marchid		= 0x5;
-	cpu.mvendorid = 0;
-	cpu.mimpid = 0;
+	//cpu.marchid		= 0x5;
+	//cpu.mvendorid = 0;
+	//cpu.mimpid = 0;
 	//cpu.pmpaddr0 = 0;
 
 }
