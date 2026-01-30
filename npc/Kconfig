@@ -9,6 +9,14 @@ config SOC
 	default y
 endmenu
 
+menu "ISA-dependent Options for riscv"
+
+config RVE
+  bool "Use E extension"
+  default n
+
+endmenu
+
 choice
 	prompt "Running mode"
 	default MODE_SYSTEM

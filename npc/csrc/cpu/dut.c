@@ -164,11 +164,8 @@ static bool isa_difftest_checkregs(CPU_state *ref, uint32_t pc){
 	}
 
 	bool mem_ret = isa_difftest_checkmem();
-	//return (reg_ret && csr_ret && pc_ret);
+
 	return (mem_ret && reg_ret && csr_ret && pc_ret);
-//	if(!(mem_ret && reg_ret && csr_ret && pc_ret)) return false;
-//
-//	return true;
 }
 
 

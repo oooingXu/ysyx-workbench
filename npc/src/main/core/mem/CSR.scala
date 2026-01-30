@@ -18,7 +18,7 @@ class ysyx_23060336_CSR extends Module{
 
   val mvendorid = RegInit("h79737978".U(Base.dataWidth.W))
   val marchid   = RegInit("h15fdf70".U(Base.dataWidth.W))
-  val mstatus   = RegInit("h3".U(Base.mstatusWidth.W))
+  val mstatus   = RegInit("h0".U(Base.mstatusWidth.W))
   val mcause    = RegInit("h0".U(Base.mcauseWidth.W))
   val mtvec     = RegInit("h0".U(Base.pcWidth.W))
   val mepc      = RegInit("h0".U(Base.pcWidth.W))

@@ -8,7 +8,12 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
+#ifdef CONFIG_RVE
 #define R 16
+#else
+#define R 32
+#endif
+
 #define C 4096
 
 #define MEPC    0x341
@@ -17,6 +22,8 @@
 #define MSTATUS 0x300
 
 typedef struct{
+	uint32_t extraflags;
+
 	uint32_t gpr[R];
 	uint32_t pc;
 
@@ -24,6 +31,12 @@ typedef struct{
 	uint32_t mcause;
 	uint32_t mtvec;
 	uint32_t mstatus;
+
+	//uint32_t mie;
+	//uint32_t mscratch;
+	//uint32_t mtval;
+	//uint32_t mip;
+
 	uint32_t mvendorid;  
 	uint32_t marchid;
 

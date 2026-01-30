@@ -225,9 +225,10 @@ static void init_npc(){
 	IFDEF(CONFIG_SOC, cpu.pc = 0x30000000);
 	IFDEF(CONFIG_NPC, cpu.pc = 0x80000000);
 
-	cpu.mstatus   = 0x1800;
-	cpu.mvendorid = 0x79737978;
-	cpu.marchid   = 0x015fdf70;
+	cpu.extraflags = 0x3;
+	//cpu.mstatus    = 0x1800;
+	cpu.mvendorid  = 0x79737978;
+	cpu.marchid    = 0x015fdf70;
 }
 
 static void trace_and_difftest(){
@@ -268,7 +269,7 @@ void sim_once(){
 
 void exec_once(){
 		sim_once(); // clock 1 -> 0
-		if(npc_state.state != NPC_END) trace_and_difftest();
+		if(npc_state.state != NPC_END && npc_state.state != NPC_ABORT) trace_and_difftest();
 		sim_once(); // clock 0 -> 1
 		renew_reg();
 		renew_pc();
@@ -315,7 +316,8 @@ void execute(uint64_t n){
 			break;
 		}
 
-		if(npc_state.state != NPC_RUNNING) break;
+		if(npc_state.state != NPC_RUNNING) 
+			break;
 
 		device_update();
 	}

@@ -115,6 +115,10 @@ run: $(BIN)
 	$(call git_commit, "run NPC")
 	$(NPC_EXEC) 
 
+gdb: $(BIN)
+	$(call git_commit, "gdb NPC")
+	gdb -s $(BIN) --args $(NPC_EXEC) 
+
 help:
 	mill -i $(PRJ).runMain Elaborate --help
 
