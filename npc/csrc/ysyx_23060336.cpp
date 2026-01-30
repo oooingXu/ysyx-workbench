@@ -390,8 +390,10 @@ static void welcome(){
 	printf("Welcome to %s\n", ANSI_FMT(
 #ifdef CONFIG_SOC 
 				"riscv32e-ysyxsoc"
-#else 
+#elif CONFIG_RVE
 				"riscv32e-npc"
+#else
+				"riscv32-npc"
 #endif
 				, ANSI_FG_GREEN));
 }

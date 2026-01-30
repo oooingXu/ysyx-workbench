@@ -2,6 +2,9 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+void init_regex();
+void init_wp_pool();
+
 static int quit = 0;
 int cmd_hello(char argv[]) {printf("hello \n"); return 0;};
 
@@ -24,7 +27,6 @@ static int cmd_si(char args[]) {
 	else{
 		sscanf(args,"%d", &n);
 	}
-	//debug("n = %d",n);
 	cpu_exec(n);
 	return 0;
 }
@@ -35,6 +37,8 @@ static int cmd_info(char args[]) {
 	}
 	else if(strcmp(args, "r") == 0) {
 		isa_reg_display();
+	} else if(strcmp(args, "w") == 0) {
+		watchpoint_display();
 	}
 
 	return 0;
@@ -67,7 +71,7 @@ static int cmd_p(char args[]){
 	bool success = true;
 	uint32_t number = expr(args, &success);
 	if(success == true){
-		printf("u\n", number);
+		printf("0x%08x\n", number);
 	}
 
 	return 0;
@@ -84,7 +88,7 @@ static int cmd_d(char args[]){
 		printf("No args,\n");
 	} else {
 		int number;
-		sscanf(args, "d", &number);
+		sscanf(args, "%d", &number);
 		delete_watchpoint(number);
 	}
 
@@ -152,7 +156,17 @@ static char* rl_gets() {
 	return line_read;                                                                                                                                                                                                                                                         
 }
 
+void init_sdb() {
+	/* Compile the regular expressions. */
+	init_regex();
+
+	/* Initialize the watchpoint pool. */                                                                                                  
+	init_wp_pool();
+}
+
 void sdb_main(){
+	init_sdb();
+
 	npc_state.state = NPC_RUNNING;
 	char str[MAX_STR_LEN]; // 用于存储输入的字符串
 	char cmd[MAX_CMD_LEN]; // 用于存储命令
@@ -236,3 +250,4 @@ for(quit = 0; quit == 0; ){
 //if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
 //}
 }
+
