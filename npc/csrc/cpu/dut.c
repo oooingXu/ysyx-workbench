@@ -33,28 +33,24 @@ void init_difftest(char *ref_so_file, long img_size){
 
 	void *handle;
 	handle = dlopen(ref_so_file, RTLD_LAZY);
-	//debug("handle = %p", handle);
 	if(handle == NULL) {
 		printf("(npc) Do not have ref_so_file\n");
 	}
 	assert(handle);
 
 	ref_difftest_memcpy = (void (*)(uint32_t, void*, size_t, int))dlsym(handle, "difftest_memcpy");
-	//debug("ref_difftest_memcpy = %p", ref_difftest_memcpy);
 	if(ref_difftest_memcpy == NULL) {
 		printf("(npc) difftest_memcpy init fail\n");
 	}
 	assert(ref_difftest_memcpy);
 
 	ref_difftest_regcpy = (void (*)(void*, bool))dlsym(handle, "difftest_regcpy");
-	//debug("ref_difftest_regcpy = %p", ref_difftest_regcpy);
 	if(ref_difftest_regcpy == NULL) {
 		printf("(npc) difftest_regcpy init fail\n");
 	}
 	assert(ref_difftest_regcpy);
 
 	ref_difftest_exec = (void (*)(uint64_t))dlsym(handle, "difftest_exec");
-	//debug("ref_difftest_exec = %p", ref_difftest_exec);
 	if(ref_difftest_exec == NULL) {
 		printf("(npc) difftest_exec init fail\n");
 	}
@@ -73,7 +69,6 @@ void init_difftest(char *ref_so_file, long img_size){
 	assert(ref_difftest_mem_diff);
 
 	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
-	//debug("ref_difftest_init = %p", ref_difftest_init);
 	if(ref_difftest_init == NULL) {
 		printf("(npc) difftest_init init fail\n");
 	}
@@ -81,7 +76,6 @@ void init_difftest(char *ref_so_file, long img_size){
 
 	Log("(npc) difftest init success: the ref-so is %s\n", ref_so_file);
 	ref_difftest_init(0);
-	//debug("success difftest_init");
 #ifdef CONFIG_SOC
 	ref_difftest_memcpy(0x30000000, guest_to_host(0), img_size, DIFFTEST_TO_YSYXSOC);
 #endif
@@ -89,9 +83,7 @@ void init_difftest(char *ref_so_file, long img_size){
 #ifdef CONFIG_NPC
 	ref_difftest_memcpy(0x80000000, guest_to_host(0x80000000), img_size, DIFFTEST_TO_NPC);
 #endif
-	//debug("success difftest_memcpy");
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
-	//debug("success difftest_regcpy");
 }
 
 static bool isa_difftest_checkmem() {

@@ -81,7 +81,7 @@ INVFLAGS ?=
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 
-CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecated -Wno-return-type
+CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecated -Wno-return-type -g
 
 $(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)

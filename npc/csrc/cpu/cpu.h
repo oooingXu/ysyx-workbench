@@ -31,7 +31,6 @@ typedef struct{
 	uint32_t reset;
 	bool		 valid;
 
-	char	logbuf[128];
 } CPU_state;
 
 extern CPU_state cpu;
