@@ -375,7 +375,7 @@ class ysyx_23060336_DECODE extends Module {
 
   dnpc_pc_1     := pc + 1.U
   dnpc_pc_imm   := pc + imm(31, 2)
-  dnpc_src1_imm := Mux(ecall, mtvec, Mux(mret, mepc, src1(31, 2) + imm(31, 2)))
+  dnpc_src1_imm := Mux(ecall, mtvec, Mux(mret, mepc, (src1 + imm)(31, 2)))
 
   // idu <> exu
   io.decode_idu_data.idu_exu_data.pc     := pc
