@@ -5,7 +5,10 @@ void (*ref_difftest_memcpy)(uint32_t addr, void *buf, size_t n, int direction) =
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint32_t NO) = NULL;
+
 void (*ref_difftest_mem_diff)(void *dut) = NULL;
+void (*ref_difftest_pmem)(uint32_t addr) = NULL;
+void (*ref_difftest_preg)(void) = NULL;
 
 static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
@@ -23,6 +26,14 @@ void difftest_skip_dut(CPU_state *ref, int nr_ref, int nr_dut) {
 	while(nr_ref-- > 0) {
 		ref_difftest_exec(1);
 	}
+}
+
+void p_ref_mem(uint32_t addr){
+	ref_difftest_pmem(addr);
+}
+
+void p_ref_reg(void) {
+	ref_difftest_preg();
 }
 
 void init_difftest(char *ref_so_file, long img_size){
@@ -68,6 +79,18 @@ void init_difftest(char *ref_so_file, long img_size){
 	}
 	assert(ref_difftest_mem_diff);
 
+	ref_difftest_pmem = (void (*)(uint32_t))dlsym(handle, "difftest_pmem");
+	if(ref_difftest_pmem == NULL) {
+		printf("(npc) difftest_pmem init fail\n");
+	}
+	assert(ref_difftest_pmem);
+
+	ref_difftest_preg = (void (*)(void))dlsym(handle, "difftest_preg");
+	if(ref_difftest_preg == NULL) {
+		printf("(npc) difftest_preg init fail\n");
+	}
+	assert(ref_difftest_preg);
+
 	void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
 	if(ref_difftest_init == NULL) {
 		printf("(npc) difftest_init init fail\n");
@@ -84,6 +107,14 @@ void init_difftest(char *ref_so_file, long img_size){
 	ref_difftest_memcpy(0x80000000, guest_to_host(0x80000000), img_size, DIFFTEST_TO_NPC);
 #endif
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+}
+
+void mem_diff_wdata_fix(uint32_t *wdata, uint32_t wstrb) {
+	switch(wstrb) {
+		case 0x1: *wdata &= 0xff; break;
+		case 0x3: *wdata &= 0xffff; break;
+		default: *wdata &= 0xffff; break;
+	}
 }
 
 static bool isa_difftest_checkmem() {
@@ -105,6 +136,9 @@ static bool isa_difftest_checkmem() {
 			printf("dut.arsize = 0x%08x, ref.arsize = 0x%08x\n", mem_diff.arsize, mem_ref.arsize);
 		}
 	} else if(mem_diff.awvalid) {
+		mem_diff_wdata_fix(&mem_diff.wdata, mem_diff.wstrb);
+		mem_diff_wdata_fix(&mem_ref.wdata, mem_ref.wstrb);
+
 		mem_ret = ((mem_diff.awaddr == mem_ref.awaddr) && (mem_diff.wdata == mem_ref.wdata) && (mem_diff.wstrb == mem_ref.wstrb));
 		if(!mem_ret) {
 			printf("Store Fail\n");

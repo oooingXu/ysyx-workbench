@@ -25,35 +25,16 @@ config MODE_SYSTEM
 	bool "System mode"
 endchoice
 
-config BATCH
-	bool "Enable batch"
-	default y
-
 menu "Testing and Debugging"
 
 config TRACE
 	bool "Enable tracer"
 	default y
 
-config TRACE_START
-	depends on TRACE
-	int "When tracing is enabled (uint: number of instructions)"
-	default 0
-
-config TRACE_END
-	depends on TRACE
-	int "When tracing is disabled (uint: number of instructions)"
-	default 10000
-
 config ITRACE
 	depends on TRACE
 	bool "Enable instruction itracer"
 	default y
-
-config ITRACE_COND
-	depends on IRACE
-	string "Only trace instructions when the condition is true"
-	default "true"
 
 config MTRACE
 	depends on TRACE
@@ -114,6 +95,16 @@ config IRINGBUF_DEBUG
 	depends on IRINGBUF
 	bool "Enable debug iringbuf"
 	default n
+
+config WATCHPOINT
+ depends on TRACE
+	bool "Enable watchpoint"
+	default n
+
+config BATCH
+ depends on TRACE
+	bool "Enable batch"
+	default y
 
 config DIFFTEST
  depends on TRACE

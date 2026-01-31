@@ -77,6 +77,32 @@ static int cmd_p(char args[]){
 	return 0;
 }
 
+static int cmd_p_ref(char args[]){
+#ifdef CONFIG_DIFFTEST
+	if(args == NULL){
+		printf("No args\n");
+
+		return 0;
+	}
+
+	uint32_t addr;
+	if (sscanf(args, "%x", &addr) != 1) {
+    printf("Invalid address format: %s\n", args);
+    printf("Expected hexadecimal address (e.g., 0x1000 or 1000)\n");
+    return 0;
+  }
+	p_ref_mem(addr);
+#endif
+
+	return 0;
+}
+
+static int cmd_p_ref_reg(char args[]){
+	p_ref_reg();
+
+	return 0;
+}
+
 static int cmd_w(char args[]){
 	create_watchpoint(args);
 
@@ -109,6 +135,8 @@ static struct {
 	{ "info", "Print the SUBCMD information", cmd_info},
 	{ "x", "Scan the memory", cmd_x},
 	{ "p", "Print expression", cmd_p},
+	{ "p_ref", "Print memory in ref", cmd_p_ref},
+	{ "p_ref_reg", "Print reg in ref", cmd_p_ref_reg},
 	{ "d", "Delete the watchpoint", cmd_d},
 	{ "w", "Create the watchpoint", cmd_w},
 	{ "hello", "test hello", cmd_hello},
@@ -139,23 +167,6 @@ static int cmd_help(char *args) {
   return 0;
 }
 
-static char* rl_gets() {
-	static char *line_read = NULL; 
-
-	if (line_read) {
-		free(line_read);
-		line_read = NULL;
-	}              
-
-	line_read = readline("(nemu) "); 
-
-	if (line_read && *line_read) {  
-		add_history(line_read);
-	}                                                                                                                                                                                                                                                                         
-
-	return line_read;                                                                                                                                                                                                                                                         
-}
-
 void init_sdb() {
 	/* Compile the regular expressions. */
 	init_regex();
@@ -181,13 +192,11 @@ for(quit = 0; quit == 0; ){
     
     scanf(" %[^\n]", str);  
     while(getchar() != '\n'); // 清空缓冲区
-    //debug("str = %s\n", str);                                                                                                  
     
     // 使用strtok分割命令和参数
     char *token = strtok(str, " ");
     if(token != NULL) {
         strncpy(cmd, token, MAX_CMD_LEN - 1); // 复制命令
-        //debug("cmd = %s\n", cmd);                                                                                                 
     } else {
         printf("Fail to create cmd\n");                                                                                         
         continue; // 继续下一次循环
@@ -206,8 +215,6 @@ for(quit = 0; quit == 0; ){
       args[0] = '\0';
     }
     
-    //debug("args = %s\n", args);                                                                                               
-    
     // 处理命令
     int i = 0;      
     for(; i < NR_CMD; i++){                                                                                                   
@@ -220,34 +227,5 @@ for(quit = 0; quit == 0; ){
     if(i == NR_CMD) printf("Unkowen command '%s'\n", cmd);                                                                    
 	}    
 
-//for (char *str; (str = rl_gets()) != NULL; ) { 
-//char *str_end = str + strlen(str);   
-//
-///* extract the first token as the command */ 
-//char *cmd = strtok(str, " ");     
-//if (cmd == NULL) { continue; }
-///* treat the remaining string as the arguments, 
-//* which may need further parsing  
-//*/        
-//char *args = cmd + strlen(cmd) + 1;
-//if (args >= str_end) {  
-//args = NULL;      
-//}               
-//
-//#ifdef CONFIG_DEVICE 
-//extern void sdl_clear_event_queue();
-//sdl_clear_event_queue();       
-//#endif             
-//
-//int i;            
-//for (i = 0; i < NR_CMD; i ++) {    
-//if (strcmp(cmd, cmd_table[i].name) == 0) {  
-//if (cmd_table[i].handler(args) < 0) { return; }  
-//break;                              
-//}                                  
-//}                                
-//
-//if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
-//}
 }
 

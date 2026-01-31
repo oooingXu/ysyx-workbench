@@ -239,6 +239,32 @@ static void trace_and_difftest(){
 		// difftest
 		//printf("(npc) Begin: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		IFDEF(CONFIG_DIFFTEST,  difftest_step()); 
+
+#ifdef CONFIG_WATCHPOINT
+		WP *wp = get_head();
+		while(wp != NULL){
+			bool success = true;
+			debug("success = %d\n",success);
+			debug("expr = %s\n",wp->expr);
+			wp->new_value = expr(wp->expr, &success);
+			if(success){
+				if(wp->new_value != wp->old_value){
+					printf("old_value = 0x%08x\n",wp->old_value);
+					printf("new_value = 0x%08x\n",wp->new_value);
+					debug("cpu.exec.c No equal.\n");
+					if(npc_state.state == NPC_RUNNING)
+						npc_state.state = NPC_STOP;
+					wp->old_value = wp->new_value;
+				}
+			}
+			else{
+				printf("cpu-exec.c exper error\n");
+				debug("cpu.exec.c error\n");
+			}
+			wp = wp->next;
+		}
+#endif
+
 		iringbuf_add(mem_diff.inst, cpu.pc);
 		//printf("(npc) End: cpu.pc = 0x%08x, cpu.dnpc = 0x%08x, pipeline_pc = 0x%08x, pipeline_inst = 0x%08x\n", cpu.pc, cpu.dnpc, pipeline_pc, pipeline_inst);
 		// exec once inst
