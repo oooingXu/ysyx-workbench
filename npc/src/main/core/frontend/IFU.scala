@@ -10,13 +10,14 @@ class ysyx_23060336_IFU extends Module{
     val axi          = new ysyx_23060336_AXI4Master()
   })
 
-  val npc = if(Config.useNPCSim) {"h20000000".U(Base.pcWidth.W)} else {"h0c000000".U(Base.pcWidth.W)}
+  val npc     = if(Config.useNPCSim) {"h20000000".U(Base.pcWidth.W)} else {"h0c000000".U(Base.pcWidth.W)}
   val PC      = RegInit(npc)
 
   val araddr  = Wire(UInt(Base.pcWidth.W))
   val preaddr = Wire(UInt(Base.pcWidth.W))
   val flush   = Wire(Bool())
 
+  // state machine 
   val s_wait_arready :: s_wait_rlast :: s_wait_rlast_flush :: s_wait_ready :: Nil = Enum(4)
   val state = RegInit(s_wait_arready)
   state := MuxLookup(state, s_wait_arready)(List(
@@ -39,6 +40,7 @@ class ysyx_23060336_IFU extends Module{
   preaddr := PC + 1.U
   flush   := io.exu_ifu_raw.isRAW_control
 
+  // axi 
   io.axi.araddr  := Cat(araddr, 0.U(2.W))
   io.axi.rready  := io.ifu_idu_data.ready
   io.axi.arvalid := state === s_wait_arready

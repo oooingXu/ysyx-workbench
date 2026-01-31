@@ -2,7 +2,7 @@ package npc
 
 object Base {
   // riscv32e
-  val regNumber     = 16
+  val regNumber     = 32
 
   // idu sign
   val pcmuxWidth    = 2
@@ -12,7 +12,7 @@ object Base {
   val PCMuxWidth    = 3
   val AluSelWidth   = 4
   val AluMuxWidth   = 4
-  val rdWidth       = 4
+  val rdWidth       = 5
   val csrWidth      = 12
   val pcWidth       = 30
 

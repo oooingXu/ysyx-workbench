@@ -66,12 +66,12 @@ class ysyx_23060336_ALU(n: Int) extends Module {
       6.U(Base.AluSelWidth.W)  -> out7,  // a >> b A
       7.U(Base.AluSelWidth.W)  -> out7,  // a << b
       8.U(Base.AluSelWidth.W)  -> out7,  // a >>> b L
-      9.U(Base.AluSelWidth.W)  -> lt_s, // a < b 
-      10.U(Base.AluSelWidth.W) -> lt_u, // a < b u
-      11.U(Base.AluSelWidth.W) -> ge_s, // a >= b 
-      12.U(Base.AluSelWidth.W) -> geu_u, // a >= b u 
-      13.U(Base.AluSelWidth.W) -> beq, // a == b
-      14.U(Base.AluSelWidth.W) -> neq// a != b
+      9.U(Base.AluSelWidth.W)  -> lt_s,  // a < b
+      10.U(Base.AluSelWidth.W) -> lt_u,  // a < b u
+      11.U(Base.AluSelWidth.W) -> ge_s,  // a >= b
+      12.U(Base.AluSelWidth.W) -> geu_u, // a >= b u
+      13.U(Base.AluSelWidth.W) -> beq,   // a == b
+      14.U(Base.AluSelWidth.W) -> neq    // a != b
     )
   )
 } 

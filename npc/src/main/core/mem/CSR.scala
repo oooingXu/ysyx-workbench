@@ -43,17 +43,17 @@ class ysyx_23060336_CSR extends Module{
 
   io.csr_idu_data.mepc    := mepc
   io.csr_idu_data.mtvec   := mtvec
-  io.csr_idu_data.csrdata := Mux(io.csr_idu_data.csr === MEPC, Cat(mepc, 0.U(2.W)), Mux(io.csr_idu_data.csr === MCAUSE, Cat(0.U(28.W), mcause), Mux(io.csr_idu_data.csr === MSTATUS, Cat(0.U(19.W), mstatus, 0.U(11.W)), Mux(io.csr_idu_data.csr === MTVEC, Cat(mtvec, 0.U(2.W)), Mux(io.csr_idu_data.csr === MVENDORID, mvendorid, Mux(io.csr_idu_data.csr === MARCHID, marchid, 0.U))))))
+  //io.csr_idu_data.csrdata := Mux(io.csr_idu_data.csr === MEPC, Cat(mepc, 0.U(2.W)), Mux(io.csr_idu_data.csr === MCAUSE, Cat(0.U(28.W), mcause), Mux(io.csr_idu_data.csr === MSTATUS, Cat(0.U(19.W), mstatus, 0.U(11.W)), Mux(io.csr_idu_data.csr === MTVEC, Cat(mtvec, 0.U(2.W)), Mux(io.csr_idu_data.csr === MVENDORID, mvendorid, Mux(io.csr_idu_data.csr === MARCHID, marchid, 0.U))))))
 
-  //io.csr_idu_data.csrdata := MuxLookup(io.csr_idu_data.csr, 0.U)(
-  //  Seq(
-  //    MEPC      -> Cat(mepc, 0.U(2.W)),
-  //    MCAUSE    -> Cat(0.U(28.W), mcause),
-  //    MSTATUS   -> Cat(0.U(19.W), mstatus, 0.U(11.W)),
-  //    MTVEC     -> Cat(mtvec, 0.U(2.W)),
-  //    MVENDORID -> mvendorid,
-  //    MARCHID   -> marchid
-  //  )
-  //)
+  io.csr_idu_data.csrdata := MuxLookup(io.csr_idu_data.csr, 0.U)(
+    Seq(
+      MEPC      -> Cat(mepc, 0.U(2.W)),
+      MCAUSE    -> Cat(0.U(28.W), mcause),
+      MSTATUS   -> Cat(0.U(19.W), mstatus, 0.U(11.W)),
+      MTVEC     -> Cat(mtvec, 0.U(2.W)),
+      MVENDORID -> mvendorid,
+      MARCHID   -> marchid
+    )
+  )
 }
 

@@ -1,11 +1,11 @@
 mainmenu "ysyx_23060336 Configuration Menu"
 
-menu "ISA-dependent Options for riscv"
+menu "Architecture"
 config NPC
-	bool "riscv32e-npc"
+	bool "riscv32-npc"
 	default n
 config SOC
-	bool "riscv32e-ysyxsoc"
+	bool "riscv32-ysyxsoc"
 	default y
 endmenu
 
