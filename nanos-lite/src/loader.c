@@ -15,7 +15,7 @@ size_t ramdisk_read(void *buf, size_t offset, size_t len);
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
 
-	Log("loader info: start = 0x%08x", (uint32_t)&ramdisk_start);
+	Log("loader info: start = 0x%08x", (uintptr_t)&ramdisk_start);
 
 	// init Elf_Ehdr
 	Elf_Ehdr *ehdr = malloc(sizeof(Elf_Ehdr));

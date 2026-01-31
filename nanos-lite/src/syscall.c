@@ -31,6 +31,8 @@ void do_syscall(Context *c) {
 			c->GPRx = 0;
 			break;
 		case SYS_close: c->GPRx = 0; break;
+		// TODO
+		case SYS_lseek: c->GPRx = 0; break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }

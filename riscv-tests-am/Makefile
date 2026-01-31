@@ -48,7 +48,11 @@ run: all
 
 gdb: all
 
+sim: all
+	@cat $(RESULT)
+	@rm $(RESULT)
+
 clean:
 	rm -rf Makefile-* build/
 
-.PHONY: all run clean $(ALL)
+.PHONY: all sim run clean $(ALL)
