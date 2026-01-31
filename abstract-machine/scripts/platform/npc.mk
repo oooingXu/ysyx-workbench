@@ -26,8 +26,13 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	@$(MAKE) -C $(NPC_HOME) ISA=$(ISA) run IMG=$(IMAGE).bin
-	#@$(NPC_HOME)/build/ysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
+	@$(MAKE) -C $(NPC_HOME) run IMG=$(IMAGE).bin
+
+gdb: image
+	@$(MAKE) -C $(NPC_HOME) gdb IMG=$(IMAGE).bin
+
+sim: image
+	@$(NPC_HOME)/build/ysyx_23060336 $(IMAGE).bin $(DIFF_REF_SO)
 	
 cleansim:
 	@$(MAKE) -C $(NPC_HOME) clean
