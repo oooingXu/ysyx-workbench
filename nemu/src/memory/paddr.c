@@ -209,9 +209,11 @@ word_t paddr_read(paddr_t addr, int len) {
 		rdata = psram_read(addr, len);
 		mem_diff_load_update(rdata, addr, len);
 		return rdata;
+#ifdef CONFIG_NOMMULINUX
 	} else if(in_mmio_range(addr)) { // UART, CLINT
 		difftest_skip_ref();
 		return HandleControlLoad(addr);
+#endif
 	} else {
 		IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
 		cpu.trap = 5; // Handle access violation on instruction read

@@ -76,6 +76,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 
 	// difftest
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
 #ifdef CONFIG_WATCHPOINT
 		WP *wp = get_head();
 		while(wp != NULL){
@@ -100,6 +101,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 			wp = wp->next;
 		}
 #endif
+
 }
 
 static void statistic() {
