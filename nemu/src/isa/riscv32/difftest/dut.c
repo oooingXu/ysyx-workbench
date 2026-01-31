@@ -25,6 +25,12 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	bool check = true;
 	uint32_t inst = paddr_read(pc, 4);
 
+#ifdef CONFIG_RVE
+#define R 16
+#else 
+#define R 32
+#endif
+
 #ifdef CONFIG_DEBUG_DIFFTEST
 	printf("\n(nemu) gpr\n");
 	printf("pc = 0x%08x\n", pc);
@@ -32,7 +38,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	printf("inst = 0x%08x\n", inst);
 	printf("prv = %d\n", cpu.extraflags & 0x3);
 	itrace(inst, pc);
-	for(int i = 0; i < 32 / 4 ; i++) {
+	for(int i = 0; i < R / 4 ; i++) {
 		for(int j = 0; j < 4; j++){
 			printf("%2d[%-3s] --->  0x%08x  ", j + i * 4, regs[j + i * 4], cpu.gpr[j + i * 4]);
 		}
@@ -50,7 +56,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
-	for(int i = 0; i < 32; i++){
+	for(int i = 0; i < R; i++){
 		if(ref_r->gpr[i] != cpu.gpr[i]){
 			printf("ref_r->gpr[%d] = 0x%08x, cpu.gpr[%d] = 0x%08x, pc = 0x%08x, inst = 0x%08x\n", i, ref_r->gpr[i], i, cpu.gpr[i], pc, inst);
 			check = false;

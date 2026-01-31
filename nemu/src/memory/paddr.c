@@ -128,6 +128,7 @@ static void mem_diff_load_update(paddr_t rdata, paddr_t addr, int len) {
 	}
 }
 
+#ifdef CONFIG_NOMMULINUX
 // nolinux
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -189,6 +190,7 @@ static void HandleControlStore(uint32_t addr, uint32_t data) {
 		cpu.pc += 4;
 	}
 }
+#endif
 
 word_t paddr_read(paddr_t addr, int len) {
 	//IFDEF(CONFIG_MTRACE, printf("(nemu) pread  at " FMT_PADDR " len = %d\n", addr, len));
@@ -240,11 +242,12 @@ void paddr_write(paddr_t addr, int len, word_t data) {
  } else if(in_psram(addr)) {
 	 IFDEF(CONFIG_PMTRACE, printf("(nemu) psram WRITE: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, data, len));
 	 psram_write(addr, len, data); return;
+#ifdef CONFIG_NOMMULINUX
  } else if(in_mmio_range(addr)) { // UART, CLINT
 	 difftest_skip_ref();
 	 HandleControlStore(addr, data);
- } 
- else {
+#endif
+ } else {
 	 IFDEF(CONFIG_DEVICE,  mmio_write(addr, len, data); return);
 	 cpu.trap = 7;
  }
