@@ -27,7 +27,7 @@ void difftest_step(vaddr_t pc, vaddr_t npc);
 void difftest_detach();
 void difftest_attach();
 
-void p_ref_mem(uint32_t addr);
+void x_ref_mem(uint32_t addr);
 #else
 static inline void difftest_skip_ref() {}
 static inline void difftest_skip_dut(int nr_ref, int nr_dut) {}

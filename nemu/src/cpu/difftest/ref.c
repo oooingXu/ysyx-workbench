@@ -126,7 +126,7 @@ __EXPORT void difftest_pmem(uint32_t addr) {
 	printf("(nemu): data = 0x%08x\n", paddr_read(addr, 4));
 }
 
-__EXPORT void difftest_preg(uint32_t addr) {
+__EXPORT void difftest_xreg(uint32_t addr) {
 	isa_reg_display(cpu.pc);
 }
 

@@ -232,7 +232,7 @@ __EXPORT void difftest_store(uint32_t waddr, uint32_t *wdata) {
 	*wdata = mmu->load<uint32_t>(waddr);
 }
 
-__EXPORT void difftest_pmem(uint32_t araddr) {
+__EXPORT void difftest_xmem(uint32_t araddr) {
   mmu_t* mmu = p->get_mmu();
 
 	printf("(spike): data = 0x%08x\n", mmu->load<uint32_t>(araddr));
