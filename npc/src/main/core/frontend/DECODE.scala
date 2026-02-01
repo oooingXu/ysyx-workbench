@@ -216,7 +216,6 @@ class ysyx_23060336_DECODE extends Module {
 
   // immgen
   val immgen = Module(new ysyx_23060336_IMMGEN())
-  val alu    = Module(new ysyx_23060336_ALU(Base.dataWidth))
 
   val RegWr      = Wire(Bool())
   val MemWr      = Wire(Bool())
@@ -245,7 +244,6 @@ class ysyx_23060336_DECODE extends Module {
   val csrdata = Wire(UInt(Base.dataWidth.W))
   val ina     = Wire(UInt(Base.dataWidth.W))
   val inb     = Wire(UInt(Base.dataWidth.W))
-  val result  = Wire(UInt(Base.dataWidth.W))
   val AluMux  = Wire(UInt(Base.AluMuxWidth.W))
   val AluSel  = Wire(UInt(Base.AluSelWidth.W))
 
@@ -370,18 +368,15 @@ class ysyx_23060336_DECODE extends Module {
     )
   )
 
-  alu.io.ina := ina
-  alu.io.inb := inb
-  alu.io.sel := AluSel
-  result := alu.io.result
-
   dnpc_pc_1     := pc + 1.U
   dnpc_pc_imm   := pc + imm(31, 2)
   dnpc_src1_imm := Mux(ecall, mtvec, Mux(mret, mepc, (src1 + imm)(31, 2)))
 
   // idu <> exu
   io.decode_idu_data.idu_exu_data.pc     := pc
-  io.decode_idu_data.idu_exu_data.result := result
+  io.decode_idu_data.idu_exu_data.ina    := ina
+  io.decode_idu_data.idu_exu_data.inb    := inb
+  io.decode_idu_data.idu_exu_data.AluSel := AluSel
   io.decode_idu_data.idu_exu_data.branch := branch
   io.decode_idu_data.idu_exu_data.pcmux  := pcmux
   io.decode_idu_data.idu_exu_data.mret   := mret

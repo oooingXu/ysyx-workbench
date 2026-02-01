@@ -6,5 +6,5 @@ object Config {
   val useDebug   = true
 
   // isa RV32E
-  val RV32E      = false
+  val RV32E      = true
 }

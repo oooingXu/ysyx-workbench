@@ -9,11 +9,13 @@ class IFU_IDU_DATA extends Bundle {
 }
 
 class IDU_EXU_DATA extends Bundle {
-  val branch   = Output(Bool())
-  val mret     = Output(Bool())
-  val pc       = Output(UInt(Base.pcWidth.W))
-  val result   = Output(UInt(Base.dataWidth.W))
-  val pcmux    = Output(UInt(Base.pcmuxWidth.W))
+  val branch        = Output(Bool())
+  val mret          = Output(Bool())
+  val pc            = Output(UInt(Base.pcWidth.W))
+  val pcmux         = Output(UInt(Base.pcmuxWidth.W))
+  val ina           = Output(UInt(Base.dataWidth.W))
+  val inb           = Output(UInt(Base.dataWidth.W))
+  val AluSel        = Output(UInt(Base.AluSelWidth.W))
   val dnpc_pc_1     = Output(UInt(Base.pcWidth.W))
   val dnpc_pc_imm   = Output(UInt(Base.pcWidth.W))
   val dnpc_src1_imm = Output(UInt(Base.pcWidth.W))

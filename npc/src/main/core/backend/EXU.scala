@@ -11,6 +11,8 @@ class ysyx_23060336_EXU extends Module {
     val exu_idu_raw  = new EXU_IDU_RAW()
   })
 
+  val alu = Module(new ysyx_23060336_ALU(Base.dataWidth))
+
   val pc            = Wire(UInt(Base.pcWidth.W))
   val dnpc          = Wire(UInt(Base.pcWidth.W))
   val dnpc_s        = Wire(UInt(Base.pcWidth.W))
@@ -23,6 +25,10 @@ class ysyx_23060336_EXU extends Module {
   val result        = Wire(UInt(Base.dataWidth.W))
   val branch        = Wire(Bool())
   val isRAW_control = Wire(Bool())
+
+  val ina    = Wire(UInt(Base.dataWidth.W))
+  val inb    = Wire(UInt(Base.dataWidth.W))
+  val AluSel = Wire(UInt(Base.AluSelWidth.W))
 
   // state machine
   val s_idle :: s_wait_ready :: s_wait_ready_flush :: Nil = Enum(3)
@@ -42,11 +48,19 @@ class ysyx_23060336_EXU extends Module {
   io.exu_lsu_data.bits.exu_wbu_data.dnpc := dnpc
   io.exu_lsu_data.bits.result := result
 
+  // alu
+  alu.io.ina := ina
+  alu.io.inb := inb
+  alu.io.sel := AluSel
+  result := alu.io.result
+
   // signal
-  branch  := io.idu_exu_data.bits.branch
-  pcmux   := io.idu_exu_data.bits.pcmux
-  pc      := io.idu_exu_data.bits.pc
-  result  := io.idu_exu_data.bits.result
+  branch := io.idu_exu_data.bits.branch
+  pcmux  := io.idu_exu_data.bits.pcmux
+  pc     := io.idu_exu_data.bits.pc
+  ina    := io.idu_exu_data.bits.ina
+  inb    := io.idu_exu_data.bits.inb
+  AluSel := io.idu_exu_data.bits.AluSel
 
   dnpc_pc_1     := io.idu_exu_data.bits.dnpc_pc_1
   dnpc_pc_imm   := io.idu_exu_data.bits.dnpc_pc_imm

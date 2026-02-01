@@ -36,7 +36,7 @@ class ysyx_23060336_IFU extends Module{
         Mux(flush, io.exu_ifu_raw.dnpc,
         Mux(io.ifu_idu_data.fire, preaddr, PC)))
 
-  araddr  := Mux(flush, io.exu_ifu_raw.dnpc, PC)
+  araddr  := PC
   preaddr := PC + 1.U
   flush   := io.exu_ifu_raw.isRAW_control
 
