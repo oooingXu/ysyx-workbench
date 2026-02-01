@@ -30,13 +30,13 @@ class ysyx_23060336_XBAR extends Module{
   io.master.arid := 0.U
   io.master.awid := 0.U
 
+  in_clint := io.slave.araddr(31, 2) >= CLINT_START && io.slave.araddr(31, 2) <= CLINT_END
+
   io.slave.arready := slave_arready
   io.slave.rlast  := slave_rlast
   io.slave.rvalid := slave_rvalid
   io.slave.rdata  := slave_rdata
   io.slave.rresp  := slave_rresp
-
-  in_clint := io.slave.araddr(31, 2) >= CLINT_START && io.slave.araddr(31, 2) <= CLINT_END
 
   slave_arready := Mux(in_clint, io.clint.arready, Mux(!in_clint, io.master.arready, slave_arready))
   slave_rdata   := Mux(in_clint && io.clint.rvalid, io.clint.rdata, Mux(!in_clint && io.master.rvalid, io.master.rdata, slave_rdata))
