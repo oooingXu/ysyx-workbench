@@ -2,7 +2,7 @@ package npc
 
 object Base {
   // if RV32E 16 else 32
-  val regNumber     = 16
+  val regNumber     = if(Config.RV32E) 16 else 32
 
   // idu sign
   val pcmuxWidth    = 2
@@ -13,7 +13,7 @@ object Base {
   val AluSelWidth   = 4
   val AluMuxWidth   = 4
   // if RV32E 4 else 5
-  val rdWidth       = 4
+  val rdWidth       = if(Config.RV32E) 4 else 5
   val csrWidth      = 12
   val pcWidth       = 30
 
