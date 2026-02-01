@@ -28,8 +28,9 @@ object Base {
   val dataWidth  = 32
 
   // csr
-  val mstatusWidth = 2
-  val mcauseWidth  = 4
+  val mstatusWidth   = 2
+  val mcauseWidth    = 4
+  val mvendoridWidth = 19
 
   // icache         512B 128B 64B 32B 16B 8B  4B
   val block = 2 //  2  4 2  4 2 4 2 4 2 4 2 4 2 4

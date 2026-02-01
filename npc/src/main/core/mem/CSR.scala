@@ -20,8 +20,6 @@ class ysyx_23060336_CSR extends Module{
   def MTVAL     = "h343".U
   def MIP       = "h344".U
 
-  val mvendorid = RegInit("h79737978".U(Base.dataWidth.W))
-  val marchid   = RegInit("h15fdf70".U(Base.dataWidth.W))
   val mstatus   = RegInit("h0".U(Base.mstatusWidth.W))
   val mcause    = RegInit("h0".U(Base.mcauseWidth.W))
   val mtvec     = RegInit("h0".U(Base.pcWidth.W))
@@ -55,8 +53,8 @@ class ysyx_23060336_CSR extends Module{
       MCAUSE    -> Cat(0.U(28.W), mcause),
       MSTATUS   -> Cat(0.U(19.W), mstatus, 0.U(11.W)),
       MTVEC     -> Cat(mtvec, 0.U(2.W)),
-      MVENDORID -> mvendorid,
-      MARCHID   -> marchid
+      MVENDORID -> "h79737978".U,
+      MARCHID   -> "h15fdf70".U
     )
   )
 }

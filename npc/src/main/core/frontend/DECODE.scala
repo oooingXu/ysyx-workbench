@@ -229,6 +229,7 @@ class ysyx_23060336_DECODE extends Module {
   val rs2en      = Wire(Bool())
   val branch     = Wire(Bool())
   val ecall      = Wire(Bool())
+  val ebreak     = Wire(Bool())
   val mret       = Wire(Bool())
   val rd         = Wire(UInt(Base.rdWidth.W))
   val csr        = Wire(UInt(Base.csrWidth.W))
@@ -329,6 +330,7 @@ class ysyx_23060336_DECODE extends Module {
   rs2en   := decodeBundle(Rs2enField)
   branch  := decodeBundle(BranchField)
   ecall   := decodeBundle(EcallField)
+  ebreak  := decodeBundle(EbreakField)
   mret    := decodeBundle(MretField)
 
   src1       := immgen.io.immgen_decode_data.src1
@@ -398,7 +400,7 @@ class ysyx_23060336_DECODE extends Module {
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.RegWr      := RegWr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.CsrWr      := CsrWr
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ecall      := ecall
-  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ebreak     := decodeBundle(EbreakField)
+  io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.ebreak     := ebreak
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.rden       := rden
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.isRAW_data := isRAW_data
   io.decode_idu_data.idu_exu_data.idu_lsu_data.idu_wbu_data.csr        := csr

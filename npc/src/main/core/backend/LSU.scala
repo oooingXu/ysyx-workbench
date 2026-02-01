@@ -15,24 +15,24 @@ class ysyx_23060336_LSU extends Module{
   val MemtoReg = Wire(Bool())
   val MemWr    = Wire(Bool())
 
-  val src2    = Wire(UInt(Base.dataWidth.W))
-  val DataOut = Wire(UInt(Base.dataWidth.W))
-  val rdata   = Wire(UInt(Base.dataWidth.W))
-  val result  = Wire(UInt(Base.dataWidth.W))
+  val src2     = Wire(UInt(Base.dataWidth.W))
+  val DataOut  = Wire(UInt(Base.dataWidth.W))
+  val rdata    = Wire(UInt(Base.dataWidth.W))
+  val result   = Wire(UInt(Base.dataWidth.W))
 
-  val size   = Wire(UInt(2.W)) // 3(sizeWidth) - 1
+  val size     = Wire(UInt(2.W)) // 3(sizeWidth) - 1
 
-  val wdata_b = Wire(UInt(Base.dataWidth.W))
-  val wdata_h = Wire(UInt(Base.dataWidth.W))
+  val wdata_b  = Wire(UInt(Base.dataWidth.W))
+  val wdata_h  = Wire(UInt(Base.dataWidth.W))
 
-  val wstrb   = Wire(UInt(Base.wstrbWidth.W))
-  val wstrb_b = Wire(UInt(Base.wstrbWidth.W))
-  val wstrb_h = Wire(UInt(Base.wstrbWidth.W))
-  
-  val rdata_b = Wire(UInt(Base.dataWidth.W))
-  val rdata_h = Wire(UInt(Base.dataWidth.W))
+  val wstrb    = Wire(UInt(Base.wstrbWidth.W))
+  val wstrb_b  = Wire(UInt(Base.wstrbWidth.W))
+  val wstrb_h  = Wire(UInt(Base.wstrbWidth.W))
 
-  val func3 = Wire(UInt(3.W))
+  val rdata_b  = Wire(UInt(Base.dataWidth.W))
+  val rdata_h  = Wire(UInt(Base.dataWidth.W))
+
+  val func3    = Wire(UInt(3.W))
 
   // state machine
   val s_idle :: s_wait_rslave :: s_wait_wslave :: s_wait_prepare :: s_wait_sign :: Nil = Enum(5)
@@ -99,7 +99,7 @@ class ysyx_23060336_LSU extends Module{
   io.lsu_wbu_data.bits.regdata := Mux(MemtoReg, rdata, result)
 
   rdata := Mux(func3 === "b000".U, Cat(Fill(24, DataOut(7)), DataOut(7, 0)),
-           Mux(func3 === "b001".U,  Cat(Fill(24, DataOut(15)), DataOut(15, 0)), DataOut))     
+           Mux(func3 === "b001".U, Cat(Fill(24, DataOut(15)), DataOut(15, 0)), DataOut))     
 
   // sram_read
   io.lsu_wbu_data.bits.wbu_sram_data.wstrb   := wstrb
