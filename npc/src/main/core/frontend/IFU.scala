@@ -42,7 +42,7 @@ class ysyx_23060336_IFU extends Module{
 
   // axi 
   io.axi.araddr  := Cat(araddr, 0.U(2.W))
-  io.axi.rready  := io.ifu_idu_data.ready
+  io.axi.rready  := state =/= s_wait_ready
   io.axi.arvalid := state === s_wait_arready
   io.axi.awvalid := false.B
   io.axi.awaddr  := 0.U
