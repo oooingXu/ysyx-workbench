@@ -110,9 +110,9 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 	}
 	assert(ref_difftest_raise_intr);
 
-	ref_difftest_xmem = dlsym(handle, "difftest_pmem");
+	ref_difftest_xmem = dlsym(handle, "difftest_xmem");
 	if(ref_difftest_xmem == NULL) {
-		printf("(nemu) difftest_pmem init fail\n");
+		printf("(nemu) difftest_xmem init fail\n");
 	}
 	assert(ref_difftest_xmem);
 

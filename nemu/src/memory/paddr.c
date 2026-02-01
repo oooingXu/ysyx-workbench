@@ -254,5 +254,4 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
  if(cpu.trap == 7)
 		out_of_bound(addr);
-	 //difftest_skip_ref();
 }

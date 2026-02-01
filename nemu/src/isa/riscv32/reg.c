@@ -44,9 +44,10 @@ void isa_reg_display(uint32_t pc) {
 	printf("mtvec		---> 0x%x\n",cpu.mtvec);
 	printf("mcause	---> 0x%x\n",cpu.mcause);
 	printf("mstatus ---> 0x%x\n",cpu.mstatus);
-	printf("mtval ---> 0x%x\n",cpu.mtval);
-	printf("mip ---> 0x%x\n",cpu.mip);
-	printf("mie ---> 0x%x\n",cpu.mie);
+	IFDEF(CONFIG_MIE, printf("mie ---> 0x%x\n",cpu.mie));
+	IFDEF(CONFIG_MSCRATCH, printf("mscratch ---> 0x%x\n",cpu.mscratch));
+	IFDEF(CONFIG_MTVAL, printf("mtval ---> 0x%x\n",cpu.mtval));
+	IFDEF(CONFIG_MIP, printf("mip ---> 0x%x\n",cpu.mip));
 	printf("timermatchl ---> 0x%x\n",cpu.timermatchl);
 	printf("timermatchh ---> 0x%x\n",cpu.timermatchh);
 	printf("timerl ---> 0x%x\n",cpu.timerl);

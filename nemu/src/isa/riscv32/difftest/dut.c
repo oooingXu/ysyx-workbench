@@ -92,13 +92,20 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 		check = false;
 	}
 
-	if(ref_r->mip != cpu.mip) {
-		printf("ref_r->mip = 0x%08x, cpu.mip = 0x%08x\n", ref_r->mip, cpu.mip);
+	if(ref_r->mscratch != cpu.mscratch) {
+		printf("ref_r->mscratch = 0x%08x, cpu.mscratch = 0x%08x\n", ref_r->mscratch, cpu.mscratch);
 		check = false;
 	}
-
+	
+#ifdef CONFIG_MTVAL
 	if(ref_r->mtval != cpu.mtval) {
 		printf("ref_r->mtval = 0x%08x, cpu.mtval = 0x%08x\n", ref_r->mtval, cpu.mtval);
+		check = false;
+	}
+#endif
+
+	if(ref_r->mip != cpu.mip) {
+		printf("ref_r->mip = 0x%08x, cpu.mip = 0x%08x\n", ref_r->mip, cpu.mip);
 		check = false;
 	}
 
@@ -112,11 +119,6 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
 	//	check = false;
 	//}
 
-	//if(ref_r->mscratch != cpu.mscratch) {
-	//	printf("ref_r->mscratch = 0x%08x, cpu.mscratch = 0x%08x\n", ref_r->mscratch, cpu.mscratch);
-	//	check = false;
-	//}
-	//
 	//if(ref_r->pmpcfgr0 != cpu.pmpcfgr0) {
 	//	printf("ref_r->pmpcfgr0 = 0x%08x, cpu.pmpcfgr0 = 0x%08x\n", ref_r->pmpcfgr0, cpu.pmpcfgr0);
 	//	check = false;

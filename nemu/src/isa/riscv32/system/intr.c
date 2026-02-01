@@ -23,15 +23,12 @@
 #define MCAUSE	0x342
 
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-	//if(cpu.trap & 0x80000000)  // If prefixed with 1 in MSB, int's an interrupt, not a trap.
-	//	cpu.mtval = 0;
-	//else 
-	//	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
 
+	// if irq, skip difftest
 	if(cpu.trap & 0x80000000)  														 
 		difftest_skip_ref();
 
-	cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc;
+	IFDEF(CONFIG_MTVAL, cpu.mtval = cpu.trap > 4 && cpu.trap <= 7 ? cpu.mtval : cpu.pc);
 
 	// TRICKY: The kernel advances mepc automatically
 	// mstatus & 8 = MIE, & 0x80 = MPIE
@@ -40,8 +37,7 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	cpu.mcause = NO;
 	cpu.mepc = epc;
 
-	//printf("& 0x80 << 4 = %x, &0x8 = %x, & 0x8 << 4 = %x\n", ((cpu.mstatus & 0x80) << 4), cpu.mstatus & 0x8, ((cpu.mstatus & 0x8) << 4));
-	//uint32_t start_mstatus = cpu.mstatus;
+	// set mstatus and prv
 	uint32_t start_extraflags = cpu.extraflags;
 	uint32_t start_mstatus = cpu.mstatus;
 
@@ -50,11 +46,8 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
             		((start_mstatus & 0x8) << 4);
 	IFDEF(CONFIG_DEBUG_TIMER_IRQ, printf("(nemu) intr: start_mstatus = 0x%08x, cpu.mstatus = 0x%08x\n", start_mstatus, cpu.mstatus));
 	cpu.extraflags |= 0x3;
-	return cpu.mtvec;
 
-  /* TODO: Trigger an interrupt/exception with ``NO''.
-   * Then return the address of the interrupt/exception vector.
-   */
+	return cpu.mtvec;
 }
 
 #define IRQ_TIMER 0x80000007  // for riscv32

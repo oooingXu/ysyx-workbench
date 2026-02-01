@@ -9,6 +9,13 @@ config ISA_mips32
   bool "mips32"
 config ISA_riscv
   bool "riscv"
+	select MEPC
+	select MCAUSE
+	select MTVEC
+	select MSTATUS
+	select MIE
+	select MSCRATCH
+	select MIP
 config ISA_loongarch32r
   bool "loongarch32r"
 endchoice

@@ -36,7 +36,7 @@ typedef struct {
 
 	word_t mie;
 	word_t mscratch;
-	word_t mtval;
+	IFDEF(CONFIG_MTVAL, word_t mtval);
 	word_t mip;
 
 	word_t wdata;

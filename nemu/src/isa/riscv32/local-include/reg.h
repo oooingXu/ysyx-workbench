@@ -62,7 +62,7 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case MTVEC:     return &(cpu.mtvec);
 		case MEPC:      return &(cpu.mepc);
 		case MCAUSE:    return &(cpu.mcause);
-		case MTVAL:     return &(cpu.mtval);
+		IFDEF(CONFIG_MTVAL, case MTVAL:     return &(cpu.mtval));
 		case MSCRATCH:  return &(cpu.mscratch);
 		case MIP:       return &(cpu.mip);
 		//case PMPCFGR0:  return &(cpu.pmpcfgr0);
