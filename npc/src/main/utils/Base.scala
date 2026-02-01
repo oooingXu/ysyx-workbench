@@ -17,6 +17,10 @@ object Base {
   val csrWidth      = 12
   val pcWidth       = 30
 
+  // lsu sign
+  val lbWidth = 8
+  val lhWidth = 16
+
   // axi
   val burstWidth = 2
   val respWidth  = 2
