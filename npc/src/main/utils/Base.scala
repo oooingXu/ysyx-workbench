@@ -22,6 +22,7 @@ object Base {
   val lhWidth = 16
 
   // axi
+  val validWidth = 1
   val burstWidth = 2
   val respWidth  = 2
   val sizeWidth  = 3
