@@ -33,6 +33,7 @@ SOC_HOME = $(NPC_HOME)/../ysyxSoC
 PERF = ./perf
 PERF_REF = $(PERF)/ysyxSoCFull
 PERF_BIN = $(PERF)/$(MICROBENCH)
+COREMARK_BIN = ./resource/coremark-riscv32-npc.bin
 CACHESIM = $(PERF)/cachesim
 YOSYS = ../yosys-sta
 
@@ -137,8 +138,11 @@ rpt:
 wave:
 	gtkwave build/waveform.fst
 
-perf:
+perf_soc:
 	$(PERF_REF) $(PERF_BIN)
+
+perf_npc:
+	$(BIN) $(COREMARK_BIN) $(DIFF_REF_SO)
 
 cachesim:
 	@gcc $(CACHESIM).c -o $(CACHESIM)

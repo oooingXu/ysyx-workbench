@@ -79,9 +79,9 @@ void init_difftest(char *ref_so_file, long img_size){
 	}
 	assert(ref_difftest_mem_diff);
 
-	ref_difftest_xmem = (void (*)(uint32_t))dlsym(handle, "difftest_pmem");
+	ref_difftest_xmem = (void (*)(uint32_t))dlsym(handle, "difftest_xmem");
 	if(ref_difftest_xmem == NULL) {
-		printf("(npc) difftest_pmem init fail\n");
+		printf("(npc) difftest_xmem init fail\n");
 	}
 	assert(ref_difftest_xmem);
 
