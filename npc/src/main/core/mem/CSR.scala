@@ -12,9 +12,13 @@ class ysyx_23060336_CSR extends Module{
   def MVENDORID = "hf11".U
   def MARCHID   = "hf12".U
   def MSTATUS   = "h300".U
+  def MIE       = "h304".U
   def MTVEC     = "h305".U
+  def MSCRATCH  = "h340".U
   def MEPC      = "h341".U
   def MCAUSE    = "h342".U
+  def MTVAL     = "h343".U
+  def MIP       = "h344".U
 
   val mvendorid = RegInit("h79737978".U(Base.dataWidth.W))
   val marchid   = RegInit("h15fdf70".U(Base.dataWidth.W))
@@ -22,28 +26,28 @@ class ysyx_23060336_CSR extends Module{
   val mcause    = RegInit("h0".U(Base.mcauseWidth.W))
   val mtvec     = RegInit("h0".U(Base.pcWidth.W))
   val mepc      = RegInit("h0".U(Base.pcWidth.W))
+  //val mie       = RegInit("h0".U(Base.dataWidth.W))
+  //val mscratch  = RegInit("h0".U(Base.dataWidth.W))
+  //val mtval     = RegInit("h0".U(Base.dataWidth.W))
+  //val mip       = RegInit("h0".U(Base.dataWidth.W))
 
-  when(io.csr_wbu_data.ecall) {
-    mcause  := "hb".U
-    mepc    := io.csr_wbu_data.mepc
-    mstatus := "h3".U
-  }
+  // mtvec
+  mtvec   := Mux(io.csr_wbu_data.wen && io.csr_wbu_data.waddr === MTVEC, io.csr_wbu_data.wdata(31, 2), mtvec)
 
-  when(io.csr_wbu_data.wen){
-    when(io.csr_wbu_data.waddr === MTVEC){
-      mtvec := io.csr_wbu_data.wdata(31, 2)
-    } .elsewhen(io.csr_wbu_data.waddr === MSTATUS) {
-      mstatus := io.csr_wbu_data.wdata(12, 11)
-    } .elsewhen(io.csr_wbu_data.waddr === MEPC) {
-      mepc := io.csr_wbu_data.wdata(31, 2)
-    } .elsewhen(io.csr_wbu_data.waddr === MCAUSE) {
-      mcause := io.csr_wbu_data.wdata(3, 0)
-    }
-  }
+  // mstatus
+  mstatus := Mux(io.csr_wbu_data.wen && io.csr_wbu_data.waddr === MSTATUS, io.csr_wbu_data.wdata(12, 11), 
+             Mux(io.csr_wbu_data.ecall, "h3".U, mstatus))
+
+  // mepc
+  mepc    := Mux(io.csr_wbu_data.wen && io.csr_wbu_data.waddr === MEPC, io.csr_wbu_data.wdata(31, 2), 
+             Mux(io.csr_wbu_data.ecall, io.csr_wbu_data.mepc, mepc))
+
+  // mcause
+  mcause  := Mux(io.csr_wbu_data.wen && io.csr_wbu_data.waddr === MCAUSE, io.csr_wbu_data.wdata(3, 0), 
+             Mux(io.csr_wbu_data.ecall, "hb".U, mcause))
 
   io.csr_idu_data.mepc    := mepc
   io.csr_idu_data.mtvec   := mtvec
-  //io.csr_idu_data.csrdata := Mux(io.csr_idu_data.csr === MEPC, Cat(mepc, 0.U(2.W)), Mux(io.csr_idu_data.csr === MCAUSE, Cat(0.U(28.W), mcause), Mux(io.csr_idu_data.csr === MSTATUS, Cat(0.U(19.W), mstatus, 0.U(11.W)), Mux(io.csr_idu_data.csr === MTVEC, Cat(mtvec, 0.U(2.W)), Mux(io.csr_idu_data.csr === MVENDORID, mvendorid, Mux(io.csr_idu_data.csr === MARCHID, marchid, 0.U))))))
 
   io.csr_idu_data.csrdata := MuxLookup(io.csr_idu_data.csr, 0.U)(
     Seq(

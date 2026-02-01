@@ -7,7 +7,7 @@ void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint32_t NO) = NULL;
 
 void (*ref_difftest_mem_diff)(void *dut) = NULL;
-void (*ref_difftest_pmem)(uint32_t addr) = NULL;
+void (*ref_difftest_xmem)(uint32_t addr) = NULL;
 void (*ref_difftest_preg)(void) = NULL;
 
 static bool is_skip_ref = false;
@@ -28,8 +28,8 @@ void difftest_skip_dut(CPU_state *ref, int nr_ref, int nr_dut) {
 	}
 }
 
-void p_ref_mem(uint32_t addr){
-	ref_difftest_pmem(addr);
+void x_ref_mem(uint32_t addr){
+	ref_difftest_xmem(addr);
 }
 
 void p_ref_reg(void) {
@@ -79,11 +79,11 @@ void init_difftest(char *ref_so_file, long img_size){
 	}
 	assert(ref_difftest_mem_diff);
 
-	ref_difftest_pmem = (void (*)(uint32_t))dlsym(handle, "difftest_pmem");
-	if(ref_difftest_pmem == NULL) {
+	ref_difftest_xmem = (void (*)(uint32_t))dlsym(handle, "difftest_pmem");
+	if(ref_difftest_xmem == NULL) {
 		printf("(npc) difftest_pmem init fail\n");
 	}
-	assert(ref_difftest_pmem);
+	assert(ref_difftest_xmem);
 
 	ref_difftest_preg = (void (*)(void))dlsym(handle, "difftest_preg");
 	if(ref_difftest_preg == NULL) {

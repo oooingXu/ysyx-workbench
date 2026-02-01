@@ -77,7 +77,7 @@ static int cmd_p(char args[]){
 	return 0;
 }
 
-static int cmd_p_ref(char args[]){
+static int cmd_x_ref(char args[]){
 #ifdef CONFIG_DIFFTEST
 	if(args == NULL){
 		printf("No args\n");
@@ -91,7 +91,7 @@ static int cmd_p_ref(char args[]){
     printf("Expected hexadecimal address (e.g., 0x1000 or 1000)\n");
     return 0;
   }
-	p_ref_mem(addr);
+	x_ref_mem(addr);
 #endif
 
 	return 0;
@@ -135,7 +135,7 @@ static struct {
 	{ "info", "Print the SUBCMD information", cmd_info},
 	{ "x", "Scan the memory", cmd_x},
 	{ "p", "Print expression", cmd_p},
-	{ "p_ref", "Print memory in ref", cmd_p_ref},
+	{ "x_ref", "Print memory in ref", cmd_x_ref},
 	{ "p_ref_reg", "Print reg in ref", cmd_p_ref_reg},
 	{ "d", "Delete the watchpoint", cmd_d},
 	{ "w", "Create the watchpoint", cmd_w},
