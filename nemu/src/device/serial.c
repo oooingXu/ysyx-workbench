@@ -26,17 +26,19 @@
 
 static uint8_t *serial_base = NULL;
 
-
 static void serial_putc(char ch) {
   MUXDEF(CONFIG_TARGET_AM, putch(ch), putc(ch, stderr));
 }
 
 static void serial_io_handler(uint32_t offset, int len, bool is_write) {
-  assert(len == 1);
+	IFDEF(CONFIG_DEBUG_SERIAL, printf("(nemu) serial_io_handle: offset = %d, len = %d, is_write = %d, data = 0x%08x\n", offset, len, is_write, serial_base[0]));
   switch (offset) {
     /* We bind the serial port with the host stderr in NEMU. */
     case CH_OFFSET_0:
-      if (is_write) serial_putc(serial_base[0]);
+      if (is_write) {
+				assert(len == 1);
+				serial_putc(serial_base[0]);
+			}
       break;
 		case LCR:case LSR:case MSB: break;
     default: //panic("do not support offset = %d", offset);
@@ -48,7 +50,7 @@ void init_serial() {
 #ifdef CONFIG_HAS_PORT_IO
   add_pio_map ("serial", CONFIG_SERIAL_PORT, serial_base, 0x10, serial_io_handler);
 #else
-  add_mmio_map("serial", CONFIG_SERIAL_MMIO, serial_base, 0x1000, serial_io_handler);
+  add_mmio_map("serial", CONFIG_SERIAL_MMIO, serial_base, 0x10, serial_io_handler);
 #endif
 
 }

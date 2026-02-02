@@ -62,17 +62,17 @@ static inline uint32_t *check_csr_idx(word_t idx) {
 		case MTVEC:     return &(cpu.mtvec);
 		case MEPC:      return &(cpu.mepc);
 		case MCAUSE:    return &(cpu.mcause);
-		IFDEF(CONFIG_MTVAL, case MTVAL:     return &(cpu.mtval));
+		IFDEF(CONFIG_MTVAL,			case MTVAL:     return &(cpu.mtval));
 		case MSCRATCH:  return &(cpu.mscratch);
 		case MIP:       return &(cpu.mip);
 		//case PMPCFGR0:  return &(cpu.pmpcfgr0);
 		//case PMPADDR0:  return &(cpu.pmpaddr0);
 		case CYCLE:     return &(cpu.cyclel);
 		case CYCLEH:    return &(cpu.cycleh);
-		//case MVENDORID: return &(cpu.mvendorid);
-		//case MARCHID:   return &(cpu.marchid);
-		//case MIMPID:		return &(cpu.mimpid);
-		//case MHARTID:   return &(cpu.mhartid);
+		IFDEF(CONFIG_MVENDORID, case MVENDORID: return &(cpu.mvendorid));
+		IFDEF(CONFIG_MARCHID,   case MARCHID:   return &(cpu.marchid));
+		IFDEF(CONFIG_MIMPID,    case MIMPID:		return &(cpu.mimpid));
+		IFDEF(CONFIG_MHARTID,   case MHARTID:   return &(cpu.mhartid));
 		default: difftest_skip_ref(); return &cpu.gpr[0];
 		//default: printf("Faild csr 0x%x\n",idx); assert(0);
 	}

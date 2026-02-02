@@ -65,7 +65,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
 }
 
 void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
-	IFDEF(CONFIG_DTRACE, printf("(nemu) map_write: name = %s, addr = 0x%08x, data = 0x%08x, low = 0x%08x, high = 0x%08x\n", map->name, addr, data, map->low, map->high));
+	IFDEF(CONFIG_DTRACE, printf("(nemu) map_write: name = %s, addr = 0x%08x, data = 0x%08x, len = %d, low = 0x%08x, high = 0x%08x\n", map->name, addr, data, len, map->low, map->high));
   assert(len >= 1 && len <= 8);
   check_bound(map, addr);
   paddr_t offset = addr - map->low;

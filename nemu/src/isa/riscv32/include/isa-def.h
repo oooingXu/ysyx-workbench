@@ -46,11 +46,11 @@ typedef struct {
 	//word_t pmpcfgr0;
 	//word_t pmpaddr0;
 
-	//word_t mimpid;
-	//word_t mhartid;
+	IFDEF(CONFIG_MIMPID, word_t mimpid);
+	IFDEF(CONFIG_MHARTID, word_t mhartid);
 
-	//word_t mvendorid;
-	//word_t marchid;
+	IFDEF(CONFIG_MVENDORID, word_t mvendorid);
+	IFDEF(CONFIG_MARCHID, word_t marchid);
 
 #ifdef CONFIG_RVDF
   double dgpr[32];

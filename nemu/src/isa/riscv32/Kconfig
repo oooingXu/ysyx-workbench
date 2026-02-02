@@ -55,5 +55,21 @@ config MIP
 	bool "Use mip csr"
 	default y
 
+config MIMPID
+	bool "Use mimpid csr"
+	default n
+
+config MHARTID
+	bool "Use mhartid csr"
+	default n
+
+config MVENDORID
+	bool "Use mvendorid csr"
+	default n
+
+config MARCHID
+	bool "Use marchid csr"
+	default n
+
 endmenu
 

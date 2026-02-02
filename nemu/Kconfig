@@ -190,6 +190,11 @@ config DTRACE
 	bool "Enable instruction dtracer"
 	default n
 
+config DEBUG_SERIAL
+  depends on DTRACE && HAS_SERIAL
+	bool "Enable debug serial"
+	default n
+
 config FTRACE
   depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
 	bool "Enable instruction ftracer"
@@ -235,15 +240,15 @@ config DEBUG_NOMMULINUX
 	bool "Enable debug nommulinux"
 	default n
 
-config WATCHPOINT
-	depends on TRACE
-	bool "Enable watchpoint"
-	default n
-
 config BATCH
 	depends on TRACE
 	bool "Enable batch"
 	default y
+
+config WATCHPOINT
+	depends on !BATCH
+	bool "Enable watchpoint"
+	default n
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
