@@ -29,18 +29,19 @@ class ysyx_23060336_EXU extends Module {
   val ina    = Wire(UInt(Base.dataWidth.W))
   val inb    = Wire(UInt(Base.dataWidth.W))
   val AluSel = Wire(UInt(Base.AluSelWidth.W))
+  val alu_valid = Wire(Bool())
 
   // state machine
   val s_idle :: s_wait_ready :: s_wait_ready_flush :: Nil = Enum(3)
   val state = RegInit(s_idle)
   state := MuxLookup(state, s_idle)(List(
     s_idle             -> Mux(io.idu_exu_data.valid, s_wait_ready, s_idle),
-    s_wait_ready       -> Mux(io.exu_lsu_data.ready, Mux(isRAW_control, s_idle, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle)), Mux(isRAW_control, s_wait_ready_flush, s_wait_ready)),
-    s_wait_ready_flush -> Mux(io.exu_lsu_data.ready, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle), s_wait_ready_flush)
+    s_wait_ready       -> Mux(io.exu_lsu_data.ready && alu_valid, Mux(isRAW_control, s_idle, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle)), Mux(isRAW_control, s_wait_ready_flush, s_wait_ready)),
+    s_wait_ready_flush -> Mux(io.exu_lsu_data.ready && alu_valid, Mux(io.idu_exu_data.valid, s_wait_ready, s_idle), s_wait_ready_flush)
   ))
 
-  io.exu_lsu_data.valid := state === s_wait_ready || state === s_wait_ready_flush
-  io.idu_exu_data.ready := state === s_idle || ((state === s_wait_ready || state === s_wait_ready_flush) && io.exu_lsu_data.ready) 
+  io.exu_lsu_data.valid := (state === s_wait_ready || state === s_wait_ready_flush) && alu_valid
+  io.idu_exu_data.ready := state === s_idle || ((state === s_wait_ready || state === s_wait_ready_flush) && io.exu_lsu_data.ready && alu_valid) 
 
   // exu <> lsu
   io.exu_lsu_data.bits.idu_lsu_data  <> io.idu_exu_data.bits.idu_lsu_data
@@ -52,10 +53,10 @@ class ysyx_23060336_EXU extends Module {
   alu.io.ina := ina
   alu.io.inb := inb
   alu.io.sel := AluSel
-  // 乘法器流水线使能信号（可以根据需要调整）
-  alu.io.regEnables(0) := state === s_wait_ready
-  alu.io.regEnables(1) := state === s_wait_ready
+  alu.io.mul_valid := state === s_wait_ready
+  alu.io.ready := io.exu_lsu_data.ready
   result := alu.io.result
+  alu_valid := alu.io.alu_valid
 
   // signal
   branch := io.idu_exu_data.bits.branch
@@ -90,7 +91,7 @@ class ysyx_23060336_EXU extends Module {
   io.exu_idu_raw.exu_regdata   := result
   io.exu_idu_raw.exu_rd        := io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.rd
   io.exu_idu_raw.exu_rden      := io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.rden
-  io.exu_idu_raw.exu_MemtoReg  := io.idu_exu_data.bits.idu_lsu_data.MemtoReg
+  io.exu_idu_raw.exu_MemtoReg  := io.idu_exu_data.bits.idu_lsu_data.MemtoReg || !alu_valid
   io.exu_idu_raw.exu_isRAW_control := isRAW_control
 
   // exu_ifu_raw

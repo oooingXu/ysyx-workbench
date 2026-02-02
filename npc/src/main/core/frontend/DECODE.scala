@@ -62,7 +62,7 @@ object MemWrField extends BoolDecodeField[InstructionPattern] {
 object RegWrField extends BoolDecodeField[InstructionPattern] {
   override def name = "regwr"
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "addi" | "slti" | "slli" | "srli" | "srai" | "sltiu" | "xori" | "ori" | "andi" | "lui" | "auipc" | "jal" | "jalr" | "lb" | "lh" | "lw" | "lbu" | "lhu" | "csrrw" | "csrrs" | "csrrc" | "csrrwi" | "csrrsi" | "csrrci" => BitPat("b1")
+    case "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "addi" | "slti" | "slli" | "srli" | "srai" | "sltiu" | "xori" | "ori" | "andi" | "lui" | "auipc" | "jal" | "jalr" | "lb" | "lh" | "lw" | "lbu" | "lhu" | "csrrw" | "csrrs" | "csrrc" | "csrrwi" | "csrrsi" | "csrrci" | "mul" | "mulh" | "mulhu" | "mulhsu" => BitPat("b1")
     case _ => BitPat("b0")
   }
 }

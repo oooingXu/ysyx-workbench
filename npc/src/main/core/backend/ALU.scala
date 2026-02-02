@@ -9,7 +9,9 @@ class ysyx_23060336_ALU(n: Int) extends Module {
 		val ina		 = Input(UInt(n.W))
 		val inb		 = Input(UInt(n.W))
 		val result = Output(UInt(n.W))
-		val regEnables = Input(Vec(2, Bool()))  // 乘法器流水线使能
+    val mul_valid = Input(Bool())
+    val alu_valid = Output(Bool())
+    val ready = Input(Bool())
 	})
 
   val zero     = Wire(Bool())
@@ -57,16 +59,20 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   out7             := shift.io.out
 
   // 乘法器实例化
-  val multiplier = Module(new ysyx_23060336_Multiplier(n))
+  val multiplier = Module(new ArrayMulDataModule(n))
   multiplier.io.a := io.ina
   multiplier.io.b := io.inb
-  multiplier.io.regEnables := io.regEnables
+  multiplier.io.mul_valid := io.mul_valid
+  multiplier.io.ready := io.ready
   val mul_result = multiplier.io.result
+  val out_valid = multiplier.io.out_valid
+
+  io.alu_valid := Mux(io.mul_valid, out_valid, true.B)
 
   // 乘法结果选择
-  val out8  = mul_result(n-1, 0)      // MUL: 低32位
-  val out9  = mul_result(2*n-1, n)    // MULH: 高32位（有符号×有符号）
-  val out10 = mul_result(2*n-1, n)    // MULHU: 高32位（无符号×无符号）
+  val out8  = mul_result(n-1, 0)      // MUL:    低32位
+  val out9  = mul_result(2*n-1, n)    // MULH:   高32位（有符号×有符号）
+  val out10 = mul_result(2*n-1, n)    // MULHU:  高32位（无符号×无符号）
   val out11 = mul_result(2*n-1, n)    // MULHSU: 高32位（有符号×无符号）
 
   io.result := MuxLookup(io.sel, 0.U)(
