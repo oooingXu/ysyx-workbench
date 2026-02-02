@@ -52,6 +52,9 @@ class ysyx_23060336_EXU extends Module {
   alu.io.ina := ina
   alu.io.inb := inb
   alu.io.sel := AluSel
+  // 乘法器流水线使能信号（可以根据需要调整）
+  alu.io.regEnables(0) := state === s_wait_ready
+  alu.io.regEnables(1) := state === s_wait_ready
   result := alu.io.result
 
   // signal

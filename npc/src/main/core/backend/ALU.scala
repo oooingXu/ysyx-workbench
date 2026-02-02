@@ -9,6 +9,7 @@ class ysyx_23060336_ALU(n: Int) extends Module {
 		val ina		 = Input(UInt(n.W))
 		val inb		 = Input(UInt(n.W))
 		val result = Output(UInt(n.W))
+		val regEnables = Input(Vec(2, Bool()))  // 乘法器流水线使能
 	})
 
   val zero     = Wire(Bool())
@@ -55,23 +56,40 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   shift.io.izArith := io.sel(1)
   out7             := shift.io.out
 
+  // 乘法器实例化
+  val multiplier = Module(new ysyx_23060336_Multiplier(n))
+  multiplier.io.a := io.ina
+  multiplier.io.b := io.inb
+  multiplier.io.regEnables := io.regEnables
+  val mul_result = multiplier.io.result
+
+  // 乘法结果选择
+  val out8  = mul_result(n-1, 0)      // MUL: 低32位
+  val out9  = mul_result(2*n-1, n)    // MULH: 高32位（有符号×有符号）
+  val out10 = mul_result(2*n-1, n)    // MULHU: 高32位（无符号×无符号）
+  val out11 = mul_result(2*n-1, n)    // MULHSU: 高32位（有符号×无符号）
+
   io.result := MuxLookup(io.sel, 0.U)(
     Seq(
-      0.U(Base.AluSelWidth.W)  -> out1,  // a + b
-      1.U(Base.AluSelWidth.W)  -> out1,  // a - b
-      2.U(Base.AluSelWidth.W)  -> out3,  // ~a
-      3.U(Base.AluSelWidth.W)  -> out4,  // a & b
-      4.U(Base.AluSelWidth.W)  -> out5,  // a | b
-      5.U(Base.AluSelWidth.W)  -> out6,  // a ^ b
-      6.U(Base.AluSelWidth.W)  -> out7,  // a >> b A
-      7.U(Base.AluSelWidth.W)  -> out7,  // a << b
-      8.U(Base.AluSelWidth.W)  -> out7,  // a >>> b L
-      9.U(Base.AluSelWidth.W)  -> lt_s,  // a < b
-      10.U(Base.AluSelWidth.W) -> lt_u,  // a < b u
-      11.U(Base.AluSelWidth.W) -> ge_s,  // a >= b
-      12.U(Base.AluSelWidth.W) -> geu_u, // a >= b u
-      13.U(Base.AluSelWidth.W) -> beq,   // a == b
-      14.U(Base.AluSelWidth.W) -> neq    // a != b
+      0.U  -> out1,   // a + b
+      1.U  -> out1,   // a - b
+      2.U  -> out3,   // ~a
+      3.U  -> out4,   // a & b
+      4.U  -> out5,   // a | b
+      5.U  -> out6,   // a ^ b
+      6.U  -> out7,   // a >> b A
+      7.U  -> out7,   // a << b
+      8.U  -> out7,   // a >>> b L
+      9.U  -> lt_s,   // a < b
+      10.U -> lt_u,   // a < b u
+      11.U -> ge_s,   // a >= b
+      12.U -> geu_u,  // a >= b u
+      13.U -> beq,    // a == b
+      14.U -> neq,    // a != b
+      15.U -> out8,   // MUL
+      16.U -> out9,   // MULH
+      17.U -> out10,  // MULHU
+      18.U -> out11   // MULHSU
     )
   )
 } 

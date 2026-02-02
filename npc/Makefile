@@ -36,6 +36,7 @@ PERF_BIN = $(PERF)/$(MICROBENCH)
 COREMARK_BIN = ./resource/coremark-riscv32-npc.bin
 CACHESIM = $(PERF)/cachesim
 YOSYS = ../yosys-sta
+RISCV_TEST_AM = $(NPC_HOME)/../riscv-tests-am
 
 
 CACHESIM_BIN = $(PERF)/pc_trace.bin
@@ -84,6 +85,9 @@ INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP_NAME)\"" 
 CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecated -Wno-return-type -g
 
+IMG ?= 
+NPC_EXEC := $(BIN) $(IMG) $(DIFF_REF_SO) 
+
 $(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
@@ -91,9 +95,9 @@ $(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	 	$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		$(INVFLAGS) --exe -o $(abspath $(BIN))
 
+# rules for verilator
 all: default
 
-# rules for verilator
 sim: $(BIN)
 	$(call git_commit, "sim RTL")
 
@@ -109,8 +113,9 @@ verilog:
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
 	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(CPU)
 
-IMG ?= 
-NPC_EXEC := $(BIN) $(IMG) $(DIFF_REF_SO) 
+run_test: $(BIN)
+	$(call git_commit, "run run_test")
+	$(MAKE) -C $(RISCV_TEST_AM) ARCH=riscv32im-npc sim
 
 run: $(BIN)
 	$(call git_commit, "run NPC")

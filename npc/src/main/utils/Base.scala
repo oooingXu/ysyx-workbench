@@ -10,7 +10,7 @@ object Base {
   val immTypeWidth  = 3
   val RegNumWidth   = 3
   val PCMuxWidth    = 3
-  val AluSelWidth   = 4
+  val AluSelWidth   = 5
   val AluMuxWidth   = 4
   // if RV32E 4 else 5
   val rdWidth       = if(Config.RV32E) 4 else 5

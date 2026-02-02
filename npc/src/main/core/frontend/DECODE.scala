@@ -95,21 +95,25 @@ object AluSelField extends DecodeField[InstructionPattern, UInt] {
   override def name = "alusel"
   override def chiselType = UInt(Base.AluSelWidth.W)
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "add"  | "addi" | "csrrw" | "csrrwi" => BitPat("b0000") // +
-    case "sub"                                => BitPat("b0001") // -
-    case "and"  | "andi" | "csrrc" | "csrrci" => BitPat("b0011") // &
-    case "or"   | "ori"  | "csrrs" | "csrrsi" => BitPat("b0100") // |
-    case "xor"  | "xori"                      => BitPat("b0101") // ^
-    case "sra"  | "srai"                      => BitPat("b0110") // >a
-    case "sll"  | "slli"                      => BitPat("b0111") // <
-    case "srl"  | "srli"                      => BitPat("b1000") // >l
-    case "slt"  | "slti"  | "blt"             => BitPat("b1001") // ><
-    case "sltu" | "sltiu" | "bltu"            => BitPat("b1010") // ><u
-    case "bge"                                => BitPat("b1011") // >=
-    case "bgeu"                               => BitPat("b1100") // >=u
-    case "beq"                                => BitPat("b1101") // ==
-    case "bne"                                => BitPat("b1110") // !=
-    case _                                    => BitPat("b0000") // +
+    case "add"  | "addi" | "csrrw" | "csrrwi" => BitPat("b00000") // +
+    case "sub"                                => BitPat("b00001") // -
+    case "and"  | "andi" | "csrrc" | "csrrci" => BitPat("b00011") // &
+    case "or"   | "ori"  | "csrrs" | "csrrsi" => BitPat("b00100") // |
+    case "xor"  | "xori"                      => BitPat("b00101") // ^
+    case "sra"  | "srai"                      => BitPat("b00110") // >a
+    case "sll"  | "slli"                      => BitPat("b00111") // <
+    case "srl"  | "srli"                      => BitPat("b01000") // >l
+    case "slt"  | "slti"  | "blt"             => BitPat("b01001") // ><
+    case "sltu" | "sltiu" | "bltu"            => BitPat("b01010") // ><u
+    case "bge"                                => BitPat("b01011") // >=
+    case "bgeu"                               => BitPat("b01100") // >=u
+    case "beq"                                => BitPat("b01101") // ==
+    case "bne"                                => BitPat("b01110") // !=
+    case "mul"                                => BitPat("b01111") // *
+    case "mulh"                               => BitPat("b10000") // *
+    case "mulhu"                              => BitPat("b10001") // *
+    case "mulhsu"                             => BitPat("b10010") // *
+    case _                                    => BitPat("b00000") // +
   }
 }
     
@@ -189,7 +193,7 @@ object AluMuxField extends DecodeField[InstructionPattern, UInt] {
   override def chiselType = UInt(Base.AluMuxWidth.W)
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
     case "lb" | "lh" | "lw" | "lbu" | "lhu" | "sb" | "sh" | "sw" | "addi" | "slti" | "sltiu" | "xori" | "ori" | "andi" | "slli" | "srli" | "srai" | "fence.i" => BitPat("b0001") // src1 imm
-    case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" | "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" => BitPat("b0111") // src1 src2
+    case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" | "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "mul" | "mulh" | "mulhu" | "mulhsu" => BitPat("b0111") // src1 src2
     case "jal"    | "jalr"   => BitPat("b0010") // pc 4
     case "lui"               => BitPat("b0011") // 0 imm
     case "auipc"             => BitPat("b0100") // pc imm
@@ -264,6 +268,7 @@ class ysyx_23060336_DECODE extends Module {
   val rvsystemExceptInstructions = Set("wfi")
 
   val rviTargetSets      = Set("rv_i")
+  val rvmTargetSets      = Set("rv_m")
   val rv32iTargetSets    = Set("rv32_i")
   val rvzicsrTargetSets  = Set("rv_zicsr")
   val rvsystemTargetSets = Set("rv_system")
@@ -271,6 +276,13 @@ class ysyx_23060336_DECODE extends Module {
   // add implemented instructions here
   val rviInstList = instTable
   .filter(instr => rviTargetSets.contains(instr.instructionSet.name))
+  .filter(instr => !rviExceptInstructions.contains(instr.name))
+  .filter(_.pseudoFrom.isEmpty)
+  .map(InstructionPattern(_))
+  .toSeq
+  
+  val rvmInstList = instTable
+  .filter(instr => rvmTargetSets.contains(instr.instructionSet.name))
   .filter(instr => !rviExceptInstructions.contains(instr.name))
   .filter(_.pseudoFrom.isEmpty)
   .map(InstructionPattern(_))
@@ -295,7 +307,7 @@ class ysyx_23060336_DECODE extends Module {
   .map(InstructionPattern(_))
   .toSeq
   
-  val instList = rviInstList ++ rv32iInstList ++ rvzicsrInstList ++ rvsystemInstList
+  val instList = rviInstList ++ rvmInstList ++ rv32iInstList ++ rvzicsrInstList ++ rvsystemInstList
   //println(s"The length of instList is: ${instList.length}")
 
   // decodefield
