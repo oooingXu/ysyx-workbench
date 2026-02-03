@@ -111,8 +111,8 @@ object AluSelField extends DecodeField[InstructionPattern, UInt] {
     case "bne"                                => BitPat("b01110") // !=
     case "mul"                                => BitPat("b01111") // *
     case "mulh"                               => BitPat("b10000") // *
-    case "mulhu"                              => BitPat("b10001") // *
-    case "mulhsu"                             => BitPat("b10010") // *
+    case "mulhsu"                             => BitPat("b10001") // *
+    case "mulhu"                              => BitPat("b10011") // *
     case _                                    => BitPat("b00000") // +
   }
 }

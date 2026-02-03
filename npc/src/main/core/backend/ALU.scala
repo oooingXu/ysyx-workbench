@@ -58,22 +58,30 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   shift.io.izArith := io.sel(1)
   out7             := shift.io.out
 
-  // 乘法器实例化
-  val multiplier = Module(new ArrayMulDataModule(n))
-  multiplier.io.a := io.ina
-  multiplier.io.b := io.inb
-  multiplier.io.mul_valid := io.mul_valid
-  multiplier.io.ready := io.ready
-  val mul_result = multiplier.io.result
-  val out_valid = multiplier.io.out_valid
+  // mul
+  val mul = Module(new Mul(n))
+  mul.io.in.src(0) := io.ina
+  mul.io.in.src(1) := io.inb
+  mul.io.in.fuOpType := io.sel
+  val mul_result = mul.io.out
+
+  val mul_counter = RegInit(0.U(4.W))
+
+  val mul_idle :: mul_wait :: mul_wait_ready :: Nil = Enum(3)
+  val state = RegInit(mul_idle)
+  state := MuxLookup(state, mul_idle)(List(
+    mul_idle -> Mux(io.mul_valid, mul_wait, mul_idle),
+    mul_wait -> Mux(mul_counter === 1.U, mul_wait_ready, mul_wait),
+    mul_wait_ready  -> Mux(io.ready, mul_idle, mul_wait_ready)
+  ))
+
+  mul_counter := Mux(state === mul_wait, mul_counter + 1.U, 0.U)
+  val out_valid = state === mul_wait_ready
 
   io.alu_valid := Mux(io.mul_valid, out_valid, true.B)
 
   // 乘法结果选择
-  val out8  = mul_result(n-1, 0)      // MUL:    低32位
-  val out9  = mul_result(2*n-1, n)    // MULH:   高32位（有符号×有符号）
-  val out10 = mul_result(2*n-1, n)    // MULHU:  高32位（无符号×无符号）
-  val out11 = mul_result(2*n-1, n)    // MULHSU: 高32位（有符号×无符号）
+  val out8  = mul_result
 
   io.result := MuxLookup(io.sel, 0.U)(
     Seq(
@@ -93,9 +101,9 @@ class ysyx_23060336_ALU(n: Int) extends Module {
       13.U -> beq,    // a == b
       14.U -> neq,    // a != b
       15.U -> out8,   // MUL
-      16.U -> out9,   // MULH
-      17.U -> out10,  // MULHU
-      18.U -> out11   // MULHSU
+      16.U -> out8,   // MULH
+      17.U -> out8,   // MULHU
+      19.U -> out8,   // MULHSU
     )
   )
 } 
