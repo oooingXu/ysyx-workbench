@@ -60,9 +60,10 @@ class ysyx_23060336_ALU(n: Int) extends Module {
 
   // mul
   val mul = Module(new Mul(n))
-  mul.io.in.src(0) := io.ina
-  mul.io.in.src(1) := io.inb
-  mul.io.in.fuOpType := io.sel
+  mul.io.in.valid := io.mul_valid
+  mul.io.in.bits.src(0) := io.ina
+  mul.io.in.bits.src(1) := io.inb
+  mul.io.in.bits.fuOpType := io.sel
   val mul_result = mul.io.out
 
   val mul_counter = RegInit(0.U(4.W))
