@@ -10,6 +10,7 @@ class ysyx_23060336_ALU(n: Int) extends Module {
 		val inb		 = Input(UInt(n.W))
 		val result = Output(UInt(n.W))
     val mul_valid = Input(Bool())
+    val div_valid = Input(Bool())
     val alu_valid = Output(Bool())
     val ready = Input(Bool())
 	})
@@ -63,17 +64,28 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   mul.io.ina := io.ina
   mul.io.inb := io.inb
   mul.io.ready := io.ready
-  mul.io.aIsUnSigned := io.sel(1）
+  mul.io.aIsUnSigned := io.sel(1)
   mul.io.bIsUnSigned := io.sel(0)
   mul.io.isHi := io.sel(2)
   mul.io.mul_valid := io.mul_valid
-  val out_valid = mul.io.out_valid
+  val mul_out_valid = mul.io.out_valid
   val mul_result = mul.io.out
 
-  io.alu_valid := Mux(io.sel(4), out_valid, true.B)
+  // div
+  val div = Module(new MyDiv(n))
+  div.io.ina := io.ina
+  div.io.inb := io.inb
+  div.io.signed := !io.sel(0)
+  div.io.ready := io.ready
+  div.io.div_valid := io.div_valid
+  val div_out_valid = div.io.out_valid
+  val div_result = Mux(io.sel(2), div.io.rem, div.io.quo)
 
-  // 乘法结果选择
+  // alu_valid
+  io.alu_valid := Mux(io.sel(4), mul_out_valid || div_out_valid, true.B)
+
   val out8  = mul_result
+  val out9  = div_result
 
   io.result := MuxLookup(io.sel, 0.U)(
     Seq(
@@ -92,10 +104,14 @@ class ysyx_23060336_ALU(n: Int) extends Module {
       12.U -> geu_u,  // a >= b u
       13.U -> beq,    // a == b
       14.U -> neq,    // a != b
-      15.U -> out8,   // MUL
-      16.U -> out8,   // MULH
-      17.U -> out8,   // MULHU
-      19.U -> out8,   // MULHSU
+      16.U -> out8,   // MUL
+      20.U -> out8,   // MULH
+      21.U -> out8,   // MULHU
+      23.U -> out8,   // MULHSU
+      24.U -> out9,   // DIV
+      27.U -> out9,   // DIVU
+      28.U -> out9,   // REM
+      31.U -> out9,   // REMU
     )
   )
 } 

@@ -109,14 +109,14 @@ object AluSelField extends DecodeField[InstructionPattern, UInt] {
     case "bgeu"                               => BitPat("b01100") // >=u
     case "beq"                                => BitPat("b01101") // ==
     case "bne"                                => BitPat("b01110") // !=
-    case "mul"                                => BitPat("b10000") // *
-    case "mulh"                               => BitPat("b10100") // *
-    case "mulhsu"                             => BitPat("b10101") // *
-    case "mulhu"                              => BitPat("b10111") // *
-    case "div"                                => BitPat("b11000") // *
-    case "divu"                               => BitPat("b11011") // *
-    case "rem"                                => BitPat("b11100") // *
-    case "remu"                               => BitPat("b11111") // *
+    case "mul"                                => BitPat("b10000") // * 16
+    case "mulh"                               => BitPat("b10100") // * 20
+    case "mulhsu"                             => BitPat("b10101") // * 21
+    case "mulhu"                              => BitPat("b10111") // * 23
+    case "div"                                => BitPat("b11000") // /  24
+    case "divu"                               => BitPat("b11011") // /u 27
+    case "rem"                                => BitPat("b11100") // %  28
+    case "remu"                               => BitPat("b11111") // %u 31
     case _                                    => BitPat("b00000") // +
   }
 }
