@@ -62,8 +62,10 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   val mul = Module(new MyMul(n))
   mul.io.ina := io.ina
   mul.io.inb := io.inb
-  mul.io.sel := io.sel
   mul.io.ready := io.ready
+  mul.io.aIsUnSigned := io.sel === "b10011".U
+  mul.io.bIsUnSigned := !(io.sel(0) ^ io.sel(4))
+  mul.io.isHi := io.sel(4)
   mul.io.mul_valid := io.mul_valid
   val out_valid = mul.io.out_valid
   val mul_result = mul.io.out

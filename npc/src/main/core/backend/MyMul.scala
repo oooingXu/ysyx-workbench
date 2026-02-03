@@ -5,42 +5,28 @@ import chisel3.util._
 import scala.math.max
 import chisel3.util.Pipe
 
-object MULOpType {
-    // mul
-    // bit encoding: | type (2bit) | isWord(1bit) | opcode(2bit) |
-    def mul    = "b01111".U
-    def mulh   = "b10000".U
-    def mulhsu = "b10001".U
-    def mulhu  = "b10011".U
-
-    def isSign(op: UInt) = op(0) ^ op(4)
-    def isW(op: UInt) = true.B
-    def isH(op: UInt) = op(4)
-}
-
 class MyMul(xlen: Int) extends Module {
   val io = IO(new Bundle{
     val ina = Input(UInt(Base.dataWidth.W))
     val inb = Input(UInt(Base.dataWidth.W))
     val out = Output(UInt(Base.dataWidth.W))
-    val sel = Input(UInt(Base.AluSelWidth.W))
+    val aIsUnSigned = Input(Bool())
+    val bIsUnSigned = Input(Bool())
+    val isHi = Input(Bool())
     val ready = Input(Bool())
     val mul_valid = Input(Bool())
     val out_valid = Output(Bool())
   })
 
-  // 533MHz
   // 1. 输入寄存器（第1拍）
   val ina_reg = RegEnable(io.ina, 0.U, io.mul_valid)
   val inb_reg = RegEnable(io.inb, 0.U, io.mul_valid)
-  val sel_reg = RegEnable(io.sel, 0.U, io.mul_valid)
   val valid_p1 = RegNext(io.mul_valid, false.B)
 
   // 2. 符号扩展和准备操作数（第2拍）
-  val func = sel_reg
-  val aIsUnSigned = func === "b10011".U
-  val bIsUnSigned = !MULOpType.isSign(func)
-  val isHi = MULOpType.isH(func)
+  val aIsUnSigned = io.aIsUnSigned
+  val bIsUnSigned = io.bIsUnSigned
+  val isHi = io.isHi
 
   val a_ext = Mux(aIsUnSigned,
                   Cat(0.U(xlen.W), ina_reg),
