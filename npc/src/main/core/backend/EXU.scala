@@ -53,7 +53,7 @@ class ysyx_23060336_EXU extends Module {
   alu.io.ina := ina
   alu.io.inb := inb
   alu.io.sel := AluSel
-  alu.io.mul_valid := state === s_wait_ready
+  alu.io.mul_valid := state === s_wait_ready && AluSel(4) && AluSel(3)
   alu.io.ready := io.exu_lsu_data.ready
   result := alu.io.result
   alu_valid := alu.io.alu_valid

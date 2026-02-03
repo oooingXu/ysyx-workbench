@@ -63,14 +63,14 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   mul.io.ina := io.ina
   mul.io.inb := io.inb
   mul.io.ready := io.ready
-  mul.io.aIsUnSigned := io.sel === "b10011".U
-  mul.io.bIsUnSigned := !(io.sel(0) ^ io.sel(4))
-  mul.io.isHi := io.sel(4)
+  mul.io.aIsUnSigned := io.sel(1）
+  mul.io.bIsUnSigned := io.sel(0)
+  mul.io.isHi := io.sel(2)
   mul.io.mul_valid := io.mul_valid
   val out_valid = mul.io.out_valid
   val mul_result = mul.io.out
 
-  io.alu_valid := Mux(io.mul_valid, out_valid, true.B)
+  io.alu_valid := Mux(io.sel(4), out_valid, true.B)
 
   // 乘法结果选择
   val out8  = mul_result

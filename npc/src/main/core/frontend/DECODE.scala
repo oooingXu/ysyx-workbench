@@ -62,7 +62,7 @@ object MemWrField extends BoolDecodeField[InstructionPattern] {
 object RegWrField extends BoolDecodeField[InstructionPattern] {
   override def name = "regwr"
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
-    case "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "addi" | "slti" | "slli" | "srli" | "srai" | "sltiu" | "xori" | "ori" | "andi" | "lui" | "auipc" | "jal" | "jalr" | "lb" | "lh" | "lw" | "lbu" | "lhu" | "csrrw" | "csrrs" | "csrrc" | "csrrwi" | "csrrsi" | "csrrci" | "mul" | "mulh" | "mulhu" | "mulhsu" => BitPat("b1")
+    case "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "addi" | "slti" | "slli" | "srli" | "srai" | "sltiu" | "xori" | "ori" | "andi" | "lui" | "auipc" | "jal" | "jalr" | "lb" | "lh" | "lw" | "lbu" | "lhu" | "csrrw" | "csrrs" | "csrrc" | "csrrwi" | "csrrsi" | "csrrci" | "mul" | "mulh" | "mulhu" | "mulhsu" | "div" | "divu" | "rem" | "remu" => BitPat("b1")
     case _ => BitPat("b0")
   }
 }
@@ -109,10 +109,14 @@ object AluSelField extends DecodeField[InstructionPattern, UInt] {
     case "bgeu"                               => BitPat("b01100") // >=u
     case "beq"                                => BitPat("b01101") // ==
     case "bne"                                => BitPat("b01110") // !=
-    case "mul"                                => BitPat("b01111") // *
-    case "mulh"                               => BitPat("b10000") // *
-    case "mulhsu"                             => BitPat("b10001") // *
-    case "mulhu"                              => BitPat("b10011") // *
+    case "mul"                                => BitPat("b10000") // *
+    case "mulh"                               => BitPat("b10100") // *
+    case "mulhsu"                             => BitPat("b10101") // *
+    case "mulhu"                              => BitPat("b10111") // *
+    case "div"                                => BitPat("b11000") // *
+    case "divu"                               => BitPat("b11011") // *
+    case "rem"                                => BitPat("b11100") // *
+    case "remu"                               => BitPat("b11111") // *
     case _                                    => BitPat("b00000") // +
   }
 }
@@ -193,7 +197,7 @@ object AluMuxField extends DecodeField[InstructionPattern, UInt] {
   override def chiselType = UInt(Base.AluMuxWidth.W)
   override def genTable(i: InstructionPattern): BitPat = i.inst.name match {
     case "lb" | "lh" | "lw" | "lbu" | "lhu" | "sb" | "sh" | "sw" | "addi" | "slti" | "sltiu" | "xori" | "ori" | "andi" | "slli" | "srli" | "srai" | "fence.i" => BitPat("b0001") // src1 imm
-    case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" | "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "mul" | "mulh" | "mulhu" | "mulhsu" => BitPat("b0111") // src1 src2
+    case "beq" | "bne" | "blt" | "bge" | "bltu" | "bgeu" | "add" | "sub" | "sll" | "slt" | "sltu" | "xor" | "srl" | "sra" | "or" | "and" | "mul" | "mulh" | "mulhu" | "mulhsu" | "div" | "divu" | "rem" | "remu" => BitPat("b0111") // src1 src2
     case "jal"    | "jalr"   => BitPat("b0010") // pc 4
     case "lui"               => BitPat("b0011") // 0 imm
     case "auipc"             => BitPat("b0100") // pc imm
