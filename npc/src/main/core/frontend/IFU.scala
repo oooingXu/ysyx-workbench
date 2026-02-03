@@ -10,8 +10,9 @@ class ysyx_23060336_IFU extends Module{
     val axi          = new ysyx_23060336_AXI4Master()
   })
 
-  val npc     = if(Config.useNPCSim) {"h20000000".U(Base.pcWidth.W)} else {"h0c000000".U(Base.pcWidth.W)}
-  val PC      = RegInit(npc)
+  val npc       = if(Config.useNPCSim) {"h20000000".U(Base.pcWidth.W)} else {"h0c000000".U(Base.pcWidth.W)}
+  val PC        = RegInit(npc)
+  val reg_rdata = RegEnable(io.axi.rdata, io.axi.rlast)
 
   val araddr  = Wire(UInt(Base.pcWidth.W))
   val preaddr = Wire(UInt(Base.pcWidth.W))
@@ -21,7 +22,7 @@ class ysyx_23060336_IFU extends Module{
   val s_wait_arready :: s_wait_rlast :: s_wait_rlast_flush :: s_wait_ready :: Nil = Enum(4)
   val state = RegInit(s_wait_arready)
   state := MuxLookup(state, s_wait_arready)(List(
-    s_wait_arready     -> Mux(io.axi.arready, s_wait_rlast, s_wait_arready),
+    s_wait_arready     -> Mux(io.axi.arready && !flush, s_wait_rlast, s_wait_arready),
     s_wait_rlast       -> Mux(io.axi.rlast, Mux(io.ifu_idu_data.ready || flush, s_wait_arready, s_wait_ready), Mux(flush, s_wait_rlast_flush, s_wait_rlast)),
     s_wait_rlast_flush -> Mux(io.axi.rlast, s_wait_arready, s_wait_rlast_flush),
     s_wait_ready       -> Mux(io.ifu_idu_data.ready || flush, s_wait_arready, s_wait_ready)
@@ -29,21 +30,22 @@ class ysyx_23060336_IFU extends Module{
 
   io.ifu_idu_data.valid := (state === s_wait_ready || (state === s_wait_rlast && io.axi.rlast)) && !flush
 
-  io.ifu_idu_data.bits.inst := io.axi.rdata
+  io.ifu_idu_data.bits.inst := Mux(io.axi.rlast, io.axi.rdata, reg_rdata)
   io.ifu_idu_data.bits.pc   := PC
 
   PC := Mux(reset.asBool, npc,      
         Mux(flush, io.exu_ifu_raw.dnpc,
         Mux(io.ifu_idu_data.fire, preaddr, PC)))
 
-  araddr  := PC
-  preaddr := PC + 1.U
-  flush   := io.exu_ifu_raw.isRAW_control
+  araddr    := PC
+  preaddr   := PC + 1.U
+  flush     := io.exu_ifu_raw.isRAW_control
+  //reg_rdata := Mux(io.axi.rlast, io.axi.rdata, reg_rdata)
 
   // axi 
   io.axi.araddr  := Cat(araddr, 0.U(2.W))
   io.axi.rready  := state =/= s_wait_ready
-  io.axi.arvalid := state === s_wait_arready
+  io.axi.arvalid := state === s_wait_arready && !flush
   io.axi.awvalid := false.B
   io.axi.awaddr  := 0.U
   io.axi.awid    := "h1".U
