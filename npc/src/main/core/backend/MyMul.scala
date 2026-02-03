@@ -3,6 +3,7 @@ package npc
 import chisel3._
 import chisel3.util._
 import scala.math.max
+import chisel3.util.Pipe
 
 object MULOpType {
     // mul
@@ -28,42 +29,60 @@ class MyMul(xlen: Int) extends Module {
     val out_valid = Output(Bool())
   })
 
-  val func = io.sel
-  val isHi = MULOpType.isH(func)
+  // 533MHz
+  // 1. 输入寄存器（第1拍）
+  val ina_reg = RegEnable(io.ina, 0.U, io.mul_valid)
+  val inb_reg = RegEnable(io.inb, 0.U, io.mul_valid)
+  val sel_reg = RegEnable(io.sel, 0.U, io.mul_valid)
+  val valid_p1 = RegNext(io.mul_valid, false.B)
 
+  // 2. 符号扩展和准备操作数（第2拍）
+  val func = sel_reg
   val aIsUnSigned = func === "b10011".U
   val bIsUnSigned = !MULOpType.isSign(func)
+  val isHi = MULOpType.isH(func)
 
-  val ina = RegInit(0.U((2*xlen).W))
-  val inb = RegInit(0.U((2*xlen).W))
+  val a_ext = Mux(aIsUnSigned,
+                  Cat(0.U(xlen.W), ina_reg),
+                  Cat(Fill(xlen, ina_reg(xlen-1)), ina_reg))
+  val b_ext = Mux(bIsUnSigned,
+                  Cat(0.U(xlen.W), inb_reg),
+                  Cat(Fill(xlen, inb_reg(xlen-1)), inb_reg))
 
-  val inanext = RegNext(ina)
-  val inbnext = RegNext(inb)
+  val a_ext_reg = RegEnable(a_ext, 0.U, valid_p1)
+  val b_ext_reg = RegEnable(b_ext, 0.U, valid_p1)
+  val isHi_reg = RegEnable(isHi, false.B, valid_p1)
+  val valid_p2 = RegNext(valid_p1, false.B)
 
-  ina := Mux(aIsUnSigned, Cat(0.U(xlen.W), io.ina), Cat(Fill(xlen, io.ina(31)), io.ina))
-  inb := Mux(bIsUnSigned, Cat(0.U(xlen.W), io.inb), Cat(Fill(xlen, io.inb(31)), io.inb))
+  // 3. 乘法计算（关键路径，可以考虑分割）
+  // 使用 Chisel 的乘法操作，综合工具会自动优化
+  val mul_result = a_ext_reg * b_ext_reg
 
-  val result = inanext * inbnext
-  val out = RegInit(0.U(Base.dataWidth.W))
+  // 4. 结果寄存器（第3拍）
+  val result_reg = RegEnable(mul_result, 0.U, valid_p2)
+  val isHi_reg2 = RegEnable(isHi_reg, false.B, valid_p2)
+  val valid_p3 = RegNext(valid_p2, false.B)
 
-  out := Mux(isHi, result(63, 32), result(31, 0))
-  io.out := out
+  // 5. 输出选择（第4拍）
+  val out_selected = Mux(isHi_reg2, result_reg(2*xlen-1, xlen), result_reg(xlen-1, 0))
+  val out_reg = RegEnable(out_selected, 0.U, valid_p3)
+  val valid_out = RegNext(valid_p3, false.B)
+  dontTouch(valid_out)
 
-  dontTouch(ina)
-  dontTouch(inb)
-  dontTouch(isHi)
+  io.out := out_reg
 
+  // state machine
   val mul_counter = RegInit(0.U(4.W))
 
   val mul_idle :: mul_wait :: mul_wait_ready :: Nil = Enum(3)
   val state = RegInit(mul_idle)
   state := MuxLookup(state, mul_idle)(List(
     mul_idle -> Mux(io.mul_valid, mul_wait, mul_idle),
-    mul_wait -> Mux(mul_counter === 1.U, mul_wait_ready, mul_wait),
+    mul_wait -> Mux(mul_counter === 2.U, mul_wait_ready, mul_wait),
     mul_wait_ready  -> Mux(io.ready, mul_idle, mul_wait_ready)
   ))
 
   mul_counter := Mux(state === mul_wait, mul_counter + 1.U, 0.U)
-  io.out_valid := state === mul_wait_ready
+  io.out_valid := state === mul_wait_ready 
 }
 
