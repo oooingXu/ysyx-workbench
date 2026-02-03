@@ -22,7 +22,7 @@ class ysyx_23060336_IFU extends Module{
   val s_wait_arready :: s_wait_rlast :: s_wait_rlast_flush :: s_wait_ready :: Nil = Enum(4)
   val state = RegInit(s_wait_arready)
   state := MuxLookup(state, s_wait_arready)(List(
-    s_wait_arready     -> Mux(io.axi.arready && !flush, s_wait_rlast, s_wait_arready),
+    s_wait_arready     -> Mux(io.axi.arready, Mux(flush, s_wait_rlast_flush, s_wait_rlast), s_wait_arready),
     s_wait_rlast       -> Mux(io.axi.rlast, Mux(io.ifu_idu_data.ready || flush, s_wait_arready, s_wait_ready), Mux(flush, s_wait_rlast_flush, s_wait_rlast)),
     s_wait_rlast_flush -> Mux(io.axi.rlast, s_wait_arready, s_wait_rlast_flush),
     s_wait_ready       -> Mux(io.ifu_idu_data.ready || flush, s_wait_arready, s_wait_ready)
@@ -45,7 +45,7 @@ class ysyx_23060336_IFU extends Module{
   // axi 
   io.axi.araddr  := Cat(araddr, 0.U(2.W))
   io.axi.rready  := state =/= s_wait_ready
-  io.axi.arvalid := state === s_wait_arready && !flush
+  io.axi.arvalid := state === s_wait_arready 
   io.axi.awvalid := false.B
   io.axi.awaddr  := 0.U
   io.axi.awid    := "h1".U
