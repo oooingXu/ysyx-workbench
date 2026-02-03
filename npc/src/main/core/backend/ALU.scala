@@ -59,25 +59,14 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   out7             := shift.io.out
 
   // mul
-  val mul = Module(new Mul(n))
-  mul.io.in.valid := io.mul_valid
-  mul.io.in.bits.src(0) := io.ina
-  mul.io.in.bits.src(1) := io.inb
-  mul.io.in.bits.fuOpType := io.sel
+  val mul = Module(new MyMul(n))
+  mul.io.ina := io.ina
+  mul.io.inb := io.inb
+  mul.io.sel := io.sel
+  mul.io.ready := io.ready
+  mul.io.mul_valid := io.mul_valid
+  val out_valid = mul.io.out_valid
   val mul_result = mul.io.out
-
-  val mul_counter = RegInit(0.U(4.W))
-
-  val mul_idle :: mul_wait :: mul_wait_ready :: Nil = Enum(3)
-  val state = RegInit(mul_idle)
-  state := MuxLookup(state, mul_idle)(List(
-    mul_idle -> Mux(io.mul_valid, mul_wait, mul_idle),
-    mul_wait -> Mux(mul_counter === 1.U, mul_wait_ready, mul_wait),
-    mul_wait_ready  -> Mux(io.ready, mul_idle, mul_wait_ready)
-  ))
-
-  mul_counter := Mux(state === mul_wait, mul_counter + 1.U, 0.U)
-  val out_valid = state === mul_wait_ready
 
   io.alu_valid := Mux(io.mul_valid, out_valid, true.B)
 
