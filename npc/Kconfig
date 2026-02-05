@@ -136,6 +136,15 @@ config LIGHTSSS
 	bool "Enable open lightsss"
 	default n
 
+config KONATA
+	depends on TRACE
+	bool "Enable Konata pipeline visualization"
+	default n
+	help
+	  Enable Konata pipeline visualization logger.
+	  This will generate a pipeline.log file in build/ directory
+	  that can be opened with Konata tool for pipeline analysis.
+
 endmenu
 
 if MODE_SYSTEM

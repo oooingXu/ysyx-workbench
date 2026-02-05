@@ -33,12 +33,15 @@ SOC_HOME = $(NPC_HOME)/../ysyxSoC
 PERF = ./perf
 PERF_REF = $(PERF)/ysyxSoCFull
 PERF_BIN = $(PERF)/$(MICROBENCH)
-COREMARK_BIN = ./resource/coremark-riscv32-npc.bin
 CACHESIM = $(PERF)/cachesim
 YOSYS = ../yosys-sta
 RISCV_TEST_AM = $(NPC_HOME)/../riscv-tests-am
+KONATA_HOME = $(NPC_HOME)/tools/Konata
 
 
+KONATA = $(KONATA_HOME)/konata.sh
+PIPELINE_LOG = $(BUILD_DIR)/pipeline.log
+COREMARK_BIN = ./resource/coremark-riscv32-npc.bin
 CACHESIM_BIN = $(PERF)/pc_trace.bin
 BIN = $(BUILD_DIR)/$(TOP_NAME)
 NPC = $(NPC_HOME)/csrc/$(CPU_NAME).cpp
@@ -115,7 +118,7 @@ verilog:
 
 run_test: $(BIN)
 	$(call git_commit, "run run_test")
-	$(MAKE) -C $(RISCV_TEST_AM) ARCH=riscv32im-npc sim
+	$(MAKE) -C $(RISCV_TEST_AM) ARCH=riscv32im-npc ALL=add sim
 
 run: $(BIN)
 	$(call git_commit, "run NPC")
@@ -152,6 +155,9 @@ perf_npc:
 cachesim:
 	@gcc $(CACHESIM).c -o $(CACHESIM)
 	@$(CACHESIM) $(CACHESIM_BIN)
+
+konata:
+	$(KONATA) $(PIPELINE_LOG)
 
 clean:
 	rm -rf $(BUILD_DIR) test_run_dir $(OBJ) $(VSRC) waveform.*

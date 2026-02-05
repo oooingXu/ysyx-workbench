@@ -13,6 +13,11 @@
 #include <map.h>
 #include <trace.h>
 
+#ifdef CONFIG_KONATA
+#include <konata/konata_logger.h>
+#include <konata/pipeline_tracker.h>
+#endif>
+
 class TOP_NAME;
 static TOP_NAME *dut = NULL;
 
@@ -136,6 +141,8 @@ extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, uint32_t inst, bool v
 	pipeline_wdata   = wdata;
 	pipeline_awvalid = awvalid;
 	pipeline_wstrb   = wstrb;
+
+	pipeline_tracker_update(pc, dnpc, inst, valid & 1);
 }
 
 static long load_program(char * img,uint32_t addr) {
@@ -229,6 +236,13 @@ static void init_npc(){
 	//cpu.mstatus    = 0x1800;
 	cpu.mvendorid  = 0x79737978;
 	cpu.marchid    = 0x015fdf70;
+
+#ifdef CONFIG_KONATA
+	// Initialize Konata logger
+	konata_init("build/pipeline.log");
+	pipeline_tracker_init();
+	printf("Konata logging enabled: build/pipeline.log\n");
+#endif
 }
 
 static void trace_and_difftest(){
@@ -466,6 +480,11 @@ int main(int argc, char **argv)
 #endif
 
 	IFDEF(CONFIG_PCOUNTER, output_file.close());
+
+#ifdef CONFIG_KONATA
+	konata_close();
+#endif
+
 	dut->final();
 	delete dut;
 
