@@ -1,13 +1,14 @@
 mainmenu "ysyx_23060336 Configuration Menu"
 
-menu "Architecture"
+choice 
+	prompt "Architecture"
+	default NPC
+
 config NPC
 	bool "riscv32-npc"
-	default n
 config SOC
 	bool "riscv32-ysyxsoc"
-	default y
-endmenu
+endchoice
 
 menu "ISA-dependent Options for riscv"
 
@@ -17,18 +18,23 @@ config RVE
 
 endmenu
 
-choice
-	prompt "Running mode"
-	default MODE_SYSTEM
+menu "Architecture configuration"
 
-config MODE_SYSTEM
-	bool "System mode"
-endchoice
+config ICACHE
+	bool "Enable use Icache"
+	default y
+
+config VERILATOR_SIM
+	bool "Enable verilator sim"
+	default y
+
+endmenu
 
 menu "Testing and Debugging"
 
 config TRACE
 	bool "Enable tracer"
+	depends on VERILATOR_SIM
 	default y
 
 config ITRACE
@@ -152,7 +158,7 @@ config KONATA_DEBUG
 
 endmenu
 
-if MODE_SYSTEM
+if NPC
 source "csrc/device/Kconfig"
 endif
 

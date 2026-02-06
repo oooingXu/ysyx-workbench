@@ -91,6 +91,12 @@ CXXFLAGS += -mcmodel=medium -Wno-format -Wno-shift-count-overflow -Wno-deprecate
 IMG ?= 
 NPC_EXEC := $(BIN) $(IMG) $(DIFF_REF_SO) 
 
+CONFIG_VARS := CONFIG_KONATA=$(CONFIG_KONATA) \
+               CONFIG_NPC=$(CONFIG_NPC) \
+               CONFIG_RVE=$(CONFIG_RVE) \
+							 CONFIG_VERILATOR_SIM=$(CONFIG_VERILATOR_SIM) \
+							 CONFIG_ICACHE=$(CONFIG_ICACHE)
+
 $(BIN): $(CPU) $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
@@ -113,7 +119,7 @@ verilog:
 	$(call git_commit, "generate verilog")
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(VSRC)
-	export CONFIG_KONATA=$(CONFIG_KONATA); mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
+	$(CONFIG_VARS) mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
 	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(CPU)
 
 run_test: $(BIN)
