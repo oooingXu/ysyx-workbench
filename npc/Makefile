@@ -113,7 +113,7 @@ verilog:
 	$(call git_commit, "generate verilog")
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(VSRC)
-	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
+	export CONFIG_KONATA=$(CONFIG_KONATA); mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC)
 	sed -i '/----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----/,$$d' $(CPU)
 
 run_test: $(BIN)

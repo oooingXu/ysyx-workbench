@@ -16,7 +16,7 @@
 #ifdef CONFIG_KONATA
 #include <konata/konata_logger.h>
 #include <konata/pipeline_tracker.h>
-#endif>
+#endif
 
 class TOP_NAME;
 static TOP_NAME *dut = NULL;
@@ -142,7 +142,7 @@ extern "C" void pipeline_state(uint32_t pc, uint32_t dnpc, uint32_t inst, bool v
 	pipeline_awvalid = awvalid;
 	pipeline_wstrb   = wstrb;
 
-	pipeline_tracker_update(pc, dnpc, inst, valid & 1);
+	//IFDEF(CONFIG_KONATA, pipeline_tracker_update(pc, dnpc, inst, valid & 1));
 }
 
 static long load_program(char * img,uint32_t addr) {

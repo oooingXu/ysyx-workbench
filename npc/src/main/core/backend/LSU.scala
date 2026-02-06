@@ -152,5 +152,19 @@ class ysyx_23060336_LSU extends Module{
     dontTouch(pc_debug)
     dontTouch(dnpc_debug)
   }
+
+  // Konata pipeline tracking
+  if(Config.useKonata) {
+    val cycle_counter = RegInit(0.U(64.W))
+    cycle_counter := cycle_counter + 1.U
+
+    val konata_lsu = Module(new KonataTrackerLSU)
+    konata_lsu.io.cycle := cycle_counter
+    konata_lsu.io.pc := Cat(io.exu_lsu_data.bits.exu_wbu_data.pc, 0.U(2.W))
+    konata_lsu.io.inst := io.exu_lsu_data.bits.idu_lsu_data.idu_wbu_data.inst
+    konata_lsu.io.valid := state =/= s_idle
+    konata_lsu.io.ready := io.lsu_wbu_data.ready
+    konata_lsu.io.state := state
+  }
 }
 

@@ -61,5 +61,21 @@ class ysyx_23060336_IDU extends Module{
     pc_debug := Cat(io.ifu_idu_data.bits.pc, 0.U(2.W))
     dontTouch(pc_debug)
   }
+
+  // Konata pipeline tracking
+  if(Config.useKonata) {
+    val cycle_counter = RegInit(0.U(64.W))
+    cycle_counter := cycle_counter + 1.U
+
+    val konata_idu = Module(new KonataTrackerIDU)
+    konata_idu.io.cycle := cycle_counter
+    konata_idu.io.pc := Cat(io.ifu_idu_data.bits.pc, 0.U(2.W))
+    konata_idu.io.inst := io.ifu_idu_data.bits.inst
+    konata_idu.io.valid := io.idu_exu_data.valid
+    konata_idu.io.ready := io.idu_exu_data.ready
+    konata_idu.io.state := state
+    konata_idu.io.isRawData := isRAW_data
+    konata_idu.io.flush := io.exu_idu_raw.exu_isRAW_control
+  }
 }
 

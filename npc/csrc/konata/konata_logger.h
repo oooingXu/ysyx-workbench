@@ -8,11 +8,11 @@
 #define KONATA_VERSION "0004"
 
 // Pipeline stage names
-#define STAGE_FETCH   "F"
-#define STAGE_DECODE  "D"
-#define STAGE_EXECUTE "E"
-#define STAGE_MEMORY  "M"
-#define STAGE_WRITEBACK "W"
+#define STAGE_FETCH   "IFU"
+#define STAGE_DECODE  "IDU"
+#define STAGE_EXECUTE "EXU"
+#define STAGE_MEMORY  "LSU"
+#define STAGE_WRITEBACK "WBU"
 
 // Instruction retire types
 #define RETIRE_TYPE_NORMAL 0

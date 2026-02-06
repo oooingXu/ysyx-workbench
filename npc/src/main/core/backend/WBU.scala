@@ -70,4 +70,21 @@ class ysyx_23060336_WBU extends Module {
   io.wbu_idu_raw.wbu_rd       := io.lsu_wbu_data.bits.idu_wbu_data.rd
   io.wbu_idu_raw.wbu_rden     := io.lsu_wbu_data.bits.idu_wbu_data.rden
   io.wbu_idu_raw.wbu_regdata  := io.lsu_wbu_data.bits.regdata
+
+  // Konata pipeline tracking
+  if(Config.useKonata) {
+    val cycle_counter = RegInit(0.U(64.W))
+    cycle_counter := cycle_counter + 1.U
+
+    val wbu_valid = RegInit(false.B)
+    wbu_valid := io.lsu_wbu_data.valid
+
+    val konata_wbu = Module(new KonataTrackerWBU)
+    konata_wbu.io.cycle := cycle_counter
+    konata_wbu.io.pc := Cat(io.lsu_wbu_data.bits.exu_wbu_data.pc, 0.U(2.W))
+    konata_wbu.io.inst := io.lsu_wbu_data.bits.idu_wbu_data.inst
+    konata_wbu.io.valid := wbu_valid
+    konata_wbu.io.ready := io.lsu_wbu_data.ready
+    konata_wbu.io.state := 0.U
+  }
 }

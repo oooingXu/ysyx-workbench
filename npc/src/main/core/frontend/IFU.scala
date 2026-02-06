@@ -74,5 +74,21 @@ class ysyx_23060336_IFU extends Module{
     pc_debug := Cat(PC, 0.U(2.W))
     dontTouch(pc_debug)
   }
+
+  // Konata pipeline tracking
+  if(Config.useKonata) {
+    val cycle_counter = RegInit(0.U(64.W))
+    cycle_counter := cycle_counter + 1.U
+
+    val flush_reg = RegInit(false.B)
+    flush_reg := flush
+
+    val konata_ifu = Module(new KonataTrackerIFU)
+    konata_ifu.io.cycle := cycle_counter
+    konata_ifu.io.pc := Cat(PC, 0.U(2.W))
+    konata_ifu.io.inst := io.ifu_idu_data.bits.inst
+    konata_ifu.io.valid := !reset.asBool 
+    konata_ifu.io.flush := flush
+  }
 }
 

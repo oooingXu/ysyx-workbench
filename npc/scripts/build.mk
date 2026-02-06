@@ -21,6 +21,7 @@ CSRCS += $(NPC_HOME)/csrc/counter/counter.c
 ifdef CONFIG_KONATA
 CSRCS += $(NPC_HOME)/csrc/konata/konata_logger.c
 CSRCS += $(NPC_HOME)/csrc/konata/pipeline_tracker.c
+CSRCS += $(NPC_HOME)/csrc/konata/konata_stage_tracker.c
 CSRCS += $(NPC_HOME)/csrc/konata/dpi_interface.cpp
 endif
 

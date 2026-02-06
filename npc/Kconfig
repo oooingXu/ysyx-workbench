@@ -145,6 +145,11 @@ config KONATA
 	  This will generate a pipeline.log file in build/ directory
 	  that can be opened with Konata tool for pipeline analysis.
 
+config KONATA_DEBUG
+	depends on KONATA
+	bool "Enable debug konata"
+	default n
+
 endmenu
 
 if MODE_SYSTEM

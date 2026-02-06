@@ -111,9 +111,24 @@ class ysyx_23060336_EXU extends Module {
 
     pc_debug := Cat(pc, 0.U(2.W))
     dnpc_debug := Cat(dnpc, 0.U(2.W))
-    
+
     dontTouch(pc_debug)
     dontTouch(dnpc_debug)
+  }
+
+  // Konata pipeline tracking
+  if(Config.useKonata) {
+    val cycle_counter = RegInit(0.U(64.W))
+    cycle_counter := cycle_counter + 1.U
+
+    val konata_exu = Module(new KonataTrackerEXU)
+    konata_exu.io.cycle := cycle_counter
+    konata_exu.io.pc := Cat(pc, 0.U(2.W))
+    konata_exu.io.dnpc := Cat(dnpc, 0.U(2.W))
+    konata_exu.io.inst := io.idu_exu_data.bits.idu_lsu_data.idu_wbu_data.inst
+    konata_exu.io.valid := state =/= s_idle
+    konata_exu.io.ready := io.exu_lsu_data.ready
+    konata_exu.io.state := state
   }
 
 }
