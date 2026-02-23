@@ -1,3 +1,6 @@
 [submodule "riscv-arch-test-am"]
 	path = riscv-arch-test-am
 	url = https://github.com/oooingXu/ysyx-workbench
+[submodule "rt-thread-nano"]
+	path = rt-thread-nano
+	url = https://github.com/oooingXu/rt-thread-nano.git
