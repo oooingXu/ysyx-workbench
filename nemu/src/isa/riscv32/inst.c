@@ -15,6 +15,7 @@
 
 #include "local-include/reg.h"
 #include <cpu/cpu.h>
+#include <cpu/ftrace.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
@@ -61,7 +62,7 @@ enum { TYPE_A_AND_B, TYPE_A_OR_B, TYPE_A_AND_NB,};
 #define uimmCLS() do { *uimm = BITS(i, 12, 10) << 3 | BITS(i, 6, 6) << 2 | BITS(i, 5, 5) << 6; } while(0)
 #define uimmCLWSP() do { *uimm = BITS(i, 12, 12) << 5 | BITS(i, 6, 4) << 2 | BITS(i, 3, 2) << 6; } while(0)
 #define uimmCSWSP() do { *uimm = BITS(i, 12, 9) << 2 | BITS(i, 8, 7) << 6; } while(0)
-#define immCJ() do { *imm = SEXT((BITS(i, 12, 12) << 11 | BITS(i, 11, 11) << 4 | BITS(i, 10, 9) << 8 | BITS(i, 8, 8) << 10 | BITS(i, 7, 7) << 6| BITS(i, 6, 6) << 7 | BITS(i, 5, 3) << 1 | BITS(i, 2, 2)), 12); } while(0) 
+#define immCJ() do { *imm = SEXT((BITS(i, 12, 12) << 11 | BITS(i, 11, 11) << 4 | BITS(i, 10, 9) << 8 | BITS(i, 8, 8) << 10 | BITS(i, 7, 7) << 6| BITS(i, 6, 6) << 7 | BITS(i, 5, 3) << 1 | BITS(i, 2, 2) << 5), 12); } while(0) 
 #endif
 
 static void csr_write(uint32_t csr, uint32_t a, uint32_t b, int op){
@@ -264,7 +265,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("????? ?? ????? ???? 100 1 00000 00000 10", c.ebreak,		 N, NEMUTRAP(s->pc, R(10)); IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.ebreak: pc = 0x%08x\n", s->pc))); 
 
   INSTPAT("????? ?? ????? ???? 101 ??????????? 01", c.j,					 CJ, s->dnpc = s->pc + imm; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.j: dnpc = 0x%08x, pc = 0x%08x\n", s->dnpc, s->pc))); 
-  INSTPAT("????? ?? ????? ???? 001 ??????????? 01", c.jal,				 CJ, R(1) = s->pc + 2; s->dnpc = s->pc + imm; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.jal: dnpc = 0x%08x, pc = 0x%08x\n", s->dnpc, s->pc))); 
+  INSTPAT("????? ?? ????? ???? 001 ??????????? 01", c.jal,				 CJ, R(1) = s->pc + 2; s->dnpc = s->pc + imm; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.jal: dnpc = 0x%08x, pc = 0x%08x, imm = %d\n", s->dnpc, s->pc, imm))); 
   INSTPAT("????? ?? ????? ???? 100 1 ????? 00000 10", c.jalr,			 CJ, uint32_t t = s->pc + 2; s->dnpc = R(rs1_11_7); R(1) = t; IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.jalr: rs1_11_7 = %d, dnpc = 0x%08x, pc = 0x%08x\n", rs1_11_7, s->dnpc, s->pc))); 
   INSTPAT("????? ?? ????? ???? 100 0 ????? 00000 10", c.jr,				 CJ, s->dnpc = R(rs1_11_7); IFDEF(CONFIG_DEBUG_C, printf("(nemu) : Doing c.jr: rs1_11_7 = %d, dnpc = 0x%08x\n", rs1_11_7, s->dnpc))); 
 

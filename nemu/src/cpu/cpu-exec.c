@@ -36,7 +36,16 @@
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
+
 static uint64_t g_timer = 0; // unit: us
+static uint64_t total_us = 0;  
+static uint64_t us = 0;        
+static uint64_t total_ms = 0;  
+static uint64_t ms = 0;        
+static uint64_t total_sec = 0; 
+static uint64_t sec = 0;       
+static uint64_t min = 0;       
+
 static bool g_print_step = false;
 
 void device_update();
@@ -105,9 +114,19 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 }
 
 static void statistic() {
+
+	total_us = g_timer;             
+	us = total_us % 1000;           
+	total_ms = total_us / 1000;     
+	ms = total_ms % 1000;           
+	total_sec = total_ms / 1000;    
+	sec = total_sec % 60;           
+	min = total_sec / 60;           
+
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);
+	Log("host time spent = %ld min, %ld s, %ld ms, %ld us", min, sec, ms, us);
   Log("total guest instructions = " NUMBERIC_FMT, g_nr_guest_inst);
   if (g_timer > 0) Log("simulation frequency = " NUMBERIC_FMT " inst/s", g_nr_guest_inst * 1000000 / g_timer);
   else Log("Finish running in less than 1 us and can not calculate the simulation frequency");
