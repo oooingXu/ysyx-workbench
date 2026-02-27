@@ -13,6 +13,8 @@ LDFLAGS   += -T $(AM_HOME)/scripts/linker.ld \
 LDFLAGS   += --gc-sections -e _start
 #LDFLAGS   += --print-map
 NEMUFLAGS += -l $(shell dirname $(IMAGE).elf)/nemu-log.txt 
+NEMUFLAGS += -o $(shell dirname $(IMAGE).elf)/nemu-nzsxlog.txt 
+NEMUFLAGS += -g $(shell dirname $(IMAGE).elf)/nemu-nzoxlog.txt 
 NEMUFLAGS += -b
 NEMUFLAGS += -e $(IMAGE).elf 
 
