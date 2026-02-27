@@ -30,6 +30,30 @@ void init_log(const char *log_file) {
   Log("Log is written to %s", log_file ? log_file : "stdout");
 }
 
+FILE *log_nzsxfp = NULL;
+
+void init_nzsxlog(const char *log_nzsxfile) {
+  log_nzsxfp = stdout;
+  if (log_nzsxfile != NULL) {
+    FILE *fp = fopen(log_nzsxfile, "w");
+    Assert(fp, "Can not open '%s'", log_nzsxfile);
+    log_nzsxfp = fp;
+  }
+  Log("Log is written to %s", log_nzsxfile ? log_nzsxfile : "stdout");
+}
+
+FILE *log_nzoxfp = NULL;
+
+void init_nzoxlog(const char *log_nzoxfile) {
+  log_nzoxfp = stdout;
+  if (log_nzoxfile != NULL) {
+    FILE *fp = fopen(log_nzoxfile, "w");
+    Assert(fp, "Can not open '%s'", log_nzoxfile);
+    log_nzoxfp = fp;
+  }
+  Log("Log is written to %s", log_nzoxfile ? log_nzoxfile : "stdout");
+}
+
 bool log_enable() {
   return MUXDEF(CONFIG_TRACE, (g_nr_guest_inst >= CONFIG_TRACE_START) &&
          (g_nr_guest_inst <= CONFIG_TRACE_END), false);

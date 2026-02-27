@@ -173,14 +173,16 @@ static void exec_once(Decode *s, vaddr_t pc) {
 
 static void execute(uint64_t n) {
   Decode s;
+#ifdef CONFIG_TIMER_IRQ
 	uint32_t new_time = 0;
+#endif
   for (;n > 0; n --) {
 		cpu.trap = 0;
+#ifdef CONFIG_TIMER_IRQ
 		new_time = (uint32_t)get_time();
 		if(new_time <  cpu.timerl) cpu.timerh++;
 			cpu.timerl = new_time;
 
-#ifdef CONFIG_TIMER_IRQ
 		// Handle Timer interrupt
 		if((cpu.timerh > cpu.timermatchh || (cpu.timerh == cpu.timermatchh && cpu.timerl > cpu.timermatchl)) && (cpu.timermatchh || cpu.timermatchl)) {
 			cpu.extraflags &= ~4; // Clear WFI

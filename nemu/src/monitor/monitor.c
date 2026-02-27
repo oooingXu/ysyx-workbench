@@ -22,6 +22,8 @@
 
 void init_rand();
 void init_log(const char *log_file);
+void init_nzsxlog(const char *log_nzsxfile);
+void init_nzoxlog(const char *log_nzoxfile);
 void init_ftrace(const char *elf_file);
 void init_mem();
 void init_difftest(char *ref_so_file, long img_size, int port);
@@ -45,6 +47,8 @@ static void welcome() {
 void sdb_set_batch_mode();
 
 static char *log_file = NULL;
+static char *log_nzsxfile = NULL;
+static char *log_nzoxfile = NULL;
 static char *elf_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
@@ -121,11 +125,13 @@ static int parse_args(int argc, char *argv[]) {
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhe:l:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhe:l:o:g:d:p:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
+      case 'o': log_nzsxfile = optarg; break;
+      case 'g': log_nzoxfile = optarg; break;
 			case 'e': elf_file = optarg; ; break;
       case 'd': diff_so_file = optarg; break;
       case 1  : img_file = optarg; ;return 0;
@@ -154,6 +160,8 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Open the log file. */
   init_log(log_file);
+  init_nzsxlog(log_nzsxfile);
+  init_nzoxlog(log_nzoxfile);
 
 	/* Open the elf file. */
 	IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));

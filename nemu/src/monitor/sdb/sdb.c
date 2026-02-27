@@ -100,6 +100,60 @@ static int cmd_x(char *args)	{
 	return 0;
 }
 
+static int cmd_nzox(char *args)	{
+	extern FILE* log_nzoxfp;
+	char* num = strtok(args, " ");
+	char* iaddr = strtok(NULL," ");
+
+	uint32_t len;
+	paddr_t addr;
+
+	sscanf(num,"0x%08x",&len);
+	sscanf(iaddr,"%x",&addr);
+
+	uint32_t rdata = 0; 
+	for(uint32_t i = 0; i < len; i++) {
+		rdata = paddr_read(addr, 1);
+		if(rdata != 0 && rdata == 1) {
+			fprintf(log_nzoxfp, "0x%x ---> %d\n",addr, rdata);
+			fflush(log_nzoxfp);
+		} else {
+			fprintf(log_nzoxfp, "0x%x ---> %d\n",addr, 0);
+			fflush(log_nzoxfp);
+		}
+		addr += 1;
+	}
+	
+	return 0;
+}
+
+static int cmd_nzsx(char *args)	{
+	extern FILE* log_nzsxfp;
+	char* num = strtok(args, " ");
+	char* iaddr = strtok(NULL," ");
+
+	uint32_t len;
+	paddr_t addr;
+
+	sscanf(num,"0x%08x",&len);
+	sscanf(iaddr,"%x",&addr);
+
+	uint32_t rdata = 0; 
+	for(uint32_t i = 0; i < len; i++) {
+		rdata = paddr_read(addr, 1);
+		if(rdata != 0 && rdata == 2) {
+			fprintf(log_nzsxfp, "0x%x ---> %d\n",addr, rdata);
+			fflush(log_nzsxfp);
+		} else {
+			fprintf(log_nzsxfp, "0x%x ---> %d\n",addr, 0);
+			fflush(log_nzsxfp);
+		}
+		addr += 1;
+	}
+	
+	return 0;
+}
+
 static int cmd_p(char* args) {
 	if(args == NULL){
 		printf("No args\n");
@@ -225,6 +279,8 @@ static struct {
 	{ "si", "Step i the execution of the program", cmd_si},
 	{ "info", "Print the SUBCMD information", cmd_info},
 	{ "x", "Scan the memory", cmd_x},
+	{ "nzsx", "Scan the memory", cmd_nzsx},
+	{ "nzox", "Scan the memory", cmd_nzox},
 	{ "p", "Print expression", cmd_p},
 	{ "x_ref", "Scan the memory of ref", cmd_x_ref},
 	{ "pirb", "Print expression", cmd_pirb},

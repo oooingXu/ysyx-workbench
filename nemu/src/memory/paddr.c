@@ -38,6 +38,8 @@ static uint8_t* s_guest_to_host(paddr_t paddr) { return sram + paddr - SRAM_BASE
 static word_t pmem_read(paddr_t addr, int len) {
 	//addr = addr & 0xfffffffc;
   word_t ret = host_read(guest_to_host(addr), len);
+	if(addr == 0x800054a0) ret = 2;
+	//if(addr == 0x8000ddde) ret = 2;
   return ret;
 }
 
@@ -97,6 +99,7 @@ static void mem_diff_store_update(paddr_t addr, int len, word_t data) {
 	}
 }
 
+#ifdef CONFIG_TARGET_SHARE
 static paddr_t mem_diff_rdata(paddr_t rdata, paddr_t addr, int len) {
 	paddr_t tmp_addr = addr;
 	paddr_t tmp_rdata = rdata;
@@ -113,9 +116,10 @@ static paddr_t mem_diff_rdata(paddr_t rdata, paddr_t addr, int len) {
 		case 1: return tmp_rdata & 0xff;
 		default: return tmp_rdata;
 	}
-
 }
+#endif
 		
+#ifdef CONFIG_TARGET_SHARE
 static void mem_diff_load_update(paddr_t rdata, paddr_t addr, int len) {
 	mem_diff.araddr = addr;
 	mem_diff.rdata  = mem_diff_rdata(rdata, addr, len);
@@ -127,6 +131,7 @@ static void mem_diff_load_update(paddr_t rdata, paddr_t addr, int len) {
 		mem_diff.arsize = 0;
 	}
 }
+#endif
 
 #ifdef CONFIG_NOMMULINUX
 // nolinux
@@ -199,17 +204,17 @@ word_t paddr_read(paddr_t addr, int len) {
   if (likely(in_pmem(addr))) {
 		IFDEF(CONFIG_FMTRACE, printf("(nemu) flash READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, pmem_read(addr, len), len));
 		rdata = pmem_read(addr, len);
-		mem_diff_load_update(rdata, addr, len);
+		IFDEF(CONFIG_TARGET_SHARE, mem_diff_load_update(rdata, addr, len));
 		return rdata;
 	} else if(in_sram(addr)) {
 		IFDEF(CONFIG_SMTRACE, printf("(nemu) sram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, sram_read(addr, len), len));
 		rdata = sram_read(addr, len);
-		mem_diff_load_update(rdata, addr, len);
+		IFDEF(CONFIG_TARGET_SHARE, mem_diff_load_update(rdata, addr, len));
 		return rdata;
 	} else if(in_psram(addr)) {
 		IFDEF(CONFIG_PMTRACE, printf("(nemu) psram READ: addr = 0x%08x, data = 0x%08x, size = %d\n", addr, psram_read(addr, len), len));
 		rdata = psram_read(addr, len);
-		mem_diff_load_update(rdata, addr, len);
+		IFDEF(CONFIG_TARGET_SHARE, mem_diff_load_update(rdata, addr, len));
 		return rdata;
 #ifdef CONFIG_NOMMULINUX
 	} else if(in_mmio_range(addr)) { // UART, CLINT
