@@ -60,7 +60,7 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   out7             := shift.io.out
 
   // mul
-  val mul = Module(new MyMul(n))
+  val mul = Module(new Mul(n))
   mul.io.ina := io.ina
   mul.io.inb := io.inb
   mul.io.ready := io.ready
@@ -72,7 +72,7 @@ class ysyx_23060336_ALU(n: Int) extends Module {
   val mul_result = mul.io.out
 
   // div
-  val div = Module(new MyDiv(n))
+  val div = Module(new Div(n))
   div.io.ina := io.ina
   div.io.inb := io.inb
   div.io.signed := !io.sel(0)
